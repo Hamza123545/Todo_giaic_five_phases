@@ -1,0 +1,21 @@
+[project]
+name = "cli_todo_app"
+version = "0.1.0"
+description = "A basic CLI todo application"
+requires-python = ">=3.13"
+dependencies = [
+    "click",
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+todo = "src.__main__:cli"
+
+[tool.uv]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
