@@ -59,19 +59,19 @@
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Create signup page component at `/frontend/app/signup/page.tsx`
-- [ ] T015 [P] [US1] Create signin page component at `/frontend/app/signin/page.tsx`
+- [X] T014 [US1] Create signup page component at `/frontend/app/signup/page.tsx`
+- [X] T015 [P] [US1] Create signin page component at `/frontend/app/signin/page.tsx`
 - [ ] T016 [US1] Create TaskForm component at `/frontend/components/TaskForm.tsx`
 - [ ] T017 [P] [US1] Create TaskList component at `/frontend/components/TaskList.tsx`
 - [ ] T018 [US1] Create TaskItem component at `/frontend/components/TaskItem.tsx`
 - [ ] T019 [US1] Create FilterControls component at `/frontend/components/FilterControls.tsx`
 - [ ] T020 [P] [US1] Create SortControls component at `/frontend/components/SortControls.tsx`
 - [ ] T021 [US1] Create SearchBar component at `/frontend/components/SearchBar.tsx`
-- [ ] T022 [US1] Implement dashboard page with authentication check at `/frontend/app/dashboard/page.tsx`
-- [ ] T023 [P] [US1] Add signout functionality to header navigation
-- [ ] T024 [US1] Integrate API client for authentication endpoints in signup/signin pages
-- [ ] T025 [US1] Add form validation and error handling to signup/signin forms
-- [ ] T026 [P] [US1] Implement JWT token management and storage
+- [X] T022 [US1] Implement dashboard page with authentication check at `/frontend/app/dashboard/page.tsx`
+- [X] T023 [P] [US1] Add signout functionality to header navigation
+- [X] T024 [US1] Integrate API client for authentication endpoints in signup/signin pages
+- [X] T025 [US1] Add form validation and error handling to signup/signin forms
+- [X] T026 [P] [US1] Implement JWT token management and storage
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
