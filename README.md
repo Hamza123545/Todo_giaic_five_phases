@@ -1,4 +1,4 @@
-# Basic CLI Todo App
+# Todo GIAIC Five Phases - CLI Todo App
 
 This is a simple command-line interface (CLI) application for managing todo tasks. It allows users to add, list, update, complete/uncomplete, and delete tasks.
 
@@ -6,8 +6,8 @@ This is a simple command-line interface (CLI) application for managing todo task
 
 1.  **Clone the repository**:
     ```bash
-    git clone <repository_url>
-    cd todo_console_app/todo_console
+    git clone https://github.com/Hamza123545/Todo_giaic_five_phases.git
+    cd Todo_giaic_five_phases/cli_todo_app
     ```
 
 2.  **Install UV**:
