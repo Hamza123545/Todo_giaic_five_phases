@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest",
+    "test:unit": "vitest __tests__/unit",
+    "test:integration": "vitest __tests__/integration",
+    "test:accessibility": "vitest __tests__/accessibility",
+    "test:performance": "vitest __tests__/performance",
+    "test:e2e": "playwright test",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@better-auth/client": "^0.0.2-alpha.3",

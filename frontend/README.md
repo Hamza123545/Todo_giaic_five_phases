@@ -1,4 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Todo Application Frontend
+
+A comprehensive task management application built with Next.js 16+, TypeScript, and Tailwind CSS. This application provides a complete solution for managing tasks with authentication, filtering, sorting, and search capabilities.
+
+## Features
+
+- **Authentication**: Secure user authentication with Better Auth
+- **Task Management**: Create, update, delete, and mark tasks as complete
+- **Filtering & Sorting**: Filter by status and sort by various criteria
+- **Search**: Real-time task search functionality
+- **Responsive Design**: Mobile-first responsive interface
+- **Dark Mode**: Built-in dark/light theme support
+- **Type Safety**: Strict TypeScript typing throughout
+- **Performance Optimized**: Memoized components and efficient rendering
 
 ## Getting Started
 
@@ -16,9 +29,27 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Security Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Secure Token Storage**: Uses sessionStorage instead of localStorage for JWT tokens
+- **Input Sanitization**: XSS prevention through input sanitization
+- **Error Handling**: Proper error boundaries and user feedback
+- **API Security**: Centralized API client with proper authentication headers
+
+## Performance Optimizations
+
+- **Component Memoization**: TaskList and TaskItem components are memoized
+- **Optimized Rendering**: Use of useMemo for expensive calculations
+- **Efficient Data Fetching**: Optimized API calls with proper caching
+- **Bundle Optimization**: Tree-shaken dependencies and code splitting
+
+## Architecture
+
+- **Type Safety**: Centralized TypeScript type definitions in `types.ts`
+- **Component Structure**: Modular, reusable React components
+- **API Layer**: Centralized API client in `lib/api.ts`
+- **Utilities**: Common utilities in `lib/utils.ts`
+- **Error Handling**: Global error boundaries for graceful error recovery
 
 ## Learn More
 

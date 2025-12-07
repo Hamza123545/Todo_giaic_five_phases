@@ -28,13 +28,14 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // ms
 
 /**
- * Get JWT token from session storage or Better Auth
+ * Get JWT token from secure storage
  */
 const getAuthToken = (): string | null => {
   if (typeof window === "undefined") return null;
 
-  // Try to get token from localStorage (set by Better Auth)
-  const token = localStorage.getItem("auth_token");
+  // Try to get token from sessionStorage (more secure than localStorage)
+  // In production, this should be httpOnly cookies handled by the backend
+  const token = sessionStorage.getItem("auth_token");
   return token;
 };
 
@@ -50,7 +51,7 @@ const handleApiError = (error: any, statusCode?: number): never => {
   // Redirect to login on 401 Unauthorized
   if (statusCode === 401) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
       window.location.href = "/signin";
     }
   }
@@ -137,7 +138,7 @@ export class ApiClient {
     // Store token if signup successful
     if (response.success && response.data?.token) {
       if (typeof window !== "undefined") {
-        localStorage.setItem("auth_token", response.data.token);
+        sessionStorage.setItem("auth_token", response.data.token);
       }
     }
 
@@ -153,7 +154,7 @@ export class ApiClient {
     // Store token if signin successful
     if (response.success && response.data?.token) {
       if (typeof window !== "undefined") {
-        localStorage.setItem("auth_token", response.data.token);
+        sessionStorage.setItem("auth_token", response.data.token);
       }
     }
 
@@ -167,7 +168,7 @@ export class ApiClient {
 
     // Remove token on signout
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
     }
 
     return response;

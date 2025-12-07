@@ -9,7 +9,7 @@
  * Stack multiple notifications
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactElement } from "react";
 import { ToastMessage, ToastType } from "@/types";
 
 interface ToastNotificationProps {
@@ -42,7 +42,7 @@ function ToastItem({ message, onDismiss }: ToastNotificationProps) {
 
   if (!isVisible) return null;
 
-  const iconMap: Record<ToastType, JSX.Element> = {
+  const iconMap: Record<ToastType, ReactElement> = {
     success: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

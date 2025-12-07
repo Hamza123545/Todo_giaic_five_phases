@@ -8,12 +8,11 @@
  */
 
 import { cn } from "@/lib/utils";
-
-export type FilterStatus = "all" | "pending" | "completed";
+import { TaskFilter } from "@/types";
 
 interface FilterControlsProps {
-  currentFilter: FilterStatus;
-  onFilterChange: (filter: FilterStatus) => void;
+  currentFilter: TaskFilter;
+  onFilterChange: (filter: TaskFilter) => void;
   taskCounts?: {
     all: number;
     pending: number;
@@ -28,7 +27,7 @@ export default function FilterControls({
   taskCounts,
   className,
 }: FilterControlsProps) {
-  const filters: { value: FilterStatus; label: string; icon: string }[] = [
+  const filters: { value: TaskFilter; label: string; icon: string }[] = [
     { value: "all", label: "All Tasks", icon: "📋" },
     { value: "pending", label: "Pending", icon: "⏳" },
     { value: "completed", label: "Completed", icon: "✅" },

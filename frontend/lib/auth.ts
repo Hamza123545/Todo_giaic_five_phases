@@ -24,7 +24,7 @@ export const authClient = createAuthClient({
   },
 
   // Storage configuration (for client-side token management)
-  storage: typeof window !== "undefined" ? localStorage : undefined,
+  storage: typeof window !== "undefined" ? sessionStorage : undefined,
 });
 
 /**
@@ -80,9 +80,9 @@ export async function signOut() {
   try {
     await authClient.signOut();
 
-    // Clear auth token from localStorage
+    // Clear auth token from sessionStorage
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
     }
   } catch (error) {
     console.error("Signout error:", error);
@@ -95,7 +95,7 @@ export async function signOut() {
  */
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
-  return session !== null && session.user !== null;
+  return session !== null && session.data?.user !== null && session.data?.user !== undefined;
 }
 
 /**
@@ -103,7 +103,7 @@ export async function isAuthenticated(): Promise<boolean> {
  */
 export async function getCurrentUser() {
   const session = await getSession();
-  return session?.user || null;
+  return session?.data?.user || null;
 }
 
 /**

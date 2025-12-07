@@ -216,3 +216,33 @@ export function getErrorMessage(error: unknown): string {
   if (typeof error === "string") return error;
   return "An unknown error occurred";
 }
+
+/**
+ * Sanitize user input to prevent XSS
+ */
+export function sanitizeInput(input: string): string {
+  if (!input) return input;
+
+  // Remove potentially dangerous characters/sequences
+  return input
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+}
+
+/**
+ * Sanitize HTML content (basic implementation)
+ * For production, use a proper library like DOMPurify
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return html;
+
+  // Basic HTML sanitization - remove script tags and other dangerous elements
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '');
+}

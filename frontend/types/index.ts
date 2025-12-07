@@ -48,9 +48,12 @@ export interface TaskFormData {
   tags?: string[];
 }
 
+export type SortField = "created" | "title" | "updated" | "priority" | "due_date";
+export type SortParam = SortField | `${SortField}:${"asc" | "desc"}`;
+
 export interface TaskQueryParams {
   status?: "all" | "pending" | "completed";
-  sort?: "created" | "title" | "updated" | "priority" | "due_date" | `${"created" | "title" | "updated" | "priority" | "due_date"}:${"asc" | "desc"}`;
+  sort?: SortParam;
   search?: string;
   page?: number;
   limit?: number;

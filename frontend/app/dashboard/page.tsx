@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
-import { User, Task } from "@/types";
+import { User, Task, LoadingState, TaskQueryParams, SortField, SortParam, TaskFilter, SortConfig } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import TaskForm from "@/components/TaskForm";
 import TaskList from "@/components/TaskList";
@@ -21,7 +21,6 @@ import FilterControls from "@/components/FilterControls";
 import SortControls from "@/components/SortControls";
 import SearchBar from "@/components/SearchBar";
 import { api } from "@/lib/api";
-import { LoadingState } from "@/types";
 
 function DashboardContent() {
   const router = useRouter();
@@ -29,8 +28,8 @@ function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
-  const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
-  const [sortConfig, setSortConfig] = useState<{ key: "created" | "title" | "updated" | "priority" | "due_date"; direction: "asc" | "desc" }>({
+  const [filter, setFilter] = useState<TaskFilter>("all");
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "created",
     direction: "desc"
   });
@@ -41,11 +40,19 @@ function DashboardContent() {
     async function loadUser() {
       try {
         const currentUser = await getCurrentUser();
-        setUser(currentUser);
-
-        // Load tasks for the user
+        // Map Better Auth user to our User type
         if (currentUser) {
-          loadTasks(currentUser.id);
+          const mappedUser: User = {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            created_at: currentUser.createdAt.toISOString(),
+            updated_at: currentUser.updatedAt.toISOString(),
+          };
+          setUser(mappedUser);
+
+          // Load tasks for the user
+          loadTasks(mappedUser.id);
         }
       } catch (error) {
         console.error("Failed to load user:", error);
@@ -90,9 +97,11 @@ function DashboardContent() {
           apiSortKey = "created";
       }
 
+      const sortParam: SortParam = `${apiSortKey}:${sortConfig.direction}` as SortParam;
+
       const queryParams: TaskQueryParams = {
         status: filter,
-        sort: `${apiSortKey}:${sortConfig.direction}`,
+        sort: sortParam,
         search: searchQuery,
         page: 1,
         limit: 50, // Adjust as needed
@@ -144,7 +153,7 @@ function DashboardContent() {
     }));
   };
 
-  const handleFilterChange = (newFilter: "all" | "pending" | "completed") => {
+  const handleFilterChange = (newFilter: TaskFilter) => {
     setFilter(newFilter);
   };
 
@@ -295,8 +304,7 @@ function DashboardContent() {
               {/* Search Bar */}
               <div className="mb-4">
                 <SearchBar
-                  value={searchQuery}
-                  onChange={setSearchQuery}
+                  onSearch={setSearchQuery}
                   placeholder="Search tasks..."
                 />
               </div>

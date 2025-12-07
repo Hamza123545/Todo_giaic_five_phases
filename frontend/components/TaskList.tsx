@@ -7,8 +7,9 @@
  * Supports different view modes (list, grid, kanban)
  */
 
-import { Task } from "@/types";
+import { Task, LoadingState, TaskViewMode } from "@/types";
 import { cn } from "@/lib/utils";
+import { memo, useMemo } from "react";
 import TaskItem from "./TaskItem";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -23,7 +24,7 @@ interface TaskListProps {
   className?: string;
 }
 
-export default function TaskList({
+const TaskList = memo(function TaskList({
   tasks,
   userId,
   isLoading = false,
@@ -60,8 +61,19 @@ export default function TaskList({
     );
   }
 
-  // Render based on view mode
-  const renderListView = () => (
+  // Memoize computed values
+  const { pendingTasks, completedTasks } = useMemo(() => {
+    if (viewMode === 'kanban') {
+      return {
+        pendingTasks: tasks.filter((task) => !task.completed),
+        completedTasks: tasks.filter((task) => task.completed),
+      };
+    }
+    return { pendingTasks: [], completedTasks: [] };
+  }, [tasks, viewMode]);
+
+  // Memoize list items to prevent unnecessary re-renders
+  const listItems = useMemo(() => (
     <ul
       className={cn("space-y-3", className)}
       role="list"
@@ -78,9 +90,9 @@ export default function TaskList({
         </li>
       ))}
     </ul>
-  );
+  ), [tasks, userId, onTaskChange, onError, className]);
 
-  const renderGridView = () => (
+  const gridItems = useMemo(() => (
     <div
       className={cn(
         "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
@@ -101,97 +113,94 @@ export default function TaskList({
         </div>
       ))}
     </div>
-  );
+  ), [tasks, userId, onTaskChange, onError, className]);
 
-  const renderKanbanView = () => {
-    const pendingTasks = tasks.filter((task) => !task.completed);
-    const completedTasks = tasks.filter((task) => task.completed);
-
-    return (
-      <div
-        className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", className)}
-        role="region"
-        aria-label="Kanban board"
-      >
-        {/* Pending Column */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span
-              className="w-3 h-3 bg-yellow-500 rounded-full"
-              aria-hidden="true"
-            ></span>
-            Pending ({pendingTasks.length})
-          </h3>
-          <div
-            className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg min-h-[200px]"
-            role="list"
-            aria-label="Pending tasks"
-          >
-            {pendingTasks.length > 0 ? (
-              pendingTasks.map((task) => (
-                <div key={task.id}>
-                  <TaskItem
-                    task={task}
-                    userId={userId}
-                    onSuccess={onTaskChange}
-                    onError={onError}
-                    viewMode="card"
-                  />
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                No pending tasks
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Completed Column */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span
-              className="w-3 h-3 bg-green-500 rounded-full"
-              aria-hidden="true"
-            ></span>
-            Completed ({completedTasks.length})
-          </h3>
-          <div
-            className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg min-h-[200px]"
-            role="list"
-            aria-label="Completed tasks"
-          >
-            {completedTasks.length > 0 ? (
-              completedTasks.map((task) => (
-                <div key={task.id}>
-                  <TaskItem
-                    task={task}
-                    userId={userId}
-                    onSuccess={onTaskChange}
-                    onError={onError}
-                    viewMode="card"
-                  />
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                No completed tasks
-              </p>
-            )}
-          </div>
+  const kanbanView = useMemo(() => (
+    <div
+      className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", className)}
+      role="region"
+      aria-label="Kanban board"
+    >
+      {/* Pending Column */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <span
+            className="w-3 h-3 bg-yellow-500 rounded-full"
+            aria-hidden="true"
+          ></span>
+          Pending ({pendingTasks.length})
+        </h3>
+        <div
+          className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg min-h-[200px]"
+          role="list"
+          aria-label="Pending tasks"
+        >
+          {pendingTasks.length > 0 ? (
+            pendingTasks.map((task) => (
+              <div key={task.id}>
+                <TaskItem
+                  task={task}
+                  userId={userId}
+                  onSuccess={onTaskChange}
+                  onError={onError}
+                  viewMode="card"
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              No pending tasks
+            </p>
+          )}
         </div>
       </div>
-    );
-  };
+
+      {/* Completed Column */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <span
+            className="w-3 h-3 bg-green-500 rounded-full"
+            aria-hidden="true"
+          ></span>
+          Completed ({completedTasks.length})
+        </h3>
+        <div
+          className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg min-h-[200px]"
+          role="list"
+          aria-label="Completed tasks"
+        >
+          {completedTasks.length > 0 ? (
+            completedTasks.map((task) => (
+              <div key={task.id}>
+                <TaskItem
+                  task={task}
+                  userId={userId}
+                  onSuccess={onTaskChange}
+                  onError={onError}
+                  viewMode="card"
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              No completed tasks
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  ), [completedTasks, pendingTasks, userId, onTaskChange, onError, className]);
 
   // Render based on selected view mode
   switch (viewMode) {
     case "grid":
-      return renderGridView();
+      return gridItems;
     case "kanban":
-      return renderKanbanView();
+      return kanbanView;
     case "list":
     default:
-      return renderListView();
+      return listItems;
   }
-}
+});
+
+export default TaskList;

@@ -8,10 +8,9 @@
  * Integrates with API client for task operations
  */
 
-import { useState } from "react";
-import { Task, TaskPriority } from "@/types";
-import { cn } from "@/lib/utils";
-import { formatDate } from "@/lib/utils";
+import { useState, memo } from "react";
+import { Task, TaskPriority, ApiResponse } from "@/types";
+import { cn, formatDate } from "@/lib/utils";
 import { api } from "@/lib/api";
 
 interface TaskItemProps {
@@ -23,7 +22,7 @@ interface TaskItemProps {
   className?: string;
 }
 
-export default function TaskItem({
+const TaskItem = memo(function TaskItem({
   task,
   userId,
   onSuccess,
@@ -399,4 +398,6 @@ export default function TaskItem({
       </div>
     </article>
   );
-}
+});
+
+export default TaskItem;

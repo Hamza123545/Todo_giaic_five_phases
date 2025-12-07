@@ -9,8 +9,8 @@
  */
 
 import { useState, useEffect } from "react";
-import { Task, TaskFormData, TaskPriority } from "@/types";
-import { cn } from "@/lib/utils";
+import { Task, TaskFormData, TaskPriority, ApiResponse } from "@/types";
+import { cn, sanitizeInput } from "@/lib/utils";
 import LoadingSpinner from "./LoadingSpinner";
 import { api } from "@/lib/api";
 
@@ -98,14 +98,21 @@ export default function TaskForm({
     setErrors({});
 
     try {
+      // Sanitize form data to prevent XSS
+      const sanitizedFormData = {
+        ...formData,
+        title: sanitizeInput(formData.title),
+        description: formData.description ? sanitizeInput(formData.description) : "",
+      };
+
       let response;
 
       if (initialData) {
         // Update existing task
-        response = await api.updateTask(userId, initialData.id, formData);
+        response = await api.updateTask(userId, initialData.id, sanitizedFormData);
       } else {
         // Create new task
-        response = await api.createTask(userId, formData);
+        response = await api.createTask(userId, sanitizedFormData);
       }
 
       if (!response.success || !response.data) {
