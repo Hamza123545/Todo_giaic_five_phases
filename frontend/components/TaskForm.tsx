@@ -5,26 +5,30 @@
  *
  * Form for creating and editing tasks with validation
  * Supports title, description, priority, due date, and tags
+ * Integrates with API client for task creation and updates
  */
 
 import { useState, useEffect } from "react";
 import { Task, TaskFormData, TaskPriority } from "@/types";
 import { cn } from "@/lib/utils";
 import LoadingSpinner from "./LoadingSpinner";
+import { api } from "@/lib/api";
 
 interface TaskFormProps {
-  onSubmit: (taskData: TaskFormData) => Promise<void>;
+  userId: string;
+  onSuccess?: (task: Task) => void;
+  onError?: (error: Error) => void;
   initialData?: Task | null;
-  isLoading?: boolean;
   submitLabel?: string;
   onCancel?: () => void;
   className?: string;
 }
 
 export default function TaskForm({
-  onSubmit,
+  userId,
+  onSuccess,
+  onError,
   initialData,
-  isLoading = false,
   submitLabel = "Create Task",
   onCancel,
   className,
@@ -38,6 +42,7 @@ export default function TaskForm({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tagInput, setTagInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load initial data if editing
   useEffect(() => {
@@ -89,22 +94,50 @@ export default function TaskForm({
       return;
     }
 
-    try {
-      await onSubmit(formData);
+    setIsLoading(true);
+    setErrors({});
 
-      // Reset form after successful submission (only for create mode)
-      if (!initialData) {
-        setFormData({
-          title: "",
-          description: "",
-          priority: "medium",
-          due_date: "",
-          tags: [],
-        });
-        setTagInput("");
+    try {
+      let response;
+
+      if (initialData) {
+        // Update existing task
+        response = await api.updateTask(userId, initialData.id, formData);
+      } else {
+        // Create new task
+        response = await api.createTask(userId, formData);
       }
-    } catch (error) {
+
+      if (response.success && response.data) {
+        // Reset form after successful creation (not for updates)
+        if (!initialData) {
+          setFormData({
+            title: "",
+            description: "",
+            priority: "medium",
+            due_date: "",
+            tags: [],
+          });
+          setTagInput("");
+        }
+
+        // Call success callback
+        onSuccess?.(response.data);
+      } else {
+        throw new Error(response.message || "Failed to save task");
+      }
+    } catch (error: any) {
       console.error("Form submission error:", error);
+
+      // Set error message
+      setErrors({
+        submit: error.message || "An error occurred while saving the task",
+      });
+
+      // Call error callback
+      onError?.(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -349,6 +382,16 @@ export default function TaskForm({
           </div>
         )}
       </div>
+
+      {/* Form Error Message */}
+      {errors.submit && (
+        <div
+          className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
+          role="alert"
+        >
+          <p className="text-sm text-red-800 dark:text-red-200">{errors.submit}</p>
+        </div>
+      )}
 
       {/* Form Actions */}
       <div className="flex gap-3 pt-2">

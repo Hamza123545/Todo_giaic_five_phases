@@ -13,19 +13,39 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
-import { User } from "@/types";
+import { User, Task } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import TaskForm from "@/components/TaskForm";
+import TaskList from "@/components/TaskList";
+import FilterControls from "@/components/FilterControls";
+import SortControls from "@/components/SortControls";
+import SearchBar from "@/components/SearchBar";
+import { api } from "@/lib/api";
 
 function DashboardContent() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Task; direction: "asc" | "desc" }>({
+    key: "created_at",
+    direction: "desc"
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
+
+        // Load tasks for the user
+        if (currentUser) {
+          loadTasks(currentUser.id);
+        }
       } catch (error) {
         console.error("Failed to load user:", error);
       } finally {
@@ -36,6 +56,95 @@ function DashboardContent() {
     loadUser();
   }, []);
 
+  useEffect(() => {
+    // Apply filtering, searching, and sorting
+    let result = [...tasks];
+
+    // Apply filter
+    if (filter === "pending") {
+      result = result.filter(task => !task.completed);
+    } else if (filter === "completed") {
+      result = result.filter(task => task.completed);
+    }
+
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(task =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query)) ||
+        task.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      // @ts-ignore - We know these are comparable values
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle date comparison
+      if (sortConfig.key === "due_date" || sortConfig.key === "created_at" || sortConfig.key === "updated_at") {
+        if (aValue && bValue) {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (aValue) {
+          return sortConfig.direction === "asc" ? -1 : 1;
+        } else if (bValue) {
+          return sortConfig.direction === "asc" ? 1 : -1;
+        } else {
+          return 0;
+        }
+      }
+
+      // Handle string comparison
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+
+    setFilteredTasks(result);
+  }, [tasks, filter, sortConfig, searchQuery]);
+
+  const loadTasks = async (userId: string) => {
+    try {
+      const response = await api.getTasks(userId);
+      if (response.success) {
+        setTasks(response.data || []);
+      } else {
+        throw new Error(response.message || "Failed to load tasks");
+      }
+    } catch (error) {
+      console.error("Failed to load tasks:", error);
+    }
+  };
+
+  const handleTaskCreated = (newTask: Task) => {
+    setTasks(prev => [newTask, ...prev]);
+    setIsTaskFormOpen(false);
+  };
+
+  const handleTaskUpdated = () => {
+    // Reload tasks to get the latest data
+    if (user) {
+      loadTasks(user.id);
+    }
+  };
+
+  const handleTaskError = (error: Error) => {
+    console.error("Task operation error:", error);
+    // In a real app, you might want to show a toast notification
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -43,6 +152,17 @@ function DashboardContent() {
     } catch (error) {
       console.error("Sign out error:", error);
     }
+  };
+
+  const handleSortChange = (key: keyof Task) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+
+  const handleFilterChange = (newFilter: "all" | "pending" | "completed") => {
+    setFilter(newFilter);
   };
 
   if (isLoading) {
@@ -133,79 +253,79 @@ function DashboardContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Task Creation and List - Left Column (2/3) */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Quick Add Task */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Add New Task
-              </h2>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  placeholder="What needs to be done?"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-                <button
-                  type="button"
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Add
-                </button>
-              </div>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Press Enter or click Add to create a task
-              </p>
-            </div>
-
-            {/* Task List Placeholder */}
+            {/* Task Creation Form */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Your Tasks
+                  {isTaskFormOpen ? "Create New Task" : "Add New Task"}
                 </h2>
-                <div className="flex gap-2">
+                {!isTaskFormOpen && (
                   <button
-                    type="button"
-                    className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                    onClick={() => setIsTaskFormOpen(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    All
+                    Add Task
                   </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  >
-                    Pending
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  >
-                    Completed
-                  </button>
+                )}
+              </div>
+
+              {isTaskFormOpen ? (
+                <TaskForm
+                  userId={user?.id || ""}
+                  onSuccess={handleTaskCreated}
+                  onError={handleTaskError}
+                  onCancel={() => setIsTaskFormOpen(false)}
+                />
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Click "Add Task" to create a new task.
+                </p>
+              )}
+            </div>
+
+            {/* Task List with Controls */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Your Tasks ({filteredTasks.length})
+                </h2>
+
+                <div className="flex flex-wrap gap-2">
+                  <FilterControls
+                    currentFilter={filter}
+                    onFilterChange={handleFilterChange}
+                    taskCount={{
+                      all: tasks.length,
+                      pending: tasks.filter(t => !t.completed).length,
+                      completed: tasks.filter(t => t.completed).length
+                    }}
+                  />
+
+                  <SortControls
+                    currentSort={sortConfig.key}
+                    currentDirection={sortConfig.direction}
+                    onSortChange={handleSortChange}
+                  />
                 </div>
               </div>
 
-              {/* Empty State */}
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                  No tasks yet
-                </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Get started by creating a new task above.
-                </p>
+              {/* Search Bar */}
+              <div className="mb-4">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search tasks..."
+                />
               </div>
+
+              {/* Task List */}
+              <TaskList
+                tasks={filteredTasks}
+                userId={user?.id || ""}
+                onTaskChange={handleTaskUpdated}
+                onError={handleTaskError}
+                isLoading={isLoading}
+              />
             </div>
           </div>
 
@@ -219,15 +339,19 @@ function DashboardContent() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Total</span>
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">0</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{tasks.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Pending</span>
-                  <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">0</span>
+                  <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    {tasks.filter(t => !t.completed).length}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Completed</span>
-                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">0</span>
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {tasks.filter(t => t.completed).length}
+                  </span>
                 </div>
               </div>
             </div>
@@ -255,6 +379,45 @@ function DashboardContent() {
                   className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                 >
                   Clear Completed
+                </button>
+              </div>
+            </div>
+
+            {/* View Options */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                View Options
+              </h2>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  onClick={() => {
+                    // In a real app, this would change the view mode
+                    console.log("Switching to list view");
+                  }}
+                >
+                  List View
+                </button>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  onClick={() => {
+                    // In a real app, this would change the view mode
+                    console.log("Switching to grid view");
+                  }}
+                >
+                  Grid View
+                </button>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  onClick={() => {
+                    // In a real app, this would change the view mode
+                    console.log("Switching to kanban view");
+                  }}
+                >
+                  Kanban View
                 </button>
               </div>
             </div>

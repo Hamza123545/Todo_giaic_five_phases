@@ -5,49 +5,65 @@
  *
  * Individual task card/row displaying task information
  * Supports edit, delete, and toggle complete actions
+ * Integrates with API client for task operations
  */
 
 import { useState } from "react";
 import { Task, TaskPriority } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 interface TaskItemProps {
   task: Task;
-  onUpdate?: (taskId: number, data: Partial<Task>) => Promise<void>;
-  onDelete?: (taskId: number) => Promise<void>;
-  onToggleComplete?: (taskId: number, completed: boolean) => Promise<void>;
+  userId: string;
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
   viewMode?: "list" | "card";
   className?: string;
 }
 
 export default function TaskItem({
   task,
-  onUpdate,
-  onDelete,
-  onToggleComplete,
+  userId,
+  onSuccess,
+  onError,
   viewMode = "list",
   className,
 }: TaskItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [optimisticCompleted, setOptimisticCompleted] = useState(task.completed);
 
   const handleToggleComplete = async () => {
-    if (!onToggleComplete) return;
-
     setIsToggling(true);
+
+    // Optimistic update
+    const newCompleted = !optimisticCompleted;
+    setOptimisticCompleted(newCompleted);
+
     try {
-      await onToggleComplete(task.id, !task.completed);
-    } catch (error) {
+      const response = await api.toggleTaskComplete(userId, task.id, newCompleted);
+
+      if (response.success) {
+        // Call success callback to refresh task list
+        onSuccess?.();
+      } else {
+        // Revert optimistic update
+        setOptimisticCompleted(!newCompleted);
+        throw new Error(response.message || "Failed to toggle task");
+      }
+    } catch (error: any) {
+      // Revert optimistic update
+      setOptimisticCompleted(!newCompleted);
       console.error("Failed to toggle task:", error);
+      onError?.(error);
     } finally {
       setIsToggling(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!onDelete) return;
-
     const confirmed = window.confirm(
       `Are you sure you want to delete "${task.title}"?`
     );
@@ -56,10 +72,18 @@ export default function TaskItem({
 
     setIsDeleting(true);
     try {
-      await onDelete(task.id);
-    } catch (error) {
+      const response = await api.deleteTask(userId, task.id);
+
+      if (response.success) {
+        // Call success callback to refresh task list
+        onSuccess?.();
+      } else {
+        throw new Error(response.message || "Failed to delete task");
+      }
+    } catch (error: any) {
       console.error("Failed to delete task:", error);
       setIsDeleting(false);
+      onError?.(error);
     }
   };
 
@@ -78,13 +102,13 @@ export default function TaskItem({
 
   const isOverdue =
     task.due_date &&
-    !task.completed &&
+    !optimisticCompleted &&
     new Date(task.due_date) < new Date();
 
   const baseClasses = cn(
     "relative transition-all",
     isDeleting && "opacity-50 pointer-events-none",
-    task.completed && "opacity-75"
+    optimisticCompleted && "opacity-75"
   );
 
   if (viewMode === "card") {
@@ -110,16 +134,16 @@ export default function TaskItem({
                 "mt-1 w-5 h-5 rounded border-2 flex items-center justify-center",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500",
                 "transition-colors",
-                task.completed
+                optimisticCompleted
                   ? "bg-blue-600 border-blue-600"
                   : "border-gray-300 dark:border-gray-600 hover:border-blue-500"
               )}
               aria-label={
-                task.completed ? "Mark as incomplete" : "Mark as complete"
+                optimisticCompleted ? "Mark as incomplete" : "Mark as complete"
               }
-              aria-pressed={task.completed}
+              aria-pressed={optimisticCompleted}
             >
-              {task.completed && (
+              {optimisticCompleted && (
                 <svg
                   className="w-3 h-3 text-white"
                   fill="none"
@@ -142,7 +166,7 @@ export default function TaskItem({
               <h4
                 className={cn(
                   "text-base font-medium break-words",
-                  task.completed
+                  optimisticCompleted
                     ? "line-through text-gray-500 dark:text-gray-400"
                     : "text-gray-900 dark:text-white"
                 )}
@@ -158,34 +182,32 @@ export default function TaskItem({
           </div>
 
           {/* Delete Button */}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting || isToggling}
-              className={cn(
-                "p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400",
-                "focus:outline-none focus:ring-2 focus:ring-red-500 rounded",
-                "transition-colors"
-              )}
-              aria-label={`Delete task ${task.title}`}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting || isToggling}
+            className={cn(
+              "p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400",
+              "focus:outline-none focus:ring-2 focus:ring-red-500 rounded",
+              "transition-colors"
+            )}
+            aria-label={`Delete task ${task.title}`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
-          )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Card Footer */}
@@ -261,14 +283,14 @@ export default function TaskItem({
           "mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
           "focus:outline-none focus:ring-2 focus:ring-blue-500",
           "transition-colors",
-          task.completed
+          optimisticCompleted
             ? "bg-blue-600 border-blue-600"
             : "border-gray-300 dark:border-gray-600 hover:border-blue-500"
         )}
-        aria-label={task.completed ? "Mark as incomplete" : "Mark as complete"}
-        aria-pressed={task.completed}
+        aria-label={optimisticCompleted ? "Mark as incomplete" : "Mark as complete"}
+        aria-pressed={optimisticCompleted}
       >
-        {task.completed && (
+        {optimisticCompleted && (
           <svg
             className="w-3 h-3 text-white"
             fill="none"
@@ -293,7 +315,7 @@ export default function TaskItem({
             <h4
               className={cn(
                 "text-base font-medium break-words",
-                task.completed
+                optimisticCompleted
                   ? "line-through text-gray-500 dark:text-gray-400"
                   : "text-gray-900 dark:text-white"
               )}
@@ -308,34 +330,32 @@ export default function TaskItem({
           </div>
 
           {/* Delete Button */}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting || isToggling}
-              className={cn(
-                "p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400",
-                "focus:outline-none focus:ring-2 focus:ring-red-500 rounded",
-                "transition-colors flex-shrink-0"
-              )}
-              aria-label={`Delete task ${task.title}`}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting || isToggling}
+            className={cn(
+              "p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400",
+              "focus:outline-none focus:ring-2 focus:ring-red-500 rounded",
+              "transition-colors flex-shrink-0"
+            )}
+            aria-label={`Delete task ${task.title}`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
-          )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Meta Info */}

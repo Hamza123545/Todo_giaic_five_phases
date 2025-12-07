@@ -85,16 +85,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Enhance TaskForm component to handle task creation and updates with validation
-- [ ] T028 [P] [US2] Update TaskList component to fetch and display tasks from API
-- [ ] T029 [US2] Enhance TaskItem component with edit, delete, and toggle complete functionality
-- [ ] T030 [P] [US2] Implement task creation endpoint integration in TaskForm
-- [ ] T031 [US2] Implement task update endpoint integration in TaskItem
-- [ ] T032 [P] [US2] Implement task deletion endpoint integration in TaskItem
-- [ ] T033 [US2] Implement task completion toggle endpoint integration in TaskItem
-- [ ] T034 [P] [US2] Add loading states and error handling to all task operations
-- [ ] T035 [US2] Add optimistic UI updates for task operations
-- [ ] T036 [P] [US2] Implement proper error messages and user feedback for task operations
+- [X] T027 [US2] Enhance TaskForm component to handle task creation and updates with validation
+- [X] T028 [P] [US2] Update TaskList component to fetch and display tasks from API
+- [X] T029 [US2] Enhance TaskItem component with edit, delete, and toggle complete functionality
+- [X] T030 [P] [US2] Implement task creation endpoint integration in TaskForm
+- [X] T031 [US2] Implement task update endpoint integration in TaskItem
+- [X] T032 [P] [US2] Implement task deletion endpoint integration in TaskItem
+- [X] T033 [US2] Implement task completion toggle endpoint integration in TaskItem
+- [X] T034 [P] [US2] Add loading states and error handling to all task operations
+- [X] T035 [US2] Add optimistic UI updates for task operations
+- [X] T036 [P] [US2] Implement proper error messages and user feedback for task operations
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

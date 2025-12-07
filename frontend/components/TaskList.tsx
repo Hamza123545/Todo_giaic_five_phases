@@ -14,10 +14,10 @@ import LoadingSpinner from "./LoadingSpinner";
 
 interface TaskListProps {
   tasks: Task[];
+  userId: string;
   isLoading?: boolean;
-  onTaskUpdate?: (taskId: number, data: Partial<Task>) => Promise<void>;
-  onTaskDelete?: (taskId: number) => Promise<void>;
-  onTaskToggle?: (taskId: number, completed: boolean) => Promise<void>;
+  onTaskChange?: () => void;
+  onError?: (error: Error) => void;
   viewMode?: "list" | "grid" | "kanban";
   emptyMessage?: string;
   className?: string;
@@ -25,10 +25,10 @@ interface TaskListProps {
 
 export default function TaskList({
   tasks,
+  userId,
   isLoading = false,
-  onTaskUpdate,
-  onTaskDelete,
-  onTaskToggle,
+  onTaskChange,
+  onError,
   viewMode = "list",
   emptyMessage = "No tasks found. Create your first task to get started!",
   className,
@@ -71,9 +71,9 @@ export default function TaskList({
         <li key={task.id}>
           <TaskItem
             task={task}
-            onUpdate={onTaskUpdate}
-            onDelete={onTaskDelete}
-            onToggleComplete={onTaskToggle}
+            userId={userId}
+            onSuccess={onTaskChange}
+            onError={onError}
           />
         </li>
       ))}
@@ -93,9 +93,9 @@ export default function TaskList({
         <div key={task.id}>
           <TaskItem
             task={task}
-            onUpdate={onTaskUpdate}
-            onDelete={onTaskDelete}
-            onToggleComplete={onTaskToggle}
+            userId={userId}
+            onSuccess={onTaskChange}
+            onError={onError}
             viewMode="card"
           />
         </div>
@@ -132,9 +132,9 @@ export default function TaskList({
                 <div key={task.id}>
                   <TaskItem
                     task={task}
-                    onUpdate={onTaskUpdate}
-                    onDelete={onTaskDelete}
-                    onToggleComplete={onTaskToggle}
+                    userId={userId}
+                    onSuccess={onTaskChange}
+                    onError={onError}
                     viewMode="card"
                   />
                 </div>
@@ -166,9 +166,9 @@ export default function TaskList({
                 <div key={task.id}>
                   <TaskItem
                     task={task}
-                    onUpdate={onTaskUpdate}
-                    onDelete={onTaskDelete}
-                    onToggleComplete={onTaskToggle}
+                    userId={userId}
+                    onSuccess={onTaskChange}
+                    onError={onError}
                     viewMode="card"
                   />
                 </div>
