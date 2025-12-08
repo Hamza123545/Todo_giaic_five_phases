@@ -1,6 +1,6 @@
 <!--
 Sync Impact Report:
-Version change: 2.1.0 → 2.2.0
+Version change: 2.2.0 → 2.3.0
 Modified principles:
   - II. Web-First Multi-User Application: Enhanced with task filtering and sorting requirements
   - X. RESTful API Design: Enhanced with query parameters, filtering, and OpenAPI documentation requirements
@@ -26,6 +26,7 @@ Added sections:
   - Frontend Patterns subsection
   - Backend File Structure subsection
   - Backend Patterns subsection
+  - Phase II Mandatory Requirements section
 Modified Technical Standards:
   - Added Version Control requirements
   - Added MCP Servers requirements
@@ -41,10 +42,20 @@ Modified Root CLAUDE.md Requirements:
   - Added Branch Management requirements
   - Added Context Management requirements
   - Added Docker and CI/CD requirements
+Modified Frontend CLAUDE.md Requirements:
+  - Added Better Auth requirement
+  - Added Better Auth MCP Server requirement
+  - Added API client requirement
+Modified Backend CLAUDE.md Requirements:
+  - Added JWT Verification requirement
+  - Added User Isolation requirement
+  - Added Better Auth Integration requirement
 Modified Governance:
   - Added Version Control Compliance requirement
   - Added MCP Server Requirement
   - Added CI/CD Pipeline Compliance requirement
+  - Added Phase II Mandatory Requirements section
+  - Added Better Auth MCP Server Requirement section
 Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md: ⚠ pending
@@ -56,13 +67,93 @@ Follow-up TODOs: None
 -->
 # Full-Stack Web Todo Application Constitution
 
+## Phase II Mandatory Requirements
+
+**All Phase II requirements are MANDATORY - nothing is optional.**
+
+### Basic Level Functionality (All 5 Features Required)
+All 5 Basic Level features MUST be implemented as web application features:
+1. Add Task - Create new tasks with title, description, priority, due date, tags
+2. List Tasks - View all tasks with filtering, sorting, and search
+3. Update Task - Edit task details (title, description, priority, due date, tags)
+4. Delete Task - Remove tasks permanently
+5. Mark Complete/Incomplete - Toggle task completion status
+
+### RESTful API Endpoints (All Required)
+All API endpoints MUST be implemented:
+- GET /api/{user_id}/tasks - List all tasks (with query parameters for filtering/sorting/search/pagination)
+- POST /api/{user_id}/tasks - Create a new task
+- GET /api/{user_id}/tasks/{id} - Get task details
+- PUT /api/{user_id}/tasks/{id} - Update a task
+- DELETE /api/{user_id}/tasks/{id} - Delete a task
+- PATCH /api/{user_id}/tasks/{id}/complete - Toggle completion status
+
+### Advanced Features (All Required for Phase II)
+All advanced features MUST be implemented as part of Phase II:
+- Export functionality to CSV and JSON formats MUST be implemented
+- Import functionality from CSV and JSON formats MUST be implemented
+- Drag-and-drop reordering of tasks MUST be implemented
+- Undo/redo functionality MUST be implemented
+- Task statistics dashboard (total, completed, pending, overdue) MUST be implemented
+- Bulk operations (delete, mark complete, change priority) for selected tasks MUST be implemented
+- Multiple view modes (list, grid, kanban) MUST be implemented
+- Inline editing for tasks MUST be implemented
+- Real-time updates with polling mechanism MUST be implemented
+- Keyboard shortcuts for common actions MUST be implemented
+- Dark mode toggle MUST be implemented
+
+### Responsive Frontend Interface (Required)
+- Frontend MUST be responsive for mobile, tablet, and desktop
+- All UI components MUST work across all screen sizes
+- Touch-friendly interactions MUST be implemented for mobile devices
+
+### Neon Serverless PostgreSQL Database (Required)
+- Database MUST be Neon Serverless PostgreSQL
+- All data MUST persist across sessions
+- Database migrations MUST be managed using SQLModel/Alembic
+
+### Better Auth Authentication (Required)
+- Better Auth MUST be used for user signup/signin
+- Better Auth MUST be configured with JWT plugin
+- JWT tokens MUST be issued on login
+- Frontend MUST attach JWT tokens to all API requests
+- Backend MUST verify JWT tokens on all API requests
+
+### Monorepo Structure with Spec-Kit (Required)
+- Project MUST use monorepo structure (/frontend, /backend, /specs)
+- Spec-Kit Plus configuration MUST be at /.spec-kit/config.yaml
+- All specifications MUST be organized in /specs directory
+- Root CLAUDE.md, frontend/CLAUDE.md, and backend/CLAUDE.md MUST exist
+
+### Security Requirements (All Required)
+- User isolation MUST be enforced at API and database levels
+- JWT token verification MUST happen on every API request
+- Shared secret (BETTER_AUTH_SECRET) MUST be used for JWT signing/verification
+- All endpoints MUST require valid JWT token
+- Requests without token MUST receive 401 Unauthorized
+- User ID from JWT MUST match user_id in URL path
+
+### Docker and CI/CD (All Required)
+- Backend Dockerfile MUST exist
+- Frontend Dockerfile MUST exist
+- docker-compose.yml MUST exist
+- GitHub Actions CI/CD pipelines MUST be configured
+- Backend pipeline MUST run on api.phase_2 branch
+- Frontend pipeline MUST run on phase_2 branch
+
+### MCP Server Usage (All Required)
+- GitHub MCP Server MUST be used for all git operations
+- Context7 MCP Server MUST be used for code context
+- Better Auth MCP Server MUST be used for authentication patterns
+- All operations MUST go through MCP servers, not direct commands
+
 ## Core Principles
 
 ### I. Persistent Database Storage
 All application data MUST be stored in Neon Serverless PostgreSQL database. Tasks MUST persist across sessions and be associated with authenticated users. No in-memory-only storage is permitted. This ensures data durability and enables multi-user functionality.
 
 ### II. Web-First Multi-User Application
-The application MUST be a modern full-stack web application accessible via web browser. All functionality MUST be exposed through a responsive web interface built with Next.js. The application MUST support multiple concurrent users with proper authentication and data isolation. All 5 Basic Level features (Add Task, List Tasks, Update Task, Delete Task, Mark Complete/Incomplete) MUST be implemented as web application features.
+The application MUST be a modern full-stack web application accessible via web browser. All functionality MUST be exposed through a responsive web interface built with Next.js. The application MUST support multiple concurrent users with proper authentication and data isolation. All 5 Basic Level features (Add Task, List Tasks, Update Task, Mark Complete/Incomplete, Delete Task) MUST be implemented as web application features.
 
 **Task Filtering:**
 *   Task list MUST support filtering by completion status:
@@ -148,27 +239,49 @@ FastAPI MUST automatically generate OpenAPI/Swagger documentation
 ### XI. JWT Authentication
 Authentication MUST use Better Auth library on the frontend. Better Auth MUST be configured to issue JWT (JSON Web Token) tokens upon user login (signup/signin). Better Auth MUST enable JWT plugin to issue tokens. Backend MUST verify JWT tokens on every API request using a shared secret key (BETTER_AUTH_SECRET). JWT tokens MUST be included in the Authorization header: `Authorization: Bearer <token>`. Frontend API client MUST attach JWT token to every API request header. Backend MUST extract user information from JWT token and validate it matches the requested user_id in the URL path. Tokens MUST have expiration (e.g., 7 days) and be stateless (no server-side session storage required). Requests without valid token MUST receive 401 Unauthorized response. Backend MUST add middleware to verify JWT and extract user information.
 
-## Enhanced Features
+## Enhanced Features (All Mandatory for Phase II)
 
-**Enhanced Task Management:**
-*   Task filtering by status (all, pending, completed)
-*   Task sorting by date, title, or update time
-*   Task search functionality (OPTIONAL but recommended)
-*   Task pagination for large lists (OPTIONAL but recommended)
+**All enhanced features listed below are MANDATORY for Phase II completion. Nothing is optional.**
 
-**User Experience:**
-*   Responsive design for mobile, tablet, and desktop
-*   Loading states for async operations
-*   Error handling with user-friendly messages
-*   Toast notifications for success/error feedback
-*   Optimistic UI updates where appropriate
+**Enhanced Task Management (All Mandatory):**
+*   Task filtering by status (all, pending, completed) - MANDATORY
+*   Task filtering by priority - MANDATORY
+*   Task filtering by due date - MANDATORY
+*   Task filtering by tags - MANDATORY
+*   Task sorting by date, title, update time, priority, due date - MANDATORY
+*   Task search functionality by title or description - MANDATORY
+*   Task pagination for large lists - MANDATORY
+*   Multiple view modes (list, grid, kanban) - MANDATORY
+*   Drag-and-drop reordering - MANDATORY
+*   Inline editing - MANDATORY
+*   Undo/redo functionality - MANDATORY
+*   Export to CSV and JSON - MANDATORY
+*   Import from CSV and JSON - MANDATORY
+*   Task statistics dashboard - MANDATORY
+*   Bulk operations - MANDATORY
+*   Real-time updates with polling - MANDATORY
+*   Keyboard shortcuts - MANDATORY
+*   Dark mode toggle - MANDATORY
 
-**Developer Experience:**
-*   Comprehensive API documentation via OpenAPI/Swagger
-*   TypeScript types for all API responses
-*   Environment variable validation
-*   Development and production configurations
-*   Docker Compose for easy local development
+**User Experience (All Mandatory):**
+*   Responsive design for mobile, tablet, and desktop - MANDATORY
+*   Loading states for async operations - MANDATORY
+*   Error handling with user-friendly messages - MANDATORY
+*   Toast notifications for success/error feedback - MANDATORY
+*   Optimistic UI updates where appropriate - MANDATORY
+*   Touch-friendly interactions for mobile devices - MANDATORY
+*   Offline functionality with sync when connection restored - MANDATORY
+*   PWA (Progressive Web App) capabilities - MANDATORY
+
+**Developer Experience (All Mandatory):**
+*   Comprehensive API documentation via OpenAPI/Swagger - MANDATORY
+*   TypeScript types for all API responses - MANDATORY
+*   Environment variable validation - MANDATORY
+*   Development and production configurations - MANDATORY
+*   Docker Compose for easy local development - MANDATORY
+*   Automated testing (unit, integration, E2E) - MANDATORY
+*   Performance optimization and code splitting - MANDATORY
+*   Accessibility compliance (WCAG 2.1 AA) - MANDATORY
 
 ## Technical Standards
 
@@ -183,11 +296,12 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 
 *   **Version Control**: Git MUST be used for version control with GitHub as remote repository. All version control operations MUST be performed through MCP GitHub server.
 
-*   **MCP Servers**: MCP (Model Context Protocol) servers MUST be used for GitHub operations and context management:
+*   **MCP Servers**: MCP (Model Context Protocol) servers MUST be used for GitHub operations, context management, and authentication patterns:
   - **GitHub MCP Server**: MUST be used for all git operations including commit, push, pull, branch creation, branch management, and repository operations
   - **Context7 MCP Server**: MUST be used for enhanced code context, codebase understanding, and maintaining context across sessions
+  - **Better Auth MCP Server**: MUST be used for Better Auth configuration patterns, JWT token management patterns, and authentication best practices
   - All GitHub operations MUST go through MCP servers, not direct git commands
-  - Claude Code MUST use MCP servers for all repository and context operations
+  - Claude Code MUST use MCP servers for all repository, context, and authentication pattern operations
 
 *   **Commit Tools**: Claude Code MUST use MCP GitHub server for all commits and pushes. Direct git CLI commands SHOULD be avoided in favor of MCP server operations to ensure proper integration and commit attribution.
 
@@ -195,7 +309,7 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 
 *   **Docker and CI/CD**:
   - Backend MUST have Dockerfile for containerization and deployment
-  - Frontend MAY have Dockerfile for containerization
+  - Frontend MUST have Dockerfile for containerization and deployment
   - CI/CD pipelines MUST be configured using GitHub Actions
   - Backend CI/CD pipeline MUST run on `api.phase_2` branch
   - Frontend CI/CD pipeline MUST run on `phase_2` branch
@@ -243,11 +357,11 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   Database operations MUST use SQLModel with proper session management
 *   All database queries MUST filter by authenticated user's ID
 
-*   **Task Data Structure**: Tasks in the database MUST include: `id` (integer, primary key, auto-increment), `user_id` (string, foreign key to users table, UUID), `title` (string, required, max 200 characters), `description` (text, optional, max 1000 characters), `completed` (boolean, default false), `created_at` (timestamp), `updated_at` (timestamp).
+*   **Task Data Structure**: Tasks in the database MUST include: `id` (integer, primary key, auto-increment), `user_id` (string, foreign key to users table, UUID), `title` (string, required, max 200 characters), `description` (text, optional, max 1000 characters), `priority` (string, enum: 'low'|'medium'|'high', required, default 'medium'), `due_date` (timestamp, optional), `tags` (array of strings, optional), `completed` (boolean, default false), `created_at` (timestamp), `updated_at` (timestamp).
 *   **Type Hinting & Docstrings**: Public functions MUST include type hints and basic docstrings to enhance code comprehension.
 *   **Code Formatting**: Consistent code formatting (e.g., Black-style for Python, Prettier for TypeScript) MUST be enforced across the entire codebase.
 *   **Error Handling**: The application MUST provide clear, helpful, and user-friendly error messages for invalid user input and authentication failures.
-*   **Database Indexes**: Database indexes MUST be created: tasks.user_id (for filtering by user), tasks.completed (for status filtering), users.email (unique index).
+*   **Database Indexes**: Database indexes MUST be created: tasks.user_id (for filtering by user), tasks.completed (for status filtering), tasks.priority (for priority filtering), tasks.due_date (for due date filtering and sorting), users.email (unique index).
 
 ## Development Workflow
 
@@ -259,10 +373,10 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
   - `/.spec-kit/config.yaml` - Spec-Kit Plus configuration file
   - `/specs/` - Organized specifications directory:
     - `/specs/overview.md` - Project overview and current phase status
-    - `/specs/architecture.md` - System architecture documentation (OPTIONAL but recommended for comprehensive documentation)
+    - `/specs/architecture.md` - System architecture documentation (MANDATORY - required for Phase II)
     - `/specs/features/` - Feature specifications (task-crud.md, authentication.md, chatbot.md for future phases)
     - `/specs/api/rest-endpoints.md` - REST API endpoint specifications
-    - `/specs/api/mcp-tools.md` - MCP tools specifications (OPTIONAL but recommended for AI integration)
+    - `/specs/api/mcp-tools.md` - MCP tools specifications (MANDATORY - required for Phase II)
     - `/specs/database/schema.md` - Database schema and model specifications
     - `/specs/ui/components.md` - UI component specifications
     - `/specs/ui/pages.md` - UI page and route specifications
@@ -282,7 +396,7 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
     - `/backend/services/` - Business logic layer
     - `/backend/tests/` - Test files
   - `/CLAUDE.md` - Root-level Claude Code instructions
-  - `/docker-compose.yml` - Docker Compose configuration for running both services together (OPTIONAL but recommended for development convenience)
+  - `/docker-compose.yml` - Docker Compose configuration for running both services together (MANDATORY - required for Phase II)
   - `/README.md` - Project documentation with setup and run instructions
 *   **README Documentation**: The `README.md` MUST explicitly describe how to install dependencies for both frontend and backend, how to run the web application, and how to execute tests.
 *   **API-First Development**: Backend API MUST be designed and implemented before frontend integration.
@@ -358,6 +472,7 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   **MCP Server Integration**:
   - GitHub operations MUST be performed using MCP (Model Context Protocol) server for GitHub
   - Context7 MCP server MUST be used for enhanced context and code understanding
+  - Better Auth MCP server MUST be used for Better Auth configuration patterns and JWT token management
   - All GitHub-related operations MUST go through MCP servers, not direct git commands
   - Claude Code MUST use MCP servers for all repository operations
 
@@ -409,7 +524,8 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   **MCP Server Configuration**:
   - GitHub MCP server MUST be configured and available for all repository operations
   - Context7 MCP server MUST be configured and available for code context
-  - Claude Code MUST have access to both MCP servers
+  - Better Auth MCP server MUST be configured and available for authentication patterns
+  - Claude Code MUST have access to all MCP servers
   - All git operations (commit, push, pull, branch creation, merge) MUST use MCP GitHub server
 
 *   **Context Management**:
@@ -427,7 +543,8 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   Example: "Read spec: @specs/features/task-crud.md, then implement following @backend/CLAUDE.md and @frontend/CLAUDE.md"
 
 *   **GitHub Workflow**: How to use MCP GitHub server for commits, pushes, and branch management
-*   **MCP Server Usage**: How to use MCP servers (GitHub and Context7) for all operations
+*   **MCP Server Usage**: How to use MCP servers (GitHub, Context7, and Better Auth) for all operations
+*   **Better Auth MCP Server**: How to use Better Auth MCP server for authentication patterns and JWT configuration
 *   **Commit Practices**: Commit message format and best practices (conventional commits)
 *   **Branch Management**: How to create and manage branches using MCP GitHub server
   - Main development branch (`phase_2`): Contains frontend, backend, specs, and all root files
@@ -453,6 +570,9 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   API client example: `import { api } from '@/lib/api'; const tasks = await api.getTasks(userId)`
 *   Styling: Tailwind CSS classes, no inline styles, follow existing patterns
 *   File organization: Clear separation between pages, components, and utilities
+*   Better Auth: Better Auth MUST be configured with JWT plugin
+*   Better Auth MCP Server: Use Better Auth MCP server for authentication patterns and configuration
+*   API client: MUST attach JWT token to every request automatically
 
 **Backend CLAUDE.md Requirements:**
 *   Stack: FastAPI, SQLModel (ORM), Neon PostgreSQL
@@ -462,9 +582,13 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   Authentication: JWT verification middleware, user extraction from token
 *   Running: `uvicorn main:app --reload --port 8000`
 *   Error handling: HTTPException with appropriate status codes
+*   JWT Verification: MUST verify JWT token on every API request
+*   User Isolation: MUST filter all queries by authenticated user's ID
+*   Better Auth Integration: Backend MUST use shared secret (BETTER_AUTH_SECRET) for JWT verification
 
-**Docker Compose (Optional):**
-*   docker-compose.yml MAY be included for running both frontend and backend services together
+**Docker Compose (Required):**
+*   docker-compose.yml MUST be included for running both frontend and backend services together
+*   docker-compose.yml MUST include development and production configurations
 *   If included, MUST configure:
   - Frontend service: Next.js development server
   - Backend service: FastAPI with auto-reload
@@ -472,7 +596,6 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
   - Port mappings: Frontend (3000), Backend (8000)
   - Service dependencies: Backend depends on database (if using local PostgreSQL)
   - Volume mounts for hot-reload during development
-*   docker-compose.yml SHOULD include development and production configurations
 
 **Docker Configuration for Deployment:**
 
@@ -489,9 +612,9 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
   - Backend Docker image MUST be buildable and runnable independently
   - Backend deployment branch (`api.phase_2`) MUST include Dockerfile and docker-related configuration
 
-*   **Frontend Docker** (Optional but recommended):
-  - Frontend MAY have a `Dockerfile` in `/frontend` directory for containerization
-  - If included, Dockerfile MUST be optimized for production deployment
+*   **Frontend Docker**:
+  - Frontend MUST have a `Dockerfile` in `/frontend` directory for containerization
+  - Dockerfile MUST be optimized for production deployment
   - Dockerfile MUST include:
     - Node.js base image (appropriate version)
     - Dependencies installation
@@ -561,7 +684,9 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   Phase 1 (CLI) code remains in `/cli_todo_app` directory for reference. Phase 2 (Web) code MUST be in `/frontend` and `/backend` directories. Both phases MUST coexist in the repository during migration. Constitution now applies to Phase 2 web application, not Phase 1 CLI.
 
 *   **Version Control Compliance**: All commits and pushes MUST be made through MCP GitHub server to ensure proper integration and attribution. Direct git commands SHOULD be avoided.
-*   **MCP Server Requirement**: All GitHub operations and context management MUST use MCP servers (GitHub MCP server and Context7 MCP server). This ensures proper integration, commit attribution, and context management across development sessions.
+*   **MCP Server Requirement**: All GitHub operations and context management MUST use MCP servers (GitHub MCP server, Context7 MCP server, and Better Auth MCP server). This ensures proper integration, commit attribution, and context management across development sessions.
 *   **CI/CD Pipeline Compliance**: All CI/CD pipelines MUST be properly configured and tested. Backend deployment MUST use `api.phase_2` branch, frontend deployment MUST use `phase_2` branch. All deployments MUST go through CI/CD pipelines, not manual deployments.
+*   **Phase II Mandatory Requirements**: All Phase II requirements are MANDATORY. No features, endpoints, or configurations are optional. All 5 Basic Level features, all API endpoints, responsive frontend, database, authentication, Docker, CI/CD, and MCP server usage are required.
+*   **Better Auth MCP Server Requirement**: Better Auth MCP server MUST be used for all authentication-related patterns and configurations. This ensures consistent authentication implementation across the project.
 
-**Version**: 2.2.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-07
+**Version**: 2.3.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-08
