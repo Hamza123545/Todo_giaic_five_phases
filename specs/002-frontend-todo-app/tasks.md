@@ -108,15 +108,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Enhance FilterControls component with status, priority, due date, and tags filtering
-- [ ] T038 [P] [US3] Enhance SortControls component with multiple sorting options and directions
-- [ ] T039 [US3] Enhance SearchBar component with real-time search and debouncing
-- [ ] T040 [P] [US3] Integrate filtering logic with API client and query parameters
-- [ ] T041 [US3] Integrate sorting logic with API client and query parameters
-- [ ] T042 [P] [US3] Integrate search logic with API client and query parameters
-- [ ] T043 [US3] Update TaskList component to handle filtered, sorted, and searched results
-- [ ] T044 [P] [US3] Add query parameter handling to maintain filter/sort/search state in URL
-- [ ] T045 [US3] Implement multiple view modes (list, grid, kanban) in TaskList component
+- [x] T037 [US3] Enhance FilterControls component with status, priority, due date, and tags filtering
+- [x] T038 [P] [US3] Enhance SortControls component with multiple sorting options and directions
+- [x] T039 [US3] Enhance SearchBar component with real-time search and debouncing
+- [x] T040 [P] [US3] Integrate filtering logic with API client and query parameters
+- [x] T041 [US3] Integrate sorting logic with API client and query parameters
+- [x] T042 [P] [US3] Integrate search logic with API client and query parameters
+- [x] T043 [US3] Update TaskList component to handle filtered, sorted, and searched results
+- [x] T044 [P] [US3] Add query parameter handling to maintain filter/sort/search state in URL
+- [x] T045 [US3] Implement multiple view modes (list, grid, kanban) in TaskList component
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently
 
