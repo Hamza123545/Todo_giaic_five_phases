@@ -1,0 +1,43 @@
+# Prometheus configuration for Todo Backend API
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # The Todo Backend API
+  - job_name: 'todo-backend'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 15s
+
+  # PostgreSQL Exporter for database metrics
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['localhost:9187']
+    scrape_interval: 15s
+
+  # Application logs and metrics
+  - job_name: 'application-logs'
+    static_configs:
+      - targets: ['localhost:8000']
+    scrape_interval: 30s

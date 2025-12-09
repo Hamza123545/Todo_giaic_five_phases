@@ -1,0 +1,116 @@
+# Alertmanager configuration for Todo Backend API
+
+global:
+  # The smarthost and SMTP sender used for mail notifications
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@example.org'
+  smtp_require_tls: false
+
+# The root route on which each incoming alert enters
+route:
+  # The labels by which incoming alerts are grouped together. For example,
+  # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+  # be batched into a single group.
+  group_by: ['alertname', 'severity', 'cluster', 'service']
+
+  # When a new group of alerts is created by an incoming alert, you can
+  # configure how long to wait before sending a notification. This allows
+  # to wait for more initial alerts of the same group.
+  group_wait: 10s
+
+  # How long to initially wait to send a notification for a group of alerts.
+  # Allows to wait for an inhibiting alert to arrive or collect more initial
+  # alerts for the same group.
+  group_interval: 10s
+
+  # How long to wait before sending a notification about new alerts that
+  # are added to a group of alerts for which an initial notification has
+  # already been sent.
+  repeat_interval: 1h
+
+  # A default receiver
+  receiver: default-receiver
+
+  # All the above attributes are inherited by all child routes and can overwritten on each.
+
+  # The child route trees.
+  routes:
+    # Critical alerts - immediate notification
+    - matchers:
+        - severity="critical"
+      receiver: critical-team
+      group_wait: 5s
+      repeat_interval: 15m
+
+    # High priority alerts - notify within 15 minutes
+    - matchers:
+        - severity="high"
+      receiver: high-priority-team
+      repeat_interval: 30m
+
+    # Medium priority alerts - notify within 1 hour
+    - matchers:
+        - severity="medium"
+      receiver: medium-priority-team
+      repeat_interval: 1h
+
+    # Default for low priority
+    - receiver: low-priority-team
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="high"
+    equal: ['alertname', 'cluster', 'service']
+  - source_matchers:
+      - severity="high"
+    target_matchers:
+      - severity="medium"
+    equal: ['alertname', 'cluster', 'service']
+
+# The 'receivers' parameter contains the list of notification integrations.
+receivers:
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'admin@example.org'
+        send_resolved: true
+
+  - name: 'critical-team'
+    pagerduty_configs:
+      - service_key: 'your-critical-pagerduty-service-key'
+        send_resolved: true
+        description: '{{ .CommonAnnotations.summary }}'
+        details:
+          description: '{{ .CommonAnnotations.description }}'
+          runbook_url: '{{ .CommonAnnotations.runbook_url }}'
+          dashboard_url: '{{ .CommonLabels.dashboard_url }}'
+          generator_url: '{{ .GeneratorURL }}'
+          num_firing: '{{ .Alerts.Firing | len }}'
+          num_resolved: '{{ .Alerts.Resolved | len }}'
+
+  - name: 'high-priority-team'
+    email_configs:
+      - to: 'oncall@example.org'
+        send_resolved: true
+        headers:
+          subject: '[HIGH PRIORITY] {{ .CommonAnnotations.summary }}'
+    webhook_configs:
+      - url: 'http://slack-webhook-url'
+        send_resolved: true
+
+  - name: 'medium-priority-team'
+    email_configs:
+      - to: 'team@example.org'
+        send_resolved: true
+        headers:
+          subject: '[MEDIUM PRIORITY] {{ .CommonAnnotations.summary }}'
+
+  - name: 'low-priority-team'
+    email_configs:
+      - to: 'reports@example.org'
+        send_resolved: true
+        headers:
+          subject: '[LOW PRIORITY] {{ .CommonAnnotations.summary }}'

@@ -7,7 +7,7 @@
  * Supports different view modes (list, grid, kanban)
  */
 
-import { Task, LoadingState, TaskViewMode } from "@/types";
+import { Task, LoadingState } from "@/types";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
 import TaskItem from "./TaskItem";

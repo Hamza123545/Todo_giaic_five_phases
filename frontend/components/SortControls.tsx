@@ -4,12 +4,12 @@
  * SortControls Component
  *
  * Dropdown UI for sorting tasks by various criteria
- * Supports sorting by creation date, title, update date, priority, due date
+ * Supports sorting by creation date, title, update date, priority, due date, and tags
  */
 
 import { cn } from "@/lib/utils";
 
-export type SortOption = "created" | "title" | "updated" | "priority" | "due_date";
+export type SortOption = "created" | "title" | "updated" | "priority" | "due_date" | "tags";
 export type SortDirection = "asc" | "desc";
 
 interface SortControlsProps {
@@ -25,12 +25,13 @@ export default function SortControls({
   onSortChange,
   className,
 }: SortControlsProps) {
-  const sortOptions: { value: SortOption; label: string }[] = [
-    { value: "created", label: "Creation Date" },
-    { value: "updated", label: "Last Updated" },
-    { value: "title", label: "Title (A-Z)" },
-    { value: "priority", label: "Priority" },
-    { value: "due_date", label: "Due Date" },
+  const sortOptions = [
+    { value: "created" as SortOption, label: "Creation Date" },
+    { value: "updated" as SortOption, label: "Last Updated" },
+    { value: "title" as SortOption, label: "Title (A-Z)" },
+    { value: "priority" as SortOption, label: "Priority" },
+    { value: "due_date" as SortOption, label: "Due Date" },
+    { value: "tags" as SortOption, label: "Tags" },
   ];
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -48,6 +49,9 @@ export default function SortControls({
     }
     if (currentSort === "priority") {
       return currentDirection === "asc" ? "Low → High" : "High → Low";
+    }
+    if (currentSort === "tags") {
+      return currentDirection === "asc" ? "Fewer Tags First" : "More Tags First";
     }
     return currentDirection === "asc" ? "Oldest First" : "Newest First";
   };

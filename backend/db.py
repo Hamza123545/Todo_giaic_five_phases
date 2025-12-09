@@ -33,6 +33,12 @@ else:
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+# Get connection pool configuration from environment
+DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "10"))
+DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "20"))
+DB_POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+DB_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+
 # Create synchronous engine for migrations
 if IS_TEST or DATABASE_URL.startswith("sqlite"):
     # SQLite doesn't support pool_size, max_overflow, pool_pre_ping
@@ -42,26 +48,30 @@ if IS_TEST or DATABASE_URL.startswith("sqlite"):
         connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
     )
 else:
-    # PostgreSQL supports connection pooling
+    # PostgreSQL supports connection pooling with configurable parameters
     sync_engine = create_engine(
         DATABASE_URL,
         echo=ENVIRONMENT == "development",
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
+        pool_timeout=DB_POOL_TIMEOUT,
+        pool_recycle=DB_POOL_RECYCLE,
+        pool_pre_ping=True,  # Verify connections before use
     )
 
 # Create asynchronous engine for application (only for PostgreSQL)
-if not IS_TEST and DATABASE_URL != "sqlite:///:memory:":
+if not IS_TEST and DATABASE_URL != "sqlite:///:memory:" and not DATABASE_URL.startswith("sqlite"):
     # Convert postgresql:// to postgresql+asyncpg:// for async support
     async_database_url = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
     async_engine = create_async_engine(
         async_database_url,
         echo=ENVIRONMENT == "development",
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
+        pool_timeout=DB_POOL_TIMEOUT,
+        pool_recycle=DB_POOL_RECYCLE,
+        pool_pre_ping=True,  # Verify connections before use
     )
 
     # Create async session maker

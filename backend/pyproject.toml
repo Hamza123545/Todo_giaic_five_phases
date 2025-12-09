@@ -16,6 +16,8 @@ dependencies = [
     "pydantic>=2.9.0",
     "pydantic-settings>=2.6.0",
     "email-validator>=2.3.0",
+    "python-json-logger>=4.0.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]
@@ -57,4 +59,40 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 asyncio_mode = "auto"
-addopts = "-v --strict-markers --cov=. --cov-report=term-missing"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--cov=.",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    "--cov-fail-under=80"
+]
+markers = [
+    "unit: Unit tests for isolated business logic",
+    "integration: Integration tests for database operations",
+    "api: API endpoint tests for HTTP request/response",
+]
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "tests/*",
+    "alembic/*",
+    "*/__init__.py",
+    "*/conftest.py",
+    ".venv/*",
+    "*/site-packages/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

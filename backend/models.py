@@ -63,7 +63,7 @@ class Task(SQLModel, table=True):
     due_date: Optional[datetime] = Field(default=None, index=True)
     tags: Optional[list[str]] = Field(default=None, sa_column=Column(JSON))
     completed: bool = Field(default=False, nullable=False, index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False, index=True)
     updated_at: datetime = Field(
         default_factory=datetime.utcnow, nullable=False, sa_column_kwargs={"onupdate": datetime.utcnow}
     )

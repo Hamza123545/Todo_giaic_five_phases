@@ -1,0 +1,148 @@
+# Alert rules for Todo Backend API
+
+groups:
+  - name: todo-backend
+    rules:
+      # API Performance Alerts
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on Todo Backend API"
+          description: "Error rate is {{ $value | humanizePercentage }} over 5 minutes"
+
+      - alert: APIHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High response time on Todo Backend API"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      - alert: APILowResponseTime95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "Elevated response time on Todo Backend API"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      - alert: APILowResponseTime90
+        expr: histogram_quantile(0.90, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "Moderate response time on Todo Backend API"
+          description: "90th percentile response time is {{ $value }} seconds"
+
+      # Authentication Alerts
+      - alert: HighAuthFailureRate
+        expr: rate(auth_failures_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: high
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failures are {{ $value }} per second over 5 minutes"
+
+      - alert: AuthServiceDown
+        expr: up{job="todo-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Authentication service is down"
+          description: "Authentication service has been down for more than 1 minute"
+
+      # Database Alerts
+      - alert: DatabaseConnectionHighLatency
+        expr: histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "Database query latency elevated"
+          description: "95th percentile database query time is {{ $value }} seconds"
+
+      - alert: DatabaseConnectionErrors
+        expr: rate(db_connection_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection errors detected"
+          description: "Database connection errors are occurring at {{ $value }} per second"
+
+      # Resource Usage Alerts
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / (1024 * 1024)) > 512
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High memory usage on Todo Backend"
+          description: "Process memory usage is {{ $value | humanize }} MB"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(process_cpu_seconds_total[5m])) * 100) < 10
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High CPU usage on Todo Backend"
+          description: "CPU usage is above 90%"
+
+      # Rate Limiting Alerts
+      - alert: HighRateLimitUsage
+        expr: rate(rate_limit_exceeded_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High rate limit usage"
+          description: "Rate limits are being exceeded at {{ $value }} per second"
+
+      # Task Operation Alerts
+      - alert: TaskCRUDHighErrorRate
+        expr: rate(http_requests_total{endpoint="tasks", status=~"5.."}[5m]) / rate(http_requests_total{endpoint="tasks"}[5m]) > 0.02
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High error rate for task operations"
+          description: "Task operation error rate is {{ $value | humanizePercentage }} over 5 minutes"
+
+      # Export/Import Feature Alerts
+      - alert: ExportImportHighFailureRate
+        expr: rate(export_import_failures_total[5m]) / rate(export_import_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High failure rate for export/import operations"
+          description: "Export/import failure rate is {{ $value | humanizePercentage }} over 5 minutes"
+
+      # Bulk Operations Alerts
+      - alert: BulkOperationHighFailureRate
+        expr: rate(bulk_operation_failures_total[5m]) / rate(bulk_operations_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High failure rate for bulk operations"
+          description: "Bulk operation failure rate is {{ $value | humanizePercentage }} over 5 minutes"
+
+      # Security Alerts
+      - alert: PotentialSecurityBreach
+        expr: rate(security_events_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Potential security breach detected"
+          description: "Security events are occurring at {{ $value }} per second"

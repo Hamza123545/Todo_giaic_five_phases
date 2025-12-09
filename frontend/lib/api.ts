@@ -28,15 +28,19 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // ms
 
 /**
- * Get JWT token from secure storage
+ * Get JWT token from Better Auth session
  */
-const getAuthToken = (): string | null => {
-  if (typeof window === "undefined") return null;
+const getAuthToken = async (): Promise<string | null> => {
+  // Import Better Auth session function
+  const { getSession } = await import("@/lib/auth");
 
-  // Try to get token from sessionStorage (more secure than localStorage)
-  // In production, this should be httpOnly cookies handled by the backend
-  const token = sessionStorage.getItem("auth_token");
-  return token;
+  try {
+    const session = await getSession();
+    return session?.data?.session?.token || null;
+  } catch (error) {
+    console.error("Error getting Better Auth session:", error);
+    return null;
+  }
 };
 
 /**
@@ -182,7 +186,13 @@ export class ApiClient {
   ): Promise<ApiResponse<PaginatedResponse<Task>>> {
     const params = new URLSearchParams();
 
-    if (queryParams?.status) params.append("status", queryParams.status);
+    if (queryParams?.status && queryParams.status !== "all") params.append("status", queryParams.status);
+    if (queryParams?.priority && queryParams.priority !== "all") params.append("priority", queryParams.priority);
+    if (queryParams?.dueDate && queryParams.dueDate !== "all") params.append("due_date", queryParams.dueDate);
+    if (queryParams?.tags && queryParams.tags.length > 0) {
+      // Add tags as separate parameters
+      queryParams.tags.forEach(tag => params.append("tags", tag));
+    }
     if (queryParams?.sort) params.append("sort", queryParams.sort);
     if (queryParams?.search) params.append("search", queryParams.search);
     if (queryParams?.page) params.append("page", queryParams.page.toString());

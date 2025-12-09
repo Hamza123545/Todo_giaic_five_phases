@@ -1,0 +1,218 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Todo Backend API Dashboard",
+    "tags": ["todo", "api", "backend"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "5s",
+    "schemaVersion": 27,
+    "version": 1,
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Request Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[1m])",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "API Response Time (p95)",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "API Error Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[1m])",
+            "legendFormat": "5xx Errors",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"4..\"}[1m])",
+            "legendFormat": "4xx Errors",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors/sec"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Active Connections",
+        "type": "singlestat",
+        "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "http_active_connections",
+            "refId": "A"
+          }
+        ],
+        "valueName": "current",
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"]
+      },
+      {
+        "id": 5,
+        "title": "Rate Limit Exceeded",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(rate_limit_exceeded_total[1m])",
+            "legendFormat": "Rate Limit Exceeded",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Events/sec"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes / 1024 / 1024",
+            "legendFormat": "Memory (MB)",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "MB"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total[1m]) * 100",
+            "legendFormat": "CPU Usage %",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "%"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Authentication Success/Failure Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+        "targets": [
+          {
+            "expr": "rate(auth_success_total[1m])",
+            "legendFormat": "Auth Success",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(auth_failures_total[1m])",
+            "legendFormat": "Auth Failures",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Task CRUD Operations",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+        "targets": [
+          {
+            "expr": "rate(task_create_total[1m])",
+            "legendFormat": "Create",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(task_read_total[1m])",
+            "legendFormat": "Read",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(task_update_total[1m])",
+            "legendFormat": "Update",
+            "refId": "C"
+          },
+          {
+            "expr": "rate(task_delete_total[1m])",
+            "legendFormat": "Delete",
+            "refId": "D"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Operations/sec"
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "endpoint",
+          "type": "query",
+          "query": "label_values(http_requests_total, endpoint)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    }
+  }
+}
