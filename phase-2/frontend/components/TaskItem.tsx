@@ -33,6 +33,9 @@ const TaskItem = memo(function TaskItem({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [optimisticCompleted, setOptimisticCompleted] = useState(task.completed);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleToggleComplete = async () => {
     setIsToggling(true);
@@ -73,10 +76,71 @@ const TaskItem = memo(function TaskItem({
       if (!response.success) {
         throw new Error(response.message || "Failed to delete task");
       }
+      onSuccess?.();
     } catch (error: any) {
       console.error("Failed to delete task:", error);
       setIsDeleting(false);
       onError?.(error);
+    }
+  };
+
+  const handleTitleDoubleClick = () => {
+    if (!isDeleting && !isToggling) {
+      setIsEditingTitle(true);
+      setEditedTitle(task.title);
+    }
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedTitle(e.target.value);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setIsEditingTitle(false);
+      setEditedTitle(task.title);
+    }
+  };
+
+  const handleTitleBlur = () => {
+    handleTitleSave();
+  };
+
+  const handleTitleSave = async () => {
+    const trimmedTitle = editedTitle.trim();
+
+    if (!trimmedTitle) {
+      setEditedTitle(task.title);
+      setIsEditingTitle(false);
+      return;
+    }
+
+    if (trimmedTitle === task.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await api.updateTask(userId, task.id, {
+        title: trimmedTitle,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to update task");
+      }
+
+      setIsEditingTitle(false);
+      onSuccess?.();
+    } catch (error: any) {
+      console.error("Failed to update task title:", error);
+      setEditedTitle(task.title);
+      setIsEditingTitle(false);
+      onError?.(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -156,16 +220,37 @@ const TaskItem = memo(function TaskItem({
 
             {/* Title and Description */}
             <div className="flex-1 min-w-0">
-              <h4
-                className={cn(
-                  "text-base font-medium break-words",
-                  optimisticCompleted
-                    ? "line-through text-gray-500 dark:text-gray-400"
-                    : "text-gray-900 dark:text-white"
-                )}
-              >
-                {task.title}
-              </h4>
+              {isEditingTitle ? (
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={handleTitleChange}
+                  onKeyDown={handleTitleKeyDown}
+                  onBlur={handleTitleBlur}
+                  disabled={isSaving}
+                  autoFocus
+                  className={cn(
+                    "w-full px-2 py-1 text-base font-medium border-2 border-blue-500 rounded",
+                    "focus:outline-none focus:ring-2 focus:ring-blue-500",
+                    "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                    isSaving && "opacity-50 cursor-wait"
+                  )}
+                  aria-label="Edit task title"
+                />
+              ) : (
+                <h4
+                  className={cn(
+                    "text-base font-medium break-words cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
+                    optimisticCompleted
+                      ? "line-through text-gray-500 dark:text-gray-400"
+                      : "text-gray-900 dark:text-white"
+                  )}
+                  onDoubleClick={handleTitleDoubleClick}
+                  title="Double-click to edit"
+                >
+                  {task.title}
+                </h4>
+              )}
               {task.description && (
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {task.description}
@@ -305,16 +390,37 @@ const TaskItem = memo(function TaskItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h4
-              className={cn(
-                "text-base font-medium break-words",
-                optimisticCompleted
-                  ? "line-through text-gray-500 dark:text-gray-400"
-                  : "text-gray-900 dark:text-white"
-              )}
-            >
-              {task.title}
-            </h4>
+            {isEditingTitle ? (
+              <input
+                type="text"
+                value={editedTitle}
+                onChange={handleTitleChange}
+                onKeyDown={handleTitleKeyDown}
+                onBlur={handleTitleBlur}
+                disabled={isSaving}
+                autoFocus
+                className={cn(
+                  "w-full px-2 py-1 text-base font-medium border-2 border-blue-500 rounded",
+                  "focus:outline-none focus:ring-2 focus:ring-blue-500",
+                  "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                  isSaving && "opacity-50 cursor-wait"
+                )}
+                aria-label="Edit task title"
+              />
+            ) : (
+              <h4
+                className={cn(
+                  "text-base font-medium break-words cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
+                  optimisticCompleted
+                    ? "line-through text-gray-500 dark:text-gray-400"
+                    : "text-gray-900 dark:text-white"
+                )}
+                onDoubleClick={handleTitleDoubleClick}
+                title="Double-click to edit"
+              >
+                {task.title}
+              </h4>
+            )}
             {task.description && (
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 {task.description}
