@@ -9,12 +9,14 @@
  * Requires authentication
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { usePolling } from "@/hooks/usePolling";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
 import { User, Task, LoadingState, TaskQueryParams, SortField, SortParam, TaskFilter, SortConfig } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { cn } from "@/lib/utils";
 import TaskForm from "@/components/TaskForm";
 import TaskList from "@/components/TaskList";
 import FilterControls from "@/components/FilterControls";
@@ -44,6 +46,7 @@ function DashboardContent() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [pollingEnabled, setPollingEnabled] = useState(true);
 
   useEffect(() => {
     async function loadUser() {
@@ -73,16 +76,12 @@ function DashboardContent() {
     loadUser();
   }, []);
 
-  // Load tasks when filter, sort, search, or pagination changes
-  useEffect(() => {
-    if (user) {
-      loadTasks(user.id);
-    }
-  }, [filter, sortConfig, searchQuery, currentPage, itemsPerPage, user]);
-
-  const loadTasks = async (userId: string) => {
+  const loadTasks = useCallback(async (userId: string, silent: boolean = false) => {
     try {
-      setLoadingState("loading");
+      // Only show loading state if not a background refresh
+      if (!silent) {
+        setLoadingState("loading");
+      }
 
       // Convert sort key to API format
       let apiSortKey: string;
@@ -127,9 +126,31 @@ function DashboardContent() {
       }
     } catch (error) {
       console.error("Failed to load tasks:", error);
-      setLoadingState("error");
+      if (!silent) {
+        setLoadingState("error");
+      }
     }
-  };
+  }, [filter, sortConfig, searchQuery, currentPage, itemsPerPage]);
+
+  // Load tasks when filter, sort, search, or pagination changes
+  useEffect(() => {
+    if (user) {
+      loadTasks(user.id);
+    }
+  }, [user, loadTasks]);
+
+  // Set up polling for real-time updates
+  usePolling(
+    async () => {
+      if (user && pollingEnabled) {
+        await loadTasks(user.id, true); // Silent refresh
+      }
+    },
+    {
+      interval: 30000, // Poll every 30 seconds
+      enabled: pollingEnabled && !!user,
+    }
+  );
 
   const handleTaskCreated = (newTask: Task) => {
     setTasks(prev => [newTask, ...prev]);
@@ -246,9 +267,27 @@ function DashboardContent() {
             {/* Task List with Controls */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Your Tasks ({tasks.length})
-                </h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Your Tasks ({tasks.length})
+                  </h2>
+                  {/* Real-time updates indicator */}
+                  <button
+                    type="button"
+                    onClick={() => setPollingEnabled(!pollingEnabled)}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full transition-colors",
+                      pollingEnabled
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    )}
+                    aria-label={pollingEnabled ? "Auto-refresh enabled" : "Auto-refresh disabled"}
+                    title={pollingEnabled ? "Auto-refresh enabled (every 30s)" : "Auto-refresh disabled"}
+                  >
+                    <span className={cn("w-2 h-2 rounded-full", pollingEnabled ? "bg-green-500 animate-pulse" : "bg-gray-400")} />
+                    {pollingEnabled ? "Live" : "Off"}
+                  </button>
+                </div>
 
                 <div className="flex flex-wrap gap-2">
                   <FilterControls

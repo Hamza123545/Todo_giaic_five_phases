@@ -164,7 +164,7 @@
 - [X] T064 [US5] Implement pagination for large task lists with API integration
 - [ ] T065 [P] [US5] Implement drag-and-drop reordering using @dnd-kit/core
 - [ ] T066 [US5] Implement undo/redo functionality using useReducer with history pattern
-- [ ] T067 [P] [US5] Add real-time updates with polling mechanism for task changes
+- [X] T067 [P] [US5] Add real-time updates with polling mechanism for task changes
 - [X] T068 [US5] Implement inline editing for tasks in the list view
 
 **Checkpoint**: At this point, all user stories should be independently functional
