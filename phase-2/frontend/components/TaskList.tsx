@@ -5,13 +5,33 @@
  *
  * Displays a list of tasks with filtering, sorting, and loading states
  * Supports different view modes (list, grid, kanban)
+ * Includes drag-and-drop reordering functionality
  */
 
 import { Task, LoadingState, TaskViewMode } from "@/types";
 import { cn } from "@/lib/utils";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import TaskItem from "./TaskItem";
 import LoadingSpinner from "./LoadingSpinner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableTaskItem } from "./SortableTaskItem";
+import { api } from "@/lib/api";
 
 interface TaskListProps {
   tasks: Task[];
@@ -22,6 +42,7 @@ interface TaskListProps {
   viewMode?: "list" | "grid" | "kanban";
   emptyMessage?: string;
   className?: string;
+  enableDragAndDrop?: boolean;
 }
 
 const TaskList = memo(function TaskList({
@@ -33,7 +54,72 @@ const TaskList = memo(function TaskList({
   viewMode = "list",
   emptyMessage = "No tasks found. Create your first task to get started!",
   className,
+  enableDragAndDrop = true,
 }: TaskListProps) {
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Update local tasks when props change
+  useMemo(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  // Configure sensors for drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px drag distance before activating
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as number);
+    setIsDragging(true);
+  };
+
+  // Handle drag end
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setIsDragging(false);
+    setActiveId(null);
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = localTasks.findIndex((task) => task.id === active.id);
+    const newIndex = localTasks.findIndex((task) => task.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Optimistic update
+    const newTasks = arrayMove(localTasks, oldIndex, newIndex);
+    setLocalTasks(newTasks);
+
+    // Persist to backend
+    try {
+      const taskIds = newTasks.map((task) => task.id);
+      await api.reorderTasks(userId, taskIds);
+      onTaskChange?.();
+    } catch (error) {
+      // Revert on error
+      setLocalTasks(tasks);
+      onError?.(error as Error);
+    }
+  };
+
+  const activeTask = useMemo(
+    () => localTasks.find((task) => task.id === activeId),
+    [activeId, localTasks]
+  );
   // Loading state
   if (isLoading) {
     return (
@@ -73,24 +159,81 @@ const TaskList = memo(function TaskList({
   }, [tasks, viewMode]);
 
   // Memoize list items to prevent unnecessary re-renders
-  const listItems = useMemo(() => (
-    <ul
-      className={cn("space-y-3", className)}
-      role="list"
-      aria-label="Task list"
-    >
-      {tasks.map((task) => (
-        <li key={task.id}>
-          <TaskItem
-            task={task}
-            userId={userId}
-            onSuccess={onTaskChange}
-            onError={onError}
-          />
-        </li>
-      ))}
-    </ul>
-  ), [tasks, userId, onTaskChange, onError, className]);
+  const listItems = useMemo(() => {
+    const taskIds = localTasks.map((task) => task.id);
+
+    if (enableDragAndDrop && viewMode === "list") {
+      return (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+            <ul
+              className={cn("space-y-3", className)}
+              role="list"
+              aria-label="Task list with drag-and-drop reordering"
+            >
+              {localTasks.map((task) => (
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  userId={userId}
+                  onSuccess={onTaskChange}
+                  onError={onError}
+                  isDragging={isDragging}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+          <DragOverlay>
+            {activeTask ? (
+              <div className="opacity-50">
+                <TaskItem
+                  task={activeTask}
+                  userId={userId}
+                  onSuccess={onTaskChange}
+                  onError={onError}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      );
+    }
+
+    return (
+      <ul
+        className={cn("space-y-3", className)}
+        role="list"
+        aria-label="Task list"
+      >
+        {localTasks.map((task) => (
+          <li key={task.id}>
+            <TaskItem
+              task={task}
+              userId={userId}
+              onSuccess={onTaskChange}
+              onError={onError}
+            />
+          </li>
+        ))}
+      </ul>
+    );
+  }, [
+    localTasks,
+    userId,
+    onTaskChange,
+    onError,
+    className,
+    enableDragAndDrop,
+    viewMode,
+    sensors,
+    isDragging,
+    activeTask,
+  ]);
 
   const gridItems = useMemo(() => (
     <div
@@ -101,7 +244,7 @@ const TaskList = memo(function TaskList({
       role="list"
       aria-label="Task grid"
     >
-      {tasks.map((task) => (
+      {localTasks.map((task) => (
         <div key={task.id}>
           <TaskItem
             task={task}
@@ -113,7 +256,7 @@ const TaskList = memo(function TaskList({
         </div>
       ))}
     </div>
-  ), [tasks, userId, onTaskChange, onError, className]);
+  ), [localTasks, userId, onTaskChange, onError, className]);
 
   const kanbanView = useMemo(() => (
     <div

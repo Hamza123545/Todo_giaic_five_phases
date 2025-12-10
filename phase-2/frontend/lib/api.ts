@@ -236,6 +236,16 @@ export class ApiClient {
     });
   }
 
+  async reorderTasks(
+    userId: string,
+    taskIds: number[]
+  ): Promise<ApiResponse<{ reordered: number }>> {
+    return apiFetch<{ reordered: number }>(`/api/${userId}/tasks/reorder`, {
+      method: "POST",
+      body: JSON.stringify({ task_ids: taskIds }),
+    });
+  }
+
   // ==================== Export/Import Methods ====================
 
   async exportTasks(userId: string, format: ExportFormat): Promise<Blob> {
