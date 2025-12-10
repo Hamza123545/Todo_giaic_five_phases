@@ -26,6 +26,7 @@ export interface UserSignupData extends UserCredentials {
 // Task Types
 export type TaskStatus = "pending" | "completed";
 export type TaskPriority = "low" | "medium" | "high";
+export type TaskFilter = "all" | "pending" | "completed";
 
 export interface Task {
   id: number;
@@ -50,6 +51,12 @@ export interface TaskFormData {
 
 export type SortField = "created" | "title" | "updated" | "priority" | "due_date";
 export type SortParam = SortField | `${SortField}:${"asc" | "desc"}`;
+export type SortDirection = "asc" | "desc";
+
+export interface SortConfig {
+  key: SortField;
+  direction: SortDirection;
+}
 
 export interface TaskQueryParams {
   status?: "all" | "pending" | "completed";
@@ -57,7 +64,12 @@ export interface TaskQueryParams {
   search?: string;
   page?: number;
   limit?: number;
+  priority?: TaskPriority;
+  due_date?: string;
+  tags?: string[];
 }
+
+export type TaskViewMode = "list" | "grid" | "kanban";
 
 // API Response Types
 export interface ApiResponse<T = unknown> {

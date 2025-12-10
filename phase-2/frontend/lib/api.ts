@@ -279,6 +279,69 @@ export class ApiClient {
 
     return response.json();
   }
+
+  // ==================== Bulk Operations Methods ====================
+
+  async bulkDeleteTasks(
+    userId: string,
+    taskIds: number[]
+  ): Promise<ApiResponse<{ deleted: number }>> {
+    return apiFetch<{ deleted: number }>(`/api/${userId}/tasks/bulk`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "delete",
+        task_ids: taskIds,
+      }),
+    });
+  }
+
+  async bulkUpdateTaskStatus(
+    userId: string,
+    taskIds: number[],
+    completed: boolean
+  ): Promise<ApiResponse<{ updated: number }>> {
+    return apiFetch<{ updated: number }>(`/api/${userId}/tasks/bulk`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "update_status",
+        task_ids: taskIds,
+        completed,
+      }),
+    });
+  }
+
+  async bulkUpdateTaskPriority(
+    userId: string,
+    taskIds: number[],
+    priority: TaskPriority
+  ): Promise<ApiResponse<{ updated: number }>> {
+    return apiFetch<{ updated: number }>(`/api/${userId}/tasks/bulk`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "update_priority",
+        task_ids: taskIds,
+        priority,
+      }),
+    });
+  }
+
+  // ==================== Statistics Methods ====================
+
+  async getTaskStatistics(
+    userId: string
+  ): Promise<ApiResponse<{
+    total: number;
+    completed: number;
+    pending: number;
+    overdue: number;
+    by_priority: {
+      low: number;
+      medium: number;
+      high: number;
+    };
+  }>> {
+    return apiFetch(`/api/${userId}/tasks/statistics`);
+  }
 }
 
 // Export singleton instance

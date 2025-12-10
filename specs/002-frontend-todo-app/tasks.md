@@ -109,14 +109,14 @@
 ### Implementation for User Story 3
 
 - [ ] T037 [US3] Enhance FilterControls component with status, priority, due date, and tags filtering
-- [ ] T038 [P] [US3] Enhance SortControls component with multiple sorting options and directions
-- [ ] T039 [US3] Enhance SearchBar component with real-time search and debouncing
-- [ ] T040 [P] [US3] Integrate filtering logic with API client and query parameters
-- [ ] T041 [US3] Integrate sorting logic with API client and query parameters
-- [ ] T042 [P] [US3] Integrate search logic with API client and query parameters
-- [ ] T043 [US3] Update TaskList component to handle filtered, sorted, and searched results
-- [ ] T044 [P] [US3] Add query parameter handling to maintain filter/sort/search state in URL
-- [ ] T045 [US3] Implement multiple view modes (list, grid, kanban) in TaskList component
+- [X] T038 [P] [US3] Enhance SortControls component with multiple sorting options and directions
+- [X] T039 [US3] Enhance SearchBar component with real-time search and debouncing
+- [X] T040 [P] [US3] Integrate filtering logic with API client and query parameters
+- [X] T041 [US3] Integrate sorting logic with API client and query parameters
+- [X] T042 [P] [US3] Integrate search logic with API client and query parameters
+- [X] T043 [US3] Update TaskList component to handle filtered, sorted, and searched results
+- [X] T044 [P] [US3] Add query parameter handling to maintain filter/sort/search state in URL
+- [X] T045 [US3] Implement multiple view modes (list, grid, kanban) in TaskList component
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently
 
@@ -154,13 +154,13 @@
 ### Implementation for User Story 5
 
 - [ ] T056 [US5] Create TaskStatistics component at `/frontend/components/TaskStatistics.tsx`
-- [ ] T057 [P] [US5] Create TaskDetailModal component at `/frontend/components/TaskDetailModal.tsx`
-- [ ] T058 [US5] Create ExportImportControls component at `/frontend/components/ExportImportControls.tsx`
-- [ ] T059 [P] [US5] Implement CSV and JSON export functionality for tasks
-- [ ] T060 [US5] Implement CSV and JSON import functionality for tasks with validation
-- [ ] T061 [P] [US5] Create BulkActions component at `/frontend/components/BulkActions.tsx`
-- [ ] T062 [US5] Implement bulk operations (delete, mark complete, change priority) for selected tasks
-- [ ] T063 [P] [US5] Create PaginationControls component at `/frontend/components/PaginationControls.tsx`
+- [X] T057 [P] [US5] Create TaskDetailModal component at `/frontend/components/TaskDetailModal.tsx`
+- [X] T058 [US5] Create ExportImportControls component at `/frontend/components/ExportImportControls.tsx`
+- [X] T059 [P] [US5] Implement CSV and JSON export functionality for tasks
+- [X] T060 [US5] Implement CSV and JSON import functionality for tasks with validation
+- [X] T061 [P] [US5] Create BulkActions component at `/frontend/components/BulkActions.tsx`
+- [X] T062 [US5] Implement bulk operations (delete, mark complete, change priority) for selected tasks
+- [X] T063 [P] [US5] Create PaginationControls component at `/frontend/components/PaginationControls.tsx`
 - [ ] T064 [US5] Implement pagination for large task lists with API integration
 - [ ] T065 [P] [US5] Implement drag-and-drop reordering using @dnd-kit/core
 - [ ] T066 [US5] Implement undo/redo functionality using useReducer with history pattern
