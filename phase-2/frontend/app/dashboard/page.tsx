@@ -22,6 +22,7 @@ import SortControls from "@/components/SortControls";
 import SearchBar from "@/components/SearchBar";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import Header from "@/components/Header";
+import PaginationControls from "@/components/PaginationControls";
 import { api } from "@/lib/api";
 
 function DashboardContent() {
@@ -37,6 +38,12 @@ function DashboardContent() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     async function loadUser() {
@@ -66,12 +73,12 @@ function DashboardContent() {
     loadUser();
   }, []);
 
-  // Load tasks when filter, sort, or search changes
+  // Load tasks when filter, sort, search, or pagination changes
   useEffect(() => {
     if (user) {
       loadTasks(user.id);
     }
-  }, [filter, sortConfig, searchQuery, user]);
+  }, [filter, sortConfig, searchQuery, currentPage, itemsPerPage, user]);
 
   const loadTasks = async (userId: string) => {
     try {
@@ -105,13 +112,15 @@ function DashboardContent() {
         status: filter,
         sort: sortParam,
         search: searchQuery,
-        page: 1,
-        limit: 50, // Adjust as needed
+        page: currentPage,
+        limit: itemsPerPage,
       };
 
       const response = await api.getTasks(userId, queryParams);
       if (response.success && response.data) {
         setTasks(response.data.data || []);
+        setTotalItems(response.data.total || 0);
+        setTotalPages(response.data.pages || 1);
         setLoadingState("success");
       } else {
         throw new Error(response.message || "Failed to load tasks");
@@ -153,10 +162,26 @@ function DashboardContent() {
       key,
       direction: direction || (prev.key === key && prev.direction === "asc" ? "desc" : "asc")
     }));
+    setCurrentPage(1); // Reset to first page when sort changes
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when search changes
   };
 
   const handleFilterChange = (newFilter: TaskFilter) => {
     setFilter(newFilter);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1); // Reset to first page when items per page changes
   };
 
   if (isLoading) {
@@ -247,7 +272,7 @@ function DashboardContent() {
               {/* Search Bar */}
               <div className="mb-4">
                 <SearchBar
-                  onSearch={setSearchQuery}
+                  onSearch={handleSearchChange}
                   placeholder="Search tasks..."
                 />
               </div>
@@ -260,6 +285,20 @@ function DashboardContent() {
                 onError={handleTaskError}
                 isLoading={loadingState === "loading"}
               />
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={handlePageChange}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
