@@ -9,6 +9,8 @@ const bundleAnalyzer = withBundleAnalyzer({
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  // Enable standalone output for Docker deployment
+  output: "standalone",
   // Enable compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",

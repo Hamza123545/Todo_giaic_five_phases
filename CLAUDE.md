@@ -206,5 +206,144 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 - `history/adr/` — Architecture Decision Records
 - `.specify/` — SpecKit Plus templates and scripts
 
+## Available Agents and Skills
+
+**⚠️ IMPORTANT: This section is the SINGLE SOURCE OF TRUTH for all available agents, skills, and tools in this project.**
+
+### Spec-Kit Plus Commands (Primary Workflow)
+
+All development MUST follow Spec-Driven Development (SDD) workflow using Spec-Kit Plus commands:
+
+- **`/sp.specify`** - Create or update feature specifications (`spec.md`)
+- **`/sp.plan`** - Generate architectural plans (`plan.md`)
+- **`/sp.tasks`** - Generate actionable task lists (`tasks.md`)
+- **`/sp.implement`** - Implement features following specs and plans
+- **`/sp.clarify`** - Clarify requirements and resolve ambiguities
+- **`/sp.adr`** - Create Architecture Decision Records
+- **`/sp.phr`** - Create Prompt History Records (auto-created after each task)
+- **`/sp.git.commit_pr`** - Commit and push changes via GitHub MCP Server
+
+**Usage Pattern:**
+1. Read constitution: `.specify/memory/constitution.md`
+2. Read relevant specs: `specs/<feature>/spec.md`
+3. Use appropriate agent from `.claude/agents/`
+4. Apply relevant skills from `.claude/skills/`
+5. Use Spec-Kit Plus commands for all development work
+6. All operations MUST go through MCP servers (not direct commands)
+
+### MCP Servers (Model Context Protocol)
+
+**MANDATORY:** All operations MUST use MCP servers, not direct CLI commands.
+
+1. **GitHub MCP Server**
+   - **Purpose:** All git operations (commit, push, pull, branch management)
+   - **Usage:** MUST be used for all version control operations
+   - **Operations:** Commit, push, pull, branch creation, merge, repository operations
+   - **Never use:** Direct `git` CLI commands
+
+2. **Context7 MCP Server**
+   - **Purpose:** Enhanced code context and codebase understanding
+   - **Usage:** Code analysis, context retrieval, maintaining context across sessions
+   - **Operations:** Code understanding, structure analysis, relationship mapping
+
+3. **Better Auth MCP Server**
+   - **Purpose:** Better Auth configuration patterns and JWT token management
+   - **Usage:** Authentication patterns, JWT configuration, auth best practices
+   - **Operations:** Better Auth setup, JWT token management patterns
+
+### Available Agents
+
+The following specialized agents are available in `.claude/agents/`:
+
+1. **fastapi-backend-expert** - FastAPI backend API development, routing, authentication, database operations
+2. **nextjs-frontend-expert** - Next.js 16 frontend development, App Router, Server/Client Components
+3. **frontend-expert** - General frontend development and component architecture
+4. **frontend-feature-builder** - Building complete frontend features end-to-end
+5. **backend-expert** - General backend development patterns
+6. **backend-feature-builder** - Building complete backend features end-to-end
+7. **fullstack-architect** - Full-stack architecture and integration patterns
+8. **auth-expert** - Authentication and authorization implementation
+9. **database-expert** - Database design, migrations, and query optimization
+10. **ui-ux-expert** - UI/UX design patterns and accessibility
+11. **backend-testing** - Backend testing strategies and test implementation
+12. **backend-refactoring-optimizer** - Code refactoring and performance optimization
+
+**Agent Usage:**
+- Agents are located in `.claude/agents/` directory
+- Each agent has specific expertise and skills
+- Use appropriate agent based on task requirements
+- Agents follow Spec-Kit Plus workflow and constitution
+
+### Available Skills
+
+The following skills are available in `.claude/skills/`:
+
+**Frontend Skills:**
+1. **nextjs** - Next.js 16 App Router, Server/Client Components, routing patterns
+2. **frontend-component** - Component composition and organization patterns
+3. **frontend-api-client** - API integration and data fetching strategies
+4. **frontend-auth** - Better Auth integration and authentication flows
+5. **frontend-types** - TypeScript type definitions and interfaces
+6. **shadcn** - Shadcn UI component library usage
+7. **tailwind-css** - Tailwind CSS styling and responsive design
+8. **framer-motion** - Animation and motion design patterns
+
+**Backend Skills:**
+9. **fastapi** - FastAPI routing, dependencies, middleware patterns
+10. **backend-api-routes** - RESTful API design and route patterns
+11. **backend-database** - SQLModel, Alembic, database operations
+12. **backend-service-layer** - Business logic and service patterns
+13. **backend-error-handling** - Error handling and response formatting
+14. **backend-jwt-auth** - JWT authentication and verification
+15. **backend-query-params** - Query parameter handling and validation
+16. **backend-export-import** - Export/import functionality patterns
+17. **backend-testing** - Testing strategies and test patterns
+
+**Database & Auth Skills:**
+18. **neon-postgres** - Neon PostgreSQL serverless database patterns
+19. **drizzle-orm** - Drizzle ORM patterns (if used)
+20. **better-auth-ts** - Better Auth TypeScript patterns and examples
+21. **better-auth-python** - Better Auth Python/JWT verification patterns
+
+**Skill Usage:**
+- Skills are located in `.claude/skills/` directory
+- Each skill contains examples, templates, and reference documentation
+- Agents use relevant skills based on task requirements
+- Skills follow project patterns and best practices
+
+### Agent and Skill Selection
+
+**When to use which agent:**
+- **Backend API work** → `fastapi-backend-expert` + backend skills
+- **Frontend Next.js work** → `nextjs-frontend-expert` + frontend skills
+- **Full-stack features** → `fullstack-architect` + relevant skills
+- **Authentication** → `auth-expert` + `better-auth-ts`/`better-auth-python` skills
+- **Database work** → `database-expert` + `backend-database`/`neon-postgres` skills
+- **UI/UX work** → `ui-ux-expert` + `shadcn`/`tailwind-css` skills
+- **Testing** → `backend-testing` + `backend-testing` skill
+
+**All agents MUST:**
+1. Read `.specify/memory/constitution.md` first
+2. Use relevant skills from `.claude/skills/`
+3. Follow Spec-Kit Plus workflow
+4. Use MCP servers for all operations
+5. Create PHRs after every task
+6. Follow the same code standards
+
+### Tool Priority Order
+
+1. **MCP Servers** (FIRST PRIORITY) - Use for all operations
+2. **Agents** - Use appropriate agent from `.claude/agents/`
+3. **Skills** - Apply relevant skills from `.claude/skills/`
+4. **Spec-Kit Plus Commands** - Use for spec-driven development
+5. **CLI Commands** (LAST RESORT) - Only when MCP servers unavailable
+
+**Never:**
+- Use direct git commands (use GitHub MCP Server)
+- Skip MCP servers
+- Bypass Spec-Kit Plus workflow
+- Create code without reading constitution
+- Use agents/skills not listed above
+
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.

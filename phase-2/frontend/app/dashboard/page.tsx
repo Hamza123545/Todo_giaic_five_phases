@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { usePolling } from "@/hooks/usePolling";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
-import { User, Task, LoadingState, TaskQueryParams, SortParam, TaskFilter, SortConfig } from "@/types";
+import { User, Task, LoadingState, TaskQueryParams, SortParam, TaskFilter, SortConfig, TaskViewMode } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import TaskForm from "@/components/TaskForm";
@@ -47,6 +47,7 @@ function DashboardContent() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pollingEnabled, setPollingEnabled] = useState(true);
+  const [viewMode, setViewMode] = useState<TaskViewMode>("list");
 
   useEffect(() => {
     async function loadUser() {
@@ -324,6 +325,7 @@ function DashboardContent() {
                 onTaskChange={handleTaskUpdated}
                 onError={handleTaskError}
                 isLoading={loadingState === "loading"}
+                viewMode={viewMode}
               />
 
               {/* Pagination */}
@@ -404,33 +406,39 @@ function DashboardContent() {
               <div className="space-y-2">
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  onClick={() => {
-                    // In a real app, this would change the view mode
-                    console.log("Switching to list view");
-                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-2 text-sm rounded-md transition-colors",
+                    viewMode === "list"
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                  onClick={() => setViewMode("list")}
                 >
-                  List View
+                  📋 List View
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  onClick={() => {
-                    // In a real app, this would change the view mode
-                    console.log("Switching to grid view");
-                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-2 text-sm rounded-md transition-colors",
+                    viewMode === "grid"
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                  onClick={() => setViewMode("grid")}
                 >
-                  Grid View
+                  🔲 Grid View
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  onClick={() => {
-                    // In a real app, this would change the view mode
-                    console.log("Switching to kanban view");
-                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-2 text-sm rounded-md transition-colors",
+                    viewMode === "kanban"
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                  onClick={() => setViewMode("kanban")}
                 >
-                  Kanban View
+                  📊 Kanban View
                 </button>
               </div>
             </div>
