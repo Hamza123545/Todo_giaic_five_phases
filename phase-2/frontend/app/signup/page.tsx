@@ -104,8 +104,9 @@ export default function SignupPage() {
       const redirectPath = sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectPath);
-    } catch (error: any) {
-      setApiError(error.message || "An error occurred during signup");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred during signup";
+      setApiError(errorMessage);
     } finally {
       setIsLoading(false);
     }

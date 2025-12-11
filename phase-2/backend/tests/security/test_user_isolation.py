@@ -55,7 +55,9 @@ def test_user_cannot_access_other_users_tasks(session: Session):
 
     # Should get 403 Forbidden
     assert response.status_code == 403
-    assert "mismatch" in response.json()["detail"].lower()
+    data = response.json()
+    assert data["success"] is False
+    assert "mismatch" in data["error"]["message"].lower()
 
 
 def test_user_cannot_update_other_users_task(session: Session):

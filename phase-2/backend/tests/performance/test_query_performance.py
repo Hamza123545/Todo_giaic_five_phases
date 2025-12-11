@@ -304,9 +304,18 @@ class TestExportPerformance:
         """Test exporting 1000 tasks to CSV completes within 2 seconds."""
         # Arrange
         user_id = large_dataset["user_id"]
-        tasks, _ = TaskService.get_tasks(
-            session, user_id, TaskQueryParams(page=1, limit=1000)
-        )
+        # Get tasks in batches (limit is 100, so we need to get all tasks)
+        all_tasks = []
+        page = 1
+        while True:
+            tasks, metadata = TaskService.get_tasks(
+                session, user_id, TaskQueryParams(page=page, limit=100)
+            )
+            all_tasks.extend(tasks)
+            if len(tasks) < 100:
+                break
+            page += 1
+        tasks = all_tasks[:1000]  # Limit to 1000 for export test
 
         from services.export_import_service import ExportImportService
 
@@ -326,9 +335,18 @@ class TestExportPerformance:
         """Test exporting 1000 tasks to JSON completes within 2 seconds."""
         # Arrange
         user_id = large_dataset["user_id"]
-        tasks, _ = TaskService.get_tasks(
-            session, user_id, TaskQueryParams(page=1, limit=1000)
-        )
+        # Get tasks in batches (limit is 100, so we need to get all tasks)
+        all_tasks = []
+        page = 1
+        while True:
+            tasks, metadata = TaskService.get_tasks(
+                session, user_id, TaskQueryParams(page=page, limit=100)
+            )
+            all_tasks.extend(tasks)
+            if len(tasks) < 100:
+                break
+            page += 1
+        tasks = all_tasks[:1000]  # Limit to 1000 for export test
 
         from services.export_import_service import ExportImportService
 

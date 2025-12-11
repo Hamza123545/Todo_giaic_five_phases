@@ -8,9 +8,9 @@
  * Includes drag-and-drop reordering functionality
  */
 
-import { Task, LoadingState, TaskViewMode } from "@/types";
+import { Task } from "@/types";
 import { cn } from "@/lib/utils";
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useEffect, useCallback } from "react";
 import TaskItem from "./TaskItem";
 import LoadingSpinner from "./LoadingSpinner";
 import {
@@ -61,7 +61,7 @@ const TaskList = memo(function TaskList({
   const [isDragging, setIsDragging] = useState(false);
 
   // Update local tasks when props change
-  useMemo(() => {
+  useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
@@ -78,13 +78,13 @@ const TaskList = memo(function TaskList({
   );
 
   // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as number);
     setIsDragging(true);
-  };
+  }, []);
 
   // Handle drag end
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
     setIsDragging(false);
     setActiveId(null);
@@ -114,38 +114,12 @@ const TaskList = memo(function TaskList({
       setLocalTasks(tasks);
       onError?.(error as Error);
     }
-  };
+  }, [localTasks, tasks, userId, onTaskChange, onError]);
 
   const activeTask = useMemo(
     () => localTasks.find((task) => task.id === activeId),
     [activeId, localTasks]
   );
-  // Loading state
-  if (isLoading) {
-    return (
-      <div
-        className="flex items-center justify-center py-12"
-        role="status"
-        aria-live="polite"
-        aria-label="Loading tasks"
-      >
-        <LoadingSpinner size="large" label="Loading tasks..." />
-      </div>
-    );
-  }
-
-  // Empty state
-  if (!tasks || tasks.length === 0) {
-    return (
-      <div
-        className="text-center py-12 text-gray-500 dark:text-gray-400"
-        role="status"
-        aria-live="polite"
-      >
-        <p className="text-lg">{emptyMessage}</p>
-      </div>
-    );
-  }
 
   // Memoize computed values
   const { pendingTasks, completedTasks } = useMemo(() => {
@@ -233,6 +207,8 @@ const TaskList = memo(function TaskList({
     sensors,
     isDragging,
     activeTask,
+    handleDragStart,
+    handleDragEnd,
   ]);
 
   const gridItems = useMemo(() => (
@@ -333,6 +309,33 @@ const TaskList = memo(function TaskList({
       </div>
     </div>
   ), [completedTasks, pendingTasks, userId, onTaskChange, onError, className]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div
+        className="flex items-center justify-center py-12"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading tasks"
+      >
+        <LoadingSpinner size="large" label="Loading tasks..." />
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div
+        className="text-center py-12 text-gray-500 dark:text-gray-400"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-lg">{emptyMessage}</p>
+      </div>
+    );
+  }
 
   // Render based on selected view mode
   switch (viewMode) {

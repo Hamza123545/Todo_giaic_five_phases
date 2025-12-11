@@ -145,7 +145,7 @@ const MockDashboard = () => {
       });
       sessionStorage.removeItem('auth_token');
       mockPush('/signin');
-    } catch (err) {
+    } catch {
       setIsSigningOut(false);
     }
   };

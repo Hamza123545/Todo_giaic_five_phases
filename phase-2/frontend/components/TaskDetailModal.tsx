@@ -12,7 +12,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Task, TaskFormData, TaskPriority } from "@/types";
 import { X, Calendar, Tag, AlertCircle, Clock, Edit2, Check } from "lucide-react";
 import { Button } from "./ui/button";
@@ -44,6 +44,14 @@ export function TaskDetailModal({
     }
   }, [isOpen, task]);
 
+  const handleClose = useCallback(() => {
+    if (!isLoading) {
+      setIsEditing(false);
+      setEditedData({});
+      onClose();
+    }
+  }, [isLoading, onClose]);
+
   // Handle Escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -54,7 +62,7 @@ export function TaskDetailModal({
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -68,14 +76,6 @@ export function TaskDetailModal({
       document.body.style.overflow = "";
     };
   }, [isOpen]);
-
-  const handleClose = () => {
-    if (!isLoading) {
-      setIsEditing(false);
-      setEditedData({});
-      onClose();
-    }
-  };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {

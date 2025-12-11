@@ -73,7 +73,7 @@ export default class ComponentErrorBoundary extends Component<Props, State> {
                 {this.props.componentName || "Component"} Error
               </h3>
               <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                This component encountered an error and couldn't be displayed.
+                This component encountered an error and couldn&apos;t be displayed.
               </p>
               {process.env.NODE_ENV === "development" && this.state.error && (
                 <details className="mt-2">

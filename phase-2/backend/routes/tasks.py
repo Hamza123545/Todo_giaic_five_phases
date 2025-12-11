@@ -43,7 +43,13 @@ def verify_user_access(user_id: str, current_user: Dict[str, str]) -> None:
     if current_user["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User ID mismatch: You can only access your own data",
+            detail={
+                "success": False,
+                "error": {
+                    "code": "FORBIDDEN",
+                    "message": "User ID mismatch: You can only access your own data",
+                },
+            },
         )
 
 
@@ -90,7 +96,10 @@ async def create_task(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": str(e)},
+            },
         )
 
 
@@ -151,7 +160,10 @@ async def get_tasks(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": str(e)},
+            },
         )
 
 
@@ -238,7 +250,10 @@ async def update_task(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": str(e)},
+            },
         )
 
 
@@ -410,7 +425,13 @@ async def import_tasks(
         if not (file.filename.endswith(".csv") or file.filename.endswith(".json")):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid file type. Only CSV and JSON files are supported",
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid file type. Only CSV and JSON files are supported",
+                    },
+                },
             )
 
     # Read file content
@@ -514,7 +535,11 @@ async def bulk_operations(
     # Validate task_ids
     if not task_ids:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="task_ids cannot be empty"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": "task_ids cannot be empty"},
+            },
         )
 
     # Perform bulk operation

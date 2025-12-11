@@ -113,7 +113,7 @@ describe('API Client Integration Tests', () => {
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toHaveLength(1);
-      expect(response.data?.items[0].status).toBe('completed');
+      expect(response.data?.items[0].completed).toBe(true);
     });
 
     test('getTasks searches by title', async () => {
@@ -190,13 +190,13 @@ describe('API Client Integration Tests', () => {
       const response1 = await api.toggleTaskComplete(testUserId, 1, true);
       expect(response1.success).toBe(true);
       expect(response1.data?.completed).toBe(true);
-      expect(response1.data?.status).toBe('completed');
+      expect(response1.data?.completed).toBe(true);
 
       // Toggle back to pending
       const response2 = await api.toggleTaskComplete(testUserId, 1, false);
       expect(response2.success).toBe(true);
       expect(response2.data?.completed).toBe(false);
-      expect(response2.data?.status).toBe('pending');
+      expect(response2.data?.completed).toBe(false);
     });
   });
 
@@ -292,7 +292,7 @@ describe('API Client Integration Tests', () => {
       expect(response.data?.items).toHaveLength(1);
       expect(response.data?.page).toBe(1);
       expect(response.data?.limit).toBe(1);
-      expect(response.data?.total_pages).toBe(2);
+      expect(response.data?.totalPages).toBe(2);
     });
 
     test('getTasks handles page 2', async () => {

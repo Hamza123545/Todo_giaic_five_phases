@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
@@ -72,6 +72,37 @@ app.state.limiter = limiter
 
 # Add rate limit exceeded handler
 app.add_exception_handler(RateLimitExceeded, get_rate_limit_exceeded_handler())
+
+
+# Custom exception handler for HTTPException to preserve our response format
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """
+    Custom handler for HTTPException that preserves our API response format.
+    
+    If detail is a dict with 'success' and 'error' keys, return it directly.
+    Otherwise, wrap it in our standard error format.
+    """
+    detail = exc.detail
+    
+    # If detail is already in our format (dict with 'success' key), use it directly
+    if isinstance(detail, dict) and "success" in detail:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=detail,
+        )
+    
+    # Otherwise, wrap it in our standard error format
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": exc.status_code,
+                "message": str(detail) if not isinstance(detail, dict) else detail.get("message", "An error occurred"),
+            },
+        },
+    )
 
 # Configure CORS (must be first)
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")

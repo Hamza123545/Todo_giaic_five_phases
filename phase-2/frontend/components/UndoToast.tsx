@@ -25,10 +25,10 @@ export default function UndoToast({
   onDismiss,
   className,
 }: UndoToastProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => !!command);
 
   useEffect(() => {
-    if (command) {
+    if (command && !isVisible) {
       setIsVisible(true);
 
       // Auto-dismiss after 5 seconds

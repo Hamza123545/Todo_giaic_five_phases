@@ -51,7 +51,7 @@ class TaskQueryParams(BaseModel):
     )
 
     # Sorting parameters
-    sort: str = Field(
+    sort: Optional[str] = Field(
         default="created:desc",
         description="Sort order (format: field:direction). "
         "Fields: created, title, updated, priority, due_date. "
@@ -119,7 +119,7 @@ class TaskQueryParams(BaseModel):
 
     @field_validator("sort")
     @classmethod
-    def validate_sort(cls, v: str) -> tuple[str, str]:
+    def validate_sort(cls, v: str) -> str:
         """Validate sort parameter format and values."""
         valid_fields = ["created", "title", "updated", "priority", "due_date"]
         valid_directions = ["asc", "desc"]
@@ -144,7 +144,8 @@ class TaskQueryParams(BaseModel):
                 f"Invalid sort direction '{direction}'. Must be one of: {', '.join(valid_directions)}"
             )
 
-        return (field, direction)
+        # Return as string (will be parsed in service layer)
+        return v
 
     @field_validator("search")
     @classmethod

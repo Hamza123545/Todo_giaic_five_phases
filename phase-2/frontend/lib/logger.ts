@@ -16,7 +16,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: number;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: Error;
   userId?: string;
   sessionId?: string;
@@ -24,8 +24,8 @@ export interface LogEntry {
 
 export interface ErrorReport {
   error: Error;
-  errorInfo?: any;
-  context?: Record<string, any>;
+  errorInfo?: unknown;
+  context?: Record<string, unknown>;
   timestamp: number;
   userId?: string;
   sessionId?: string;

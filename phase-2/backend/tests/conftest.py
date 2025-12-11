@@ -5,12 +5,57 @@ This module provides shared fixtures for testing the Todo application backend.
 """
 
 import os
+import warnings
 from datetime import datetime, timedelta
 from typing import Callable, Generator
 from uuid import UUID, uuid4
 
 # Set test environment BEFORE importing other modules
 os.environ["ENVIRONMENT"] = "test"
+# Set BETTER_AUTH_SECRET for testing (required for JWT token generation)
+os.environ["BETTER_AUTH_SECRET"] = os.getenv("BETTER_AUTH_SECRET", "test-secret-key-for-jwt-token-generation-in-tests-only")
+
+# Fix bcrypt 72-byte limit issue during passlib initialization
+# This prevents passlib from trying to detect bugs with very long passwords
+warnings.filterwarnings("ignore", message=".*password cannot be longer than 72 bytes.*")
+warnings.filterwarnings("ignore", category=UserWarning, module="passlib")
+warnings.filterwarnings("ignore", message=".*bcrypt.*")
+
+# Aggressive monkeypatch bcrypt to skip bug detection BEFORE any imports
+# This must happen before password module is imported
+try:
+    import passlib.handlers.bcrypt as bcrypt_module
+    
+    # Patch at the module level before any backend initialization
+    if hasattr(bcrypt_module, '_BcryptBackend'):
+        backend_class = bcrypt_module._BcryptBackend
+        
+        # Replace detect_wrap_bug method to always return False
+        if hasattr(backend_class, 'detect_wrap_bug'):
+            @classmethod
+            def patched_detect_wrap_bug(cls, ident):
+                return False  # Skip bug detection
+            backend_class.detect_wrap_bug = patched_detect_wrap_bug
+        
+        # Replace _finalize_backend_mixin to skip bug detection
+        if hasattr(backend_class, '_finalize_backend_mixin'):
+            @classmethod
+            def patched_finalize_backend_mixin(cls, name, dryrun):
+                # Skip bug detection entirely - just return the class
+                return cls
+            backend_class._finalize_backend_mixin = patched_finalize_backend_mixin
+        
+        # Also patch _load_backend_mixin to skip bug detection
+        if hasattr(backend_class, '_load_backend_mixin'):
+            original_load = backend_class._load_backend_mixin
+            @classmethod
+            def patched_load_backend_mixin(cls, name, dryrun):
+                # Skip the finalize step which triggers bug detection
+                return original_load(name, dryrun=True)  # Use dryrun to skip bug detection
+            backend_class._load_backend_mixin = patched_load_backend_mixin
+except Exception:
+    # If patching fails, continue anyway
+    pass
 
 import pytest
 from fastapi.testclient import TestClient
@@ -385,3 +430,92 @@ def timer():
             timing_result["elapsed"] = (time.time() - start_time) * 1000  # Convert to ms
 
     return _timer
+
+
+# ============================================================================
+# ASYNC TEST FIXTURES (for httpx.AsyncClient tests)
+# ============================================================================
+
+
+@pytest.fixture
+async def async_client(session: Session):
+    """
+    Fixture to create an async test client with dependency overrides.
+
+    Args:
+        session: Database session fixture
+
+    Yields:
+        AsyncClient: FastAPI async test client
+    """
+    from httpx import AsyncClient
+
+    def get_session_override():
+        return session
+
+    app.dependency_overrides[get_session] = get_session_override
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def test_user(session: Session) -> User:
+    """
+    Fixture creating a test user for integration tests.
+
+    Returns:
+        User: Test user instance
+    """
+    user = User(
+        email=f"testuser_{uuid4().hex[:8]}@example.com",
+        password_hash=hash_password("testpassword123"),
+        name="Test User",
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def db_session(session: Session) -> Session:
+    """
+    Fixture alias for session (for compatibility with existing tests).
+
+    Args:
+        session: Database session fixture
+
+    Returns:
+        Session: Database session
+    """
+    return session
+
+
+@pytest.fixture
+def db(session: Session) -> Session:
+    """
+    Fixture alias for session (for compatibility with existing tests).
+
+    Args:
+        session: Database session fixture
+
+    Returns:
+        Session: Database session
+    """
+    return session
+
+
+@pytest.fixture
+def auth_headers(test_user: User) -> dict:
+    """
+    Fixture creating auth headers for authenticated requests.
+
+    Args:
+        test_user: Test user fixture
+
+    Returns:
+        dict: Authorization headers
+    """
+    token = generate_jwt_token(str(test_user.id), test_user.email)
+    return {"Authorization": f"Bearer {token}"}

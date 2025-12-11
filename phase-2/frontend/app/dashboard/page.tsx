@@ -119,9 +119,9 @@ function DashboardContent() {
 
       const response = await api.getTasks(userId, queryParams);
       if (response.success && response.data) {
-        setTasks(response.data.data || []);
-        setTotalItems(response.data.meta?.total || 0);
-        setTotalPages(response.data.meta?.totalPages || 1);
+        setTasks(response.data.items || []);
+        setTotalItems(response.data.total || 0);
+        setTotalPages(response.data.totalPages || 1);
         setLoadingState("success");
       } else {
         throw new Error(response.message || "Failed to load tasks");

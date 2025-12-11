@@ -17,26 +17,26 @@ export interface CacheOptions {
 }
 
 class APICache {
-  private cache: Map<string, CacheEntry<any>> = new Map();
-  private pendingRequests: Map<string, Promise<any>> = new Map();
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private pendingRequests: Map<string, Promise<unknown>> = new Map();
   private defaultTTL = 5 * 60 * 1000; // 5 minutes default
 
   // Generate cache key from URL and params
   private generateKey(
     endpoint: string,
-    params?: Record<string, any>
+    params?: Record<string, unknown>
   ): string {
     const paramString = params ? JSON.stringify(params) : "";
     return `${endpoint}:${paramString}`;
   }
 
   // Check if cache entry is expired
-  private isExpired(entry: CacheEntry<any>): boolean {
+  private isExpired(entry: CacheEntry<unknown>): boolean {
     return Date.now() > entry.expiresAt;
   }
 
   // Check if cache entry is stale (but within grace period)
-  private isStale(entry: CacheEntry<any>, staleTTL: number = 60000): boolean {
+  private isStale(entry: CacheEntry<unknown>, staleTTL: number = 60000): boolean {
     const staleThreshold = entry.expiresAt - staleTTL;
     return Date.now() > staleThreshold;
   }

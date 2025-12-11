@@ -109,7 +109,22 @@ class AuthService:
         Returns:
             bool: True if valid, False otherwise
         """
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        # More strict pattern that rejects invalid formats
+        pattern = r"^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$"
+        # Additional checks for common invalid patterns
+        if not email or "@" not in email:
+            return False
+        if email.startswith(".") or email.startswith("@") or email.endswith(".") or email.endswith("@"):
+            return False
+        if ".." in email or "@@" in email or " " in email:
+            return False
+        if email.count("@") != 1:
+            return False
+        parts = email.split("@")
+        if len(parts) != 2 or not parts[0] or not parts[1]:
+            return False
+        if "." not in parts[1] or parts[1].startswith(".") or parts[1].endswith("."):
+            return False
         return bool(re.match(pattern, email))
 
     def _validate_password_strength(self, password: str) -> bool:

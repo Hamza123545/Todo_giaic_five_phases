@@ -392,6 +392,8 @@ class TestAuthenticationFlow:
         )
 
         # Assert
+        assert user1_response.status_code == 201, f"User1 signup failed: {user1_response.json()}"
+        assert user2_response.status_code == 201, f"User2 signup failed: {user2_response.json()}"
         token1 = user1_response.json()["data"]["token"]
         token2 = user2_response.json()["data"]["token"]
         assert token1 != token2
@@ -403,6 +405,7 @@ class TestAuthenticationFlow:
             "/api/auth/signup",
             json={"email": "tokenuser@example.com", "password": "Password123", "name": "Token User"},
         )
+        assert signup_response.status_code == 201, f"Signup failed: {signup_response.json()}"
         token = signup_response.json()["data"]["token"]
         user_id = signup_response.json()["data"]["user"]["id"]
 

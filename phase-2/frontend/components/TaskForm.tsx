@@ -133,16 +133,17 @@ export default function TaskForm({
 
       // Call success callback
       onSuccess?.(response.data);
-    } catch (error: any) {
-      console.error("Form submission error:", error);
+    } catch (error: unknown) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      console.error("Form submission error:", errorObj);
 
       // Set error message
       setErrors({
-        submit: error.message || "An error occurred while saving the task",
+        submit: errorObj.message || "An error occurred while saving the task",
       });
 
       // Call error callback
-      onError?.(error);
+      onError?.(errorObj);
     } finally {
       setIsLoading(false);
     }

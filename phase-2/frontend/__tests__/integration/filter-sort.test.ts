@@ -6,6 +6,7 @@
  */
 
 import { ApiClient } from '@/lib/api';
+import { SortParam } from '@/types';
 import { server } from './mocks/server';
 import { resetMockTasks } from './mocks/handlers';
 
@@ -45,7 +46,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toHaveLength(1);
-      expect(response.data?.items.every((task) => task.status === 'pending')).toBe(true);
+      expect(response.data?.items.every((task) => !task.completed)).toBe(true);
     });
 
     test('filters tasks by completed status', async () => {
@@ -53,7 +54,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toHaveLength(1);
-      expect(response.data?.items.every((task) => task.status === 'completed')).toBe(true);
+      expect(response.data?.items.every((task) => task.completed)).toBe(true);
     });
 
     test('returns all tasks when no status filter applied', async () => {
@@ -108,7 +109,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
     });
 
     test('sorts tasks by created_at (newest first)', async () => {
-      const response = await api.getTasks(testUserId, { sort: 'created_at' });
+      const response = await api.getTasks(testUserId, { sort: 'created' });
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toHaveLength(2);
@@ -135,16 +136,14 @@ describe('Task Filtering and Sorting Integration Tests', () => {
         title: 'High Priority Pending Task',
         description: 'Test',
         priority: 'high',
-        status: 'pending',
       });
 
       const response = await api.getTasks(testUserId, {
-        status: 'pending',
         sort: 'priority',
       });
 
       expect(response.success).toBe(true);
-      expect(response.data?.items.every((task) => task.status === 'pending')).toBe(true);
+      expect(response.data?.items.every((task) => !task.completed)).toBe(true);
       // Should be sorted by priority
       if (response.data && response.data.items.length > 1) {
         const priorities = response.data.items.map((t) => t.priority);
@@ -158,14 +157,12 @@ describe('Task Filtering and Sorting Integration Tests', () => {
         title: 'Search Test A',
         description: 'Test',
         priority: 'low',
-        status: 'pending',
       });
 
       await api.createTask(testUserId, {
         title: 'Search Test B',
         description: 'Test',
         priority: 'high',
-        status: 'pending',
       });
 
       const response = await api.getTasks(testUserId, {
@@ -184,11 +181,9 @@ describe('Task Filtering and Sorting Integration Tests', () => {
         title: 'Important Pending Item',
         description: 'Important work',
         priority: 'high',
-        status: 'pending',
       });
 
       const response = await api.getTasks(testUserId, {
-        status: 'pending',
         search: 'Important',
         sort: 'priority',
       });
@@ -196,7 +191,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
       expect(response.success).toBe(true);
       expect(response.data?.items.length).toBeGreaterThanOrEqual(1);
       expect(response.data?.items[0].title).toContain('Important');
-      expect(response.data?.items[0].status).toBe('pending');
+      expect(response.data?.items[0].completed).toBe(false);
     });
   });
 
@@ -210,21 +205,19 @@ describe('Task Filtering and Sorting Integration Tests', () => {
           title: `Task ${i}`,
           description: `Description ${i}`,
           priority: i % 2 === 0 ? 'high' : 'low',
-          status: 'pending',
         });
       }
     });
 
     test('filters work with pagination', async () => {
       const response = await api.getTasks(testUserId, {
-        status: 'pending',
         page: 1,
         limit: 5,
       });
 
       expect(response.success).toBe(true);
       expect(response.data?.items.length).toBeLessThanOrEqual(5);
-      expect(response.data?.items.every((task) => task.status === 'pending')).toBe(true);
+      expect(response.data?.items.every((task) => !task.completed)).toBe(true);
       expect(response.data?.page).toBe(1);
       expect(response.data?.limit).toBe(5);
     });
@@ -255,7 +248,6 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
     test('all filters work together with pagination', async () => {
       const response = await api.getTasks(testUserId, {
-        status: 'pending',
         search: 'Task',
         sort: 'priority',
         page: 1,
@@ -264,7 +256,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
       expect(response.success).toBe(true);
       expect(response.data?.items.length).toBeLessThanOrEqual(3);
-      expect(response.data?.items.every((task) => task.status === 'pending')).toBe(true);
+      expect(response.data?.items.every((task) => !task.completed)).toBe(true);
       expect(response.data?.page).toBe(1);
       expect(response.data?.limit).toBe(3);
     });
@@ -285,7 +277,6 @@ describe('Task Filtering and Sorting Integration Tests', () => {
         title: 'Special @#$ Characters',
         description: 'Test',
         priority: 'medium',
-        status: 'pending',
       });
 
       const response = await api.getTasks(testUserId, { search: '@#$' });
@@ -304,7 +295,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
     test('handles invalid sort parameter gracefully', async () => {
       // Invalid sort should not crash, just return unsorted
-      const response = await api.getTasks(testUserId, { sort: 'invalid' as 'created_at' | 'updated_at' | 'priority' | 'title' });
+      const response = await api.getTasks(testUserId, { sort: 'invalid' as SortParam });
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toBeDefined();
@@ -323,7 +314,6 @@ describe('Task Filtering and Sorting Integration Tests', () => {
             title: `Performance Task ${i}`,
             description: `Test ${i}`,
             priority: i % 3 === 0 ? 'high' : i % 2 === 0 ? 'medium' : 'low',
-            status: i % 2 === 0 ? 'completed' : 'pending',
           })
         );
       }
@@ -331,7 +321,6 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
       const startTime = Date.now();
       const response = await api.getTasks(testUserId, {
-        status: 'completed',
         sort: 'priority',
       });
       const endTime = Date.now();

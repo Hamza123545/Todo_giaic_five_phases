@@ -244,7 +244,7 @@ class SyncService {
       }
 
       // Save tasks to IndexedDB
-      await saveTasksToDB(response.data.data);
+      await saveTasksToDB(response.data.items);
       await setMetadata("lastSyncTime", Date.now());
 
       this.notifyStatusChange({ lastSyncTime: Date.now() });

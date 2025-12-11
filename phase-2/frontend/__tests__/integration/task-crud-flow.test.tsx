@@ -14,7 +14,7 @@ import React from 'react';
 
 // Simple test component that uses the API client
 const TaskManager = () => {
-  const [tasks, setTasks] = React.useState<any[]>([]);
+  const [tasks, setTasks] = React.useState<Array<{ id: number; title: string; description?: string; completed: boolean; priority: string }>>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [title, setTitle] = React.useState('');
@@ -28,10 +28,17 @@ const TaskManager = () => {
     try {
       const response = await api.getTasks(userId);
       if (response.success) {
-        setTasks(response.data?.items || []);
+        setTasks(response.data?.items.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description || '',
+          completed: task.completed,
+          priority: task.priority,
+        })) || []);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -45,15 +52,15 @@ const TaskManager = () => {
         title,
         description,
         priority: 'medium',
-        status: 'pending',
       });
       if (response.success) {
         setTitle('');
         setDescription('');
         await loadTasks();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
     }
   };
 
@@ -62,8 +69,9 @@ const TaskManager = () => {
     try {
       await api.deleteTask(userId, taskId);
       await loadTasks();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
     }
   };
 
@@ -72,23 +80,26 @@ const TaskManager = () => {
     try {
       await api.toggleTaskComplete(userId, taskId, !completed);
       await loadTasks();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
     }
   };
 
-  const updateTask = async (taskId: number, updates: any) => {
+  const updateTask = async (taskId: number, updates: Record<string, unknown>) => {
     setError('');
     try {
       await api.updateTask(userId, taskId, updates);
       await loadTasks();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
     }
   };
 
   React.useEffect(() => {
     loadTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading && tasks.length === 0) {
@@ -130,7 +141,7 @@ const TaskManager = () => {
             <div key={task.id} data-testid={`task-${task.id}`}>
               <h3>{task.title}</h3>
               <p>{task.description}</p>
-              <p>Status: {task.status}</p>
+              <p>Status: {task.completed ? 'completed' : 'pending'}</p>
               <p>Priority: {task.priority}</p>
               <button
                 onClick={() => toggleComplete(task.id, task.completed)}

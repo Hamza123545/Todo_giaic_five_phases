@@ -14,12 +14,13 @@ interface MockTask {
   id: number;
   title: string;
   description: string;
-  status: string;
   priority: string;
   completed: boolean;
   user_id: string;
   created_at: string;
   updated_at: string;
+  due_date?: string;
+  tags?: string[];
 }
 
 interface SignupRequestBody {
@@ -35,17 +36,19 @@ interface SigninRequestBody {
 
 interface CreateTaskBody {
   title: string;
-  description: string;
-  priority: string;
-  status?: string;
+  description?: string;
+  priority?: string;
+  due_date?: string;
+  tags?: string[];
 }
 
 interface UpdateTaskBody {
   title?: string;
   description?: string;
   priority?: string;
-  status?: string;
   completed?: boolean;
+  due_date?: string;
+  tags?: string[];
 }
 
 interface ToggleCompleteBody {
@@ -73,7 +76,6 @@ let mockTasks: MockTask[] = [
     id: 1,
     title: 'Test Task 1',
     description: 'First test task',
-    status: 'pending',
     priority: 'high',
     completed: false,
     user_id: 'user-123',
@@ -84,7 +86,6 @@ let mockTasks: MockTask[] = [
     id: 2,
     title: 'Test Task 2',
     description: 'Second test task',
-    status: 'completed',
     priority: 'medium',
     completed: true,
     user_id: 'user-123',
@@ -112,7 +113,7 @@ export const handlers = [
         },
         token: mockToken,
       },
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Signin
@@ -130,7 +131,7 @@ export const handlers = [
           },
         },
         { status: 401 }
-      );
+      ) as unknown as HttpResponse;
     }
 
     return HttpResponse.json({
@@ -139,7 +140,7 @@ export const handlers = [
         user: mockUser,
         token: mockToken,
       },
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Signout
@@ -147,13 +148,13 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       data: null,
-    });
+    } as unknown as HttpResponse);
   }),
 
   // ==================== Tasks ====================
 
   // Get tasks (with filtering, sorting, pagination)
-  http.get(`${API_BASE_URL}/api/:userId/tasks`, ({ request, params }) => {
+  http.get(`${API_BASE_URL}/api/:userId/tasks`, ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
     const sort = url.searchParams.get('sort');
@@ -165,7 +166,11 @@ export const handlers = [
 
     // Apply filters
     if (status) {
-      filteredTasks = filteredTasks.filter((task) => task.status === status);
+      if (status === 'completed') {
+        filteredTasks = filteredTasks.filter((task) => task.completed);
+      } else if (status === 'pending') {
+        filteredTasks = filteredTasks.filter((task) => !task.completed);
+      }
     }
 
     if (search) {
@@ -200,20 +205,22 @@ export const handlers = [
         total: filteredTasks.length,
         page,
         limit,
-        total_pages: Math.ceil(filteredTasks.length / limit),
+        totalPages: Math.ceil(filteredTasks.length / limit),
       },
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Create task
   http.post(`${API_BASE_URL}/api/:userId/tasks`, async ({ request, params }) => {
     const body = await request.json() as CreateTaskBody;
 
-    const newTask = {
+    const newTask: MockTask = {
       id: nextTaskId++,
-      ...body,
+      title: body.title,
+      description: body.description || '',
+      priority: body.priority || 'medium',
       completed: false,
-      user_id: params.userId,
+      user_id: params.userId as string,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -223,7 +230,7 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       data: newTask,
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Get single task
@@ -240,16 +247,17 @@ export const handlers = [
           },
         },
         { status: 404 }
-      );
+      ) as unknown as HttpResponse;
     }
 
     return HttpResponse.json({
       success: true,
       data: task,
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Update task
+  // @ts-expect-error - MSW type inference issue with union return types
   http.put(`${API_BASE_URL}/api/:userId/tasks/:taskId`, async ({ request, params }) => {
     const taskId = parseInt(params.taskId as string);
     const body = await request.json() as UpdateTaskBody;
@@ -268,19 +276,26 @@ export const handlers = [
       );
     }
 
-    mockTasks[taskIndex] = {
+    const updatedTask: MockTask = {
       ...mockTasks[taskIndex],
-      ...body,
+      ...(body.title !== undefined && { title: body.title }),
+      ...(body.description !== undefined && { description: body.description || '' }),
+      ...(body.priority !== undefined && { priority: body.priority }),
+      ...(body.completed !== undefined && { completed: body.completed }),
+      ...(body.due_date !== undefined && { due_date: body.due_date }),
+      ...(body.tags !== undefined && { tags: body.tags }),
       updated_at: new Date().toISOString(),
     };
+    mockTasks[taskIndex] = updatedTask;
 
     return HttpResponse.json({
       success: true,
       data: mockTasks[taskIndex],
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Delete task
+  // @ts-expect-error - MSW type inference issue with union return types
   http.delete(`${API_BASE_URL}/api/:userId/tasks/:taskId`, ({ params }) => {
     const taskId = parseInt(params.taskId as string);
     const taskIndex = mockTasks.findIndex((t) => t.id === taskId);
@@ -303,10 +318,11 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       data: null,
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Toggle task complete
+  // @ts-expect-error - MSW type inference issue with union return types
   http.patch(`${API_BASE_URL}/api/:userId/tasks/:taskId/complete`, async ({ request, params }) => {
     const taskId = parseInt(params.taskId as string);
     const body = await request.json() as ToggleCompleteBody;
@@ -325,14 +341,16 @@ export const handlers = [
       );
     }
 
-    mockTasks[taskIndex].completed = body.completed;
-    mockTasks[taskIndex].status = body.completed ? 'completed' : 'pending';
-    mockTasks[taskIndex].updated_at = new Date().toISOString();
+    mockTasks[taskIndex] = {
+      ...mockTasks[taskIndex],
+      completed: body.completed,
+      updated_at: new Date().toISOString(),
+    };
 
     return HttpResponse.json({
       success: true,
       data: mockTasks[taskIndex],
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Bulk delete
@@ -345,7 +363,7 @@ export const handlers = [
       return HttpResponse.json({
         success: true,
         data: { deleted: task_ids.length },
-      });
+      } as unknown as HttpResponse);
     }
 
     if (action === 'update_status') {
@@ -356,8 +374,7 @@ export const handlers = [
           updated++;
           return {
             ...task,
-            completed,
-            status: completed ? 'completed' : 'pending',
+            completed: completed ?? task.completed,
             updated_at: new Date().toISOString(),
           };
         }
@@ -366,11 +383,20 @@ export const handlers = [
       return HttpResponse.json({
         success: true,
         data: { updated },
-      });
+      } as unknown as HttpResponse);
     }
 
     if (action === 'update_priority') {
       const { priority } = body;
+      if (!priority) {
+        return HttpResponse.json(
+          {
+            success: false,
+            error: { message: 'Priority is required', code: 'MISSING_PRIORITY' },
+          },
+          { status: 400 }
+        ) as unknown as HttpResponse;
+      }
       let updated = 0;
       mockTasks = mockTasks.map((task) => {
         if (task_ids.includes(task.id)) {
@@ -386,7 +412,7 @@ export const handlers = [
       return HttpResponse.json({
         success: true,
         data: { updated },
-      });
+      } as unknown as HttpResponse);
     }
 
     return HttpResponse.json(
@@ -395,18 +421,18 @@ export const handlers = [
         error: { message: 'Invalid action', code: 'INVALID_ACTION' },
       },
       { status: 400 }
-    );
+    ) as unknown as HttpResponse;
   }),
 
   // Reorder tasks
   http.post(`${API_BASE_URL}/api/:userId/tasks/reorder`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as { task_ids: number[] };
     const { task_ids } = body;
 
     return HttpResponse.json({
       success: true,
       data: { reordered: task_ids.length },
-    });
+    } as unknown as HttpResponse);
   }),
 
   // Get statistics
@@ -427,7 +453,7 @@ export const handlers = [
           low: mockTasks.filter((t) => t.priority === 'low').length,
         },
       },
-    });
+    } as unknown as HttpResponse);
   }),
 ];
 
@@ -438,7 +464,6 @@ export function resetMockTasks() {
       id: 1,
       title: 'Test Task 1',
       description: 'First test task',
-      status: 'pending',
       priority: 'high',
       completed: false,
       user_id: 'user-123',
@@ -449,7 +474,6 @@ export function resetMockTasks() {
       id: 2,
       title: 'Test Task 2',
       description: 'Second test task',
-      status: 'completed',
       priority: 'medium',
       completed: true,
       user_id: 'user-123',

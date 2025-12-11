@@ -99,12 +99,18 @@ async def signup(user_data: SignupRequest, db: Session = Depends(get_session)):
             },
         )
 
-    except Exception:
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the actual error for debugging
+        import traceback
+        print(f"Signup error: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "success": False,
-                "error": {"code": "INTERNAL_ERROR", "message": "Failed to create account"},
+                "error": {"code": "INTERNAL_ERROR", "message": f"Failed to create account: {str(e)}"},
             },
         )
 
@@ -174,12 +180,16 @@ async def signin(credentials: SigninRequest, db: Session = Depends(get_session))
     except HTTPException:
         raise
 
-    except Exception:
+    except Exception as e:
+        # Log the actual error for debugging
+        import traceback
+        print(f"Signin error: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "success": False,
-                "error": {"code": "INTERNAL_ERROR", "message": "Authentication failed"},
+                "error": {"code": "INTERNAL_ERROR", "message": f"Authentication failed: {str(e)}"},
             },
         )
 

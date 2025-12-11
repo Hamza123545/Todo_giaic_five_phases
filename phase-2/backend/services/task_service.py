@@ -128,9 +128,24 @@ class TaskService:
 
         # Apply sorting
         if query_params and query_params.sort:
-            field, direction = query_params.sort
+            # Parse sort parameter (format: "field:direction")
+            if ":" in query_params.sort:
+                field, direction = query_params.sort.split(":", 1)
+            else:
+                # Default to created:desc if format is invalid
+                field, direction = "created", "desc"
+            
             # Map field names to model attributes
-            sort_field = getattr(Task, field)
+            field_mapping = {
+                "created": Task.created_at,
+                "updated": Task.updated_at,
+                "title": Task.title,
+                "priority": Task.priority,
+                "due_date": Task.due_date,
+            }
+            
+            sort_field = field_mapping.get(field, Task.created_at)
+            
             if direction == "desc":
                 statement = statement.order_by(sort_field.desc())
             else:
@@ -183,7 +198,13 @@ class TaskService:
         if not task:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Task with ID {task_id} not found or you don't have permission to access it",
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": f"Task with ID {task_id} not found or you don't have permission to access it",
+                    },
+                },
             )
 
         return task
@@ -390,7 +411,13 @@ class TaskService:
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Invalid operation: {operation}",
+                        detail={
+                            "success": False,
+                            "error": {
+                                "code": "VALIDATION_ERROR",
+                                "message": f"Invalid operation: {operation}",
+                            },
+                        },
                     )
 
             db.commit()

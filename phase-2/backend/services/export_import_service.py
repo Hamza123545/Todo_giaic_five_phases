@@ -116,7 +116,49 @@ class ExportImportService:
         try:
             # Parse CSV
             csv_file = io.StringIO(csv_content)
-            reader = csv.DictReader(csv_file)
+            try:
+                reader = csv.DictReader(csv_file)
+                # Check if CSV has required headers
+                if not reader.fieldnames:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "success": False,
+                            "error": {"code": "VALIDATION_ERROR", "message": "CSV file is missing headers"},
+                        },
+                    )
+                # Check for required 'title' field in headers
+                if "title" not in reader.fieldnames:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "success": False,
+                            "error": {"code": "VALIDATION_ERROR", "message": "CSV file is missing required 'title' column"},
+                        },
+                    )
+                # Try to read first row to validate CSV format
+                first_row = next(reader, None)
+                if first_row is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "success": False,
+                            "error": {"code": "VALIDATION_ERROR", "message": "CSV file is empty or has no data rows"},
+                        },
+                    )
+                # Reset to beginning
+                csv_file.seek(0)
+                reader = csv.DictReader(csv_file)
+            except HTTPException:
+                raise
+            except (csv.Error, StopIteration, ValueError) as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "success": False,
+                        "error": {"code": "VALIDATION_ERROR", "message": f"Invalid CSV format: {str(e)}"},
+                    },
+                )
 
             imported = 0
             failed = 0
@@ -188,16 +230,24 @@ class ExportImportService:
                 "total_errors": len(errors),
             }
 
+        except HTTPException:
+            raise
         except csv.Error as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid CSV format: {str(e)}",
+                detail={
+                    "success": False,
+                    "error": {"code": "VALIDATION_ERROR", "message": f"Invalid CSV format: {str(e)}"},
+                },
             )
         except Exception as e:
             db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Import failed: {str(e)}",
+                detail={
+                    "success": False,
+                    "error": {"code": "IMPORT_ERROR", "message": f"Import failed: {str(e)}"},
+                },
             )
 
     @staticmethod
@@ -223,7 +273,10 @@ class ExportImportService:
             if not isinstance(data, list):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="JSON must be an array of task objects",
+                    detail={
+                        "success": False,
+                        "error": {"code": "VALIDATION_ERROR", "message": "JSON must be an array of task objects"},
+                    },
                 )
 
             imported = 0
@@ -295,14 +348,22 @@ class ExportImportService:
                 "total_errors": len(errors),
             }
 
+        except HTTPException:
+            raise
         except json.JSONDecodeError as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid JSON format: {str(e)}",
+                detail={
+                    "success": False,
+                    "error": {"code": "VALIDATION_ERROR", "message": f"Invalid JSON format: {str(e)}"},
+                },
             )
         except Exception as e:
             db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Import failed: {str(e)}",
+                detail={
+                    "success": False,
+                    "error": {"code": "IMPORT_ERROR", "message": f"Import failed: {str(e)}"},
+                },
             )

@@ -9,7 +9,7 @@
  * Stack multiple notifications
  */
 
-import { useEffect, useState, ReactElement } from "react";
+import { useEffect, useState, useCallback, ReactElement } from "react";
 import { ToastMessage, ToastType } from "@/types";
 
 interface ToastNotificationProps {
@@ -21,6 +21,14 @@ function ToastItem({ message, onDismiss }: ToastNotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      onDismiss(message.id);
+    }, 300); // Match animation duration
+  }, [message, onDismiss]);
+
   useEffect(() => {
     const duration = message.duration || 5000;
 
@@ -30,15 +38,7 @@ function ToastItem({ message, onDismiss }: ToastNotificationProps) {
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [message]);
-
-  const handleDismiss = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      onDismiss(message.id);
-    }, 300); // Match animation duration
-  };
+  }, [message, handleDismiss]);
 
   if (!isVisible) return null;
 

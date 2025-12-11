@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { logger, LogLevel } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 import { usePathname } from "next/navigation";
 
 export function useLogger(componentName?: string) {
@@ -15,7 +15,7 @@ export function useLogger(componentName?: string) {
   }, [pathname, componentName]);
 
   const debug = useCallback(
-    (message: string, context?: Record<string, any>) => {
+    (message: string, context?: Record<string, unknown>) => {
       logger.debug(
         componentName ? `[${componentName}] ${message}` : message,
         context
@@ -25,7 +25,7 @@ export function useLogger(componentName?: string) {
   );
 
   const info = useCallback(
-    (message: string, context?: Record<string, any>) => {
+    (message: string, context?: Record<string, unknown>) => {
       logger.info(
         componentName ? `[${componentName}] ${message}` : message,
         context
@@ -35,7 +35,7 @@ export function useLogger(componentName?: string) {
   );
 
   const warn = useCallback(
-    (message: string, context?: Record<string, any>) => {
+    (message: string, context?: Record<string, unknown>) => {
       logger.warn(
         componentName ? `[${componentName}] ${message}` : message,
         context

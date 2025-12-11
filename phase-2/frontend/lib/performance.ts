@@ -79,8 +79,11 @@ class PerformanceMonitor {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if ((entry as any).hadRecentInput) continue;
-          clsValue += (entry as any).value;
+          const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+          if (layoutEntry.hadRecentInput) continue;
+          if (layoutEntry.value !== undefined) {
+            clsValue += layoutEntry.value;
+          }
         }
         this.recordMetric({
           name: "cls",

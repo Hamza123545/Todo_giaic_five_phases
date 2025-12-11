@@ -54,28 +54,40 @@ def verify_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(securit
     except ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired. Please sign in again.",
+            detail={
+                "success": False,
+                "error": {"code": "TOKEN_EXPIRED", "message": "Token has expired. Please sign in again."},
+            },
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+            detail={
+                "success": False,
+                "error": {"code": "INVALID_TOKEN", "message": "Invalid token"},
+            },
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
+            detail={
+                "success": False,
+                "error": {"code": "TOKEN_ERROR", "message": str(e)},
+            },
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}",
+            detail={
+                "success": False,
+                "error": {"code": "TOKEN_VERIFICATION_FAILED", "message": f"Token verification failed: {str(e)}"},
+            },
             headers={"WWW-Authenticate": "Bearer"},
         )
 

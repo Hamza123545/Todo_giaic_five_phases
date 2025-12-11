@@ -11,7 +11,7 @@
 import { useReducer, useCallback, useEffect, useRef } from "react";
 
 // Command interface for reversible operations
-export interface Command<T = any> {
+export interface Command<T = unknown> {
   execute: () => Promise<void>;
   undo: () => Promise<void>;
   description: string;
@@ -115,7 +115,7 @@ function historyReducer<T>(
   }
 }
 
-export interface UndoRedoHook<T = any> {
+export interface UndoRedoHook<T = unknown> {
   executeCommand: (command: Command<T>) => Promise<void>;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
@@ -125,7 +125,7 @@ export interface UndoRedoHook<T = any> {
   pendingCommand: Command<T> | null;
 }
 
-export function useUndoRedo<T = any>(): UndoRedoHook<T> {
+export function useUndoRedo<T = unknown>(): UndoRedoHook<T> {
   const [state, dispatch] = useReducer(historyReducer<T>, {
     past: [],
     present: null,

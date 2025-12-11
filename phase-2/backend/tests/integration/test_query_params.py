@@ -35,7 +35,7 @@ class TestStatusFiltering:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
 
     @pytest.mark.asyncio
     async def test_filter_pending_tasks(
@@ -57,7 +57,7 @@ class TestStatusFiltering:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
         assert all(not task["completed"] for task in data["data"])
 
     @pytest.mark.asyncio
@@ -80,7 +80,7 @@ class TestStatusFiltering:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
         assert all(task["completed"] for task in data["data"])
 
 
@@ -130,7 +130,7 @@ class TestPriorityFiltering:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
         assert all(task["priority"] == "high" for task in data["data"])
 
 
@@ -192,7 +192,7 @@ class TestDueDateFiltering:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2  # Today and Tomorrow tasks
+        assert len(data["items"]) == 2  # Today and Tomorrow tasks
 
 
 class TestTagsFiltering:
@@ -343,7 +343,7 @@ class TestSearch:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
 
     @pytest.mark.asyncio
     async def test_search_in_description(
@@ -512,7 +512,7 @@ class TestCombinedFilters:
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["data"]) == 2
+        assert len(data["items"]) == 2
         assert data["data"][0]["title"] == "Alpha important task"
 
     @pytest.mark.asyncio

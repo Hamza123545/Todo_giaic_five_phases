@@ -52,8 +52,9 @@ class TestSignup:
 
         assert response.status_code == 409
         data = response.json()
-        assert "error" in data["detail"]
-        assert data["detail"]["error"]["code"] == "EMAIL_EXISTS"
+        assert data["success"] is False
+        assert "error" in data
+        assert data["error"]["code"] == "EMAIL_EXISTS"
 
     def test_signup_invalid_email(self, client: TestClient):
         """Test signup with invalid email format returns 400."""
@@ -118,8 +119,9 @@ class TestSignin:
 
         assert response.status_code == 401
         data = response.json()
-        assert "error" in data["detail"]
-        assert data["detail"]["error"]["code"] == "INVALID_CREDENTIALS"
+        assert data["success"] is False
+        assert "error" in data
+        assert data["error"]["code"] == "INVALID_CREDENTIALS"
 
     def test_signin_wrong_password(self, client: TestClient):
         """Test signin with wrong password returns 401."""
@@ -136,8 +138,9 @@ class TestSignin:
 
         assert response.status_code == 401
         data = response.json()
-        assert "error" in data["detail"]
-        assert data["detail"]["error"]["code"] == "INVALID_CREDENTIALS"
+        assert data["success"] is False
+        assert "error" in data
+        assert data["error"]["code"] == "INVALID_CREDENTIALS"
 
     def test_signin_missing_fields(self, client: TestClient):
         """Test signin with missing fields returns 422."""
@@ -156,6 +159,7 @@ class TestSignout:
             "/api/auth/signup",
             json={"email": "signout@example.com", "password": "password123", "name": "Signout User"},
         )
+        assert signup_response.status_code == 201, f"Signup failed: {signup_response.json()}"
         token = signup_response.json()["data"]["token"]
 
         # Then sign out
@@ -166,10 +170,10 @@ class TestSignout:
         assert data["success"] is True
 
     def test_signout_no_token(self, client: TestClient):
-        """Test signout without token returns 403."""
+        """Test signout without token returns 401."""
         response = client.post("/api/auth/signout")
 
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_signout_invalid_token(self, client: TestClient):
         """Test signout with invalid token returns 401."""
