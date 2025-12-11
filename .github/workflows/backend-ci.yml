@@ -5,10 +5,13 @@ on:
     branches: [phase_2, api.phase_2, main]
     paths:
       - 'phase-2/backend/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [phase_2, api.phase_2, main]
     paths:
       - 'phase-2/backend/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
 
 jobs:
   test:
