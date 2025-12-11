@@ -49,8 +49,8 @@ const MockSignupPage = () => {
       } else {
         setError(data.error.message);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -103,8 +103,8 @@ const MockSigninPage = () => {
       } else {
         setError(data.error.message);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 

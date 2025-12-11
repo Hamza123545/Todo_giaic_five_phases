@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Task, TaskFormData, TaskPriority, ApiResponse } from "@/types";
+import { Task, TaskFormData } from "@/types";
 import { cn, sanitizeInput } from "@/lib/utils";
 import LoadingSpinner from "./LoadingSpinner";
 import { api } from "@/lib/api";

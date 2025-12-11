@@ -9,6 +9,56 @@ import { http, HttpResponse } from 'msw';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+// Types for mock data
+interface MockTask {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  completed: boolean;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SignupRequestBody {
+  email: string;
+  name: string;
+  password: string;
+}
+
+interface SigninRequestBody {
+  email: string;
+  password: string;
+}
+
+interface CreateTaskBody {
+  title: string;
+  description: string;
+  priority: string;
+  status?: string;
+}
+
+interface UpdateTaskBody {
+  title?: string;
+  description?: string;
+  priority?: string;
+  status?: string;
+  completed?: boolean;
+}
+
+interface ToggleCompleteBody {
+  completed: boolean;
+}
+
+interface BulkOperationBody {
+  action: string;
+  task_ids: number[];
+  completed?: boolean;
+  priority?: string;
+}
+
 // Mock data
 const mockUser = {
   id: 'user-123',
@@ -18,7 +68,7 @@ const mockUser = {
 
 const mockToken = 'mock-jwt-token-abc123';
 
-let mockTasks: any[] = [
+let mockTasks: MockTask[] = [
   {
     id: 1,
     title: 'Test Task 1',
@@ -50,7 +100,7 @@ export const handlers = [
 
   // Signup
   http.post(`${API_BASE_URL}/api/auth/signup`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as SignupRequestBody;
 
     return HttpResponse.json({
       success: true,
@@ -67,7 +117,7 @@ export const handlers = [
 
   // Signin
   http.post(`${API_BASE_URL}/api/auth/signin`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as SigninRequestBody;
 
     // Simulate failed login
     if (body.email === 'wrong@example.com') {
@@ -157,7 +207,7 @@ export const handlers = [
 
   // Create task
   http.post(`${API_BASE_URL}/api/:userId/tasks`, async ({ request, params }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as CreateTaskBody;
 
     const newTask = {
       id: nextTaskId++,
@@ -202,7 +252,7 @@ export const handlers = [
   // Update task
   http.put(`${API_BASE_URL}/api/:userId/tasks/:taskId`, async ({ request, params }) => {
     const taskId = parseInt(params.taskId as string);
-    const body = await request.json() as any;
+    const body = await request.json() as UpdateTaskBody;
     const taskIndex = mockTasks.findIndex((t) => t.id === taskId);
 
     if (taskIndex === -1) {
@@ -259,7 +309,7 @@ export const handlers = [
   // Toggle task complete
   http.patch(`${API_BASE_URL}/api/:userId/tasks/:taskId/complete`, async ({ request, params }) => {
     const taskId = parseInt(params.taskId as string);
-    const body = await request.json() as any;
+    const body = await request.json() as ToggleCompleteBody;
     const taskIndex = mockTasks.findIndex((t) => t.id === taskId);
 
     if (taskIndex === -1) {
@@ -287,7 +337,7 @@ export const handlers = [
 
   // Bulk delete
   http.post(`${API_BASE_URL}/api/:userId/tasks/bulk`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as BulkOperationBody;
     const { action, task_ids } = body;
 
     if (action === 'delete') {

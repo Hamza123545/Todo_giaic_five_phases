@@ -412,8 +412,6 @@ describe('Task CRUD Flow Integration Tests', () => {
 
   describe('Error Handling', () => {
     test('shows error when task creation fails', async () => {
-      const user = userEvent.setup();
-
       // Mock a failure by using invalid data (this would need server mock update)
       // For now, we test the error display mechanism exists
       render(<TaskManager />);

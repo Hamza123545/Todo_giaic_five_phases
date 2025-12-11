@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { SearchIcon, PlusIcon } from 'lucide-react';
 
 interface KeyboardShortcutsProps {
   onSearchToggle?: () => void;

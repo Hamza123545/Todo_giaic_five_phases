@@ -12,9 +12,12 @@ from typing import Dict
 from jose import jwt
 
 # Get shared secret from environment (MUST match frontend Better Auth secret)
+# Allow None for testing, but validate when functions are called
 BETTER_AUTH_SECRET = os.getenv("BETTER_AUTH_SECRET")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
-if not BETTER_AUTH_SECRET:
+# Only raise error in non-test environments
+if not BETTER_AUTH_SECRET and ENVIRONMENT not in ("test", "testing"):
     raise ValueError("BETTER_AUTH_SECRET environment variable is required")
 
 # JWT configuration
@@ -38,6 +41,9 @@ def generate_jwt_token(user_id: str, email: str) -> str:
         >>> print(token[:10])
         eyJhbGciO
     """
+    if not BETTER_AUTH_SECRET:
+        raise ValueError("BETTER_AUTH_SECRET environment variable is required")
+
     # Calculate expiration time
     expiration = datetime.utcnow() + timedelta(days=JWT_EXPIRATION_DAYS)
 
@@ -75,6 +81,9 @@ def verify_jwt_token(token: str) -> Dict[str, str]:
         >>> print(payload["user_id"])
         123e4567-e89b-12d3-a456-426614174000
     """
+    if not BETTER_AUTH_SECRET:
+        raise ValueError("BETTER_AUTH_SECRET environment variable is required")
+
     # Decode and verify token
     payload = jwt.decode(token, BETTER_AUTH_SECRET, algorithms=[JWT_ALGORITHM])
 

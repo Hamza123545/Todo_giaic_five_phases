@@ -304,7 +304,7 @@ describe('Task Filtering and Sorting Integration Tests', () => {
 
     test('handles invalid sort parameter gracefully', async () => {
       // Invalid sort should not crash, just return unsorted
-      const response = await api.getTasks(testUserId, { sort: 'invalid' as any });
+      const response = await api.getTasks(testUserId, { sort: 'invalid' as 'created_at' | 'updated_at' | 'priority' | 'title' });
 
       expect(response.success).toBe(true);
       expect(response.data?.items).toBeDefined();

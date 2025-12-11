@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 export default function ResponsiveFooter() {
   return (
     <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
