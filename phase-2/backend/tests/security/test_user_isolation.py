@@ -5,10 +5,8 @@ This module tests that users cannot access other users' data
 and that user isolation is properly enforced.
 """
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
-from unittest.mock import patch
+from sqlmodel import Session
 
 from main import app
 from models import User, Task

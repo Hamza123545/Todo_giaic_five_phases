@@ -197,6 +197,7 @@ class TestAuthServiceAuthenticateUser:
         # Note: This depends on database collation settings
         # If database is case-insensitive, this test might fail
         # In that case, authentication would succeed
+        assert result is None
 
 
 class TestAuthServiceGetUserByEmail:

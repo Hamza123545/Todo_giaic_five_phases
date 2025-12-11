@@ -7,7 +7,7 @@ This module tests export and import functionality for tasks in CSV and JSON form
 import csv
 import io
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import uuid4
 
 import pytest

@@ -6,8 +6,7 @@ to ensure business logic functions correctly in isolation.
 """
 
 from datetime import datetime, timedelta, date
-from unittest.mock import Mock, patch
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException

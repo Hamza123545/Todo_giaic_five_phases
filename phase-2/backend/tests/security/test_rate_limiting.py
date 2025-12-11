@@ -5,7 +5,6 @@ This module tests that rate limiting is properly enforced
 to prevent API abuse.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from main import app
 

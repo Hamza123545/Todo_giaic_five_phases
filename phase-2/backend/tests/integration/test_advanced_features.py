@@ -14,7 +14,6 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from main import app
 from models import Task, User
 
 

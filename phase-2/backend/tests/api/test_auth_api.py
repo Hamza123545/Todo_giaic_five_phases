@@ -5,7 +5,6 @@ This module tests all authentication-related API endpoints through HTTP requests
 validating signup, signin, and signout functionality.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 from models import User
@@ -142,7 +141,6 @@ class TestSignupAPI:
 
         # Assert
         assert response.status_code == 201
-        data = response.json()
         response_str = response.text.lower()
         assert "password" not in response_str or "password_hash" not in response_str
 
@@ -473,7 +471,7 @@ class TestAuthenticationEdgeCases:
         response2 = client.post("/api/auth/signin", json=signin_data)
 
         # Assert - Tokens should be different (different issued_at time)
-        token1 = response1.json()["data"]["token"]
-        token2 = response2.json()["data"]["token"]
         # Note: If tokens are generated too quickly, they might be identical
         # This depends on JWT implementation and timestamp precision
+        assert response1.status_code == 200
+        assert response2.status_code == 200

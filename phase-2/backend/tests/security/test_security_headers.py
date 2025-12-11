@@ -5,7 +5,6 @@ This module tests that comprehensive security headers are
 properly added to all API responses.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from main import app
 

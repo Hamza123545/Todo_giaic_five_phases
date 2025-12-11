@@ -5,7 +5,6 @@ This module tests that the application can handle large datasets
 efficiently with proper pagination and query optimization.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 from datetime import datetime, timedelta
