@@ -6,8 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Import SQLModel models
-from models import User, Task
+# Import SQLModel models (needed for alembic to detect model changes)
+from models import User, Task  # noqa: F401
 from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides

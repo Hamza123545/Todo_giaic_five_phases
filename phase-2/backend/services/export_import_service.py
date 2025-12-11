@@ -12,11 +12,9 @@ from typing import List
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from pydantic import ValidationError
 from sqlmodel import Session
 
 from models import Task
-from schemas.requests import CreateTaskRequest
 
 
 class ExportImportService:

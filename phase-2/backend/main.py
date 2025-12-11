@@ -26,16 +26,16 @@ else:
     load_dotenv()
 
 # Import routes (must be after load_dotenv to ensure env vars are loaded)
-from routes import auth, tasks
+from routes import auth, tasks  # noqa: E402
 
 # Import middleware
-from middleware.rate_limiting import limiter, get_rate_limit_exceeded_handler
-from middleware.logging_middleware import (
+from middleware.rate_limiting import limiter, get_rate_limit_exceeded_handler  # noqa: E402
+from middleware.logging_middleware import (  # noqa: E402
     RequestLoggingMiddleware,
     ErrorHandlingMiddleware,
 )
-from middleware.security_headers import SecurityHeadersMiddleware
-from middleware.timeout_middleware import TimeoutMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware  # noqa: E402
+from middleware.timeout_middleware import TimeoutMiddleware  # noqa: E402
 
 
 @asynccontextmanager

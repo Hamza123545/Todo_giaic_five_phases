@@ -99,7 +99,7 @@ async def signup(user_data: SignupRequest, db: Session = Depends(get_session)):
             },
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
@@ -174,7 +174,7 @@ async def signin(credentials: SigninRequest, db: Session = Depends(get_session))
     except HTTPException:
         raise
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={

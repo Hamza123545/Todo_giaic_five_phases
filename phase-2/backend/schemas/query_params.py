@@ -127,7 +127,7 @@ class TaskQueryParams(BaseModel):
         # Parse sort parameter
         if ":" not in v:
             raise ValueError(
-                f"Sort parameter must be in format 'field:direction'. Example: 'created:desc'"
+                "Sort parameter must be in format 'field:direction'. Example: 'created:desc'"
             )
 
         field, direction = v.split(":", 1)

@@ -85,9 +85,9 @@ class TaskService:
         if query_params:
             # Status filter (completed/pending)
             if query_params.status == "completed":
-                statement = statement.where(Task.completed == True)
+                statement = statement.where(Task.completed.is_(True))
             elif query_params.status == "pending":
-                statement = statement.where(Task.completed == False)
+                statement = statement.where(Task.completed.is_(False))
             # status == "all" shows all tasks (no filter needed)
 
             # Priority filter
@@ -290,7 +290,7 @@ class TaskService:
 
         # Completed tasks
         completed_statement = select(func.count(Task.id)).where(
-            Task.user_id == user_id, Task.completed == True
+            Task.user_id == user_id, Task.completed.is_(True)
         )
         completed = db.exec(completed_statement).one()
 
@@ -300,7 +300,7 @@ class TaskService:
         # Overdue tasks (pending with due_date < today)
         today = date.today()
         overdue_statement = select(func.count(Task.id)).where(
-            Task.user_id == user_id, Task.completed == False, Task.due_date < today
+            Task.user_id == user_id, Task.completed.is_(False), Task.due_date < today
         )
         overdue = db.exec(overdue_statement).one()
 
