@@ -58,7 +58,7 @@ export function SortableTaskItem({
           {...attributes}
           {...listeners}
           className={cn(
-            "flex-shrink-0 p-2 rounded cursor-grab active:cursor-grabbing",
+            "shrink-0 p-2 rounded cursor-grab active:cursor-grabbing",
             "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300",
             "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
             "dark:focus:ring-offset-gray-900",

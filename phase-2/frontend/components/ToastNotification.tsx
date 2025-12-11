@@ -103,11 +103,11 @@ function ToastItem({ message, onDismiss }: ToastNotificationProps) {
       role="alert"
       aria-live="assertive"
     >
-      <div className="flex-shrink-0">{iconMap[message.type]}</div>
+      <div className="shrink-0">{iconMap[message.type]}</div>
       <div className="flex-1 text-sm font-medium">{message.message}</div>
       <button
         onClick={handleDismiss}
-        className="flex-shrink-0 hover:bg-white/20 rounded p-1 transition-colors"
+        className="shrink-0 hover:bg-white/20 rounded p-1 transition-colors"
         aria-label="Dismiss notification"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -41,6 +41,9 @@ export interface Task {
   updated_at: string;
 }
 
+// TaskUI - UI representation of Task (for offline storage)
+export type TaskUI = Task;
+
 export interface TaskFormData {
   title: string;
   description?: string;

@@ -15,18 +15,16 @@
 import React, { useRef, useState } from "react";
 import { Download, Upload, FileText, FileJson, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button";
-import { ExportFormat } from "@/types";
+import { ExportFormat, ImportResult } from "@/types";
 
 interface ExportImportControlsProps {
-  userId: string;
   onExport: (format: ExportFormat) => Promise<void>;
-  onImport: (file: File) => Promise<{ imported: number; errors: number }>;
+  onImport: (file: File) => Promise<ImportResult>;
   disabled?: boolean;
   className?: string;
 }
 
 export function ExportImportControls({
-  userId,
   onExport,
   onImport,
   disabled = false,
@@ -78,7 +76,7 @@ export function ExportImportControls({
     try {
       const result = await onImport(file);
 
-      if (result.errors > 0) {
+      if (result.errors && result.errors > 0) {
         setImportError(
           `Import completed with ${result.errors} error(s). ${result.imported} task(s) imported successfully.`
         );
@@ -158,7 +156,7 @@ export function ExportImportControls({
           className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
           role="alert"
         >
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
           <p className="text-sm text-red-800 dark:text-red-300">{importError}</p>
         </div>
       )}

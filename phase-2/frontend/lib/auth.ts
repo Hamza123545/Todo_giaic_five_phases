@@ -51,8 +51,9 @@ export async function signUp(email: string, password: string, name: string) {
     });
 
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || "Signup failed");
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Signup failed";
+    throw new Error(errorMessage);
   }
 }
 
@@ -67,8 +68,9 @@ export async function signIn(email: string, password: string) {
     });
 
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || "Signin failed");
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Signin failed";
+    throw new Error(errorMessage);
   }
 }
 

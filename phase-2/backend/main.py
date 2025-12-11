@@ -6,15 +6,26 @@ registers API routes, and provides basic health check endpoints.
 """
 
 import os
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
-# Import routes
+# Load environment variables from .env file
+# Look for .env file in the backend directory
+env_path = Path(__file__).parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Fallback: try to load from current directory
+    load_dotenv()
+
+# Import routes (must be after load_dotenv to ensure env vars are loaded)
 from routes import auth, tasks
 
 # Import middleware

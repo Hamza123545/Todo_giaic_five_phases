@@ -6,12 +6,10 @@ import {
   updatePendingOperation,
   addPendingOperation,
   PendingOperation,
-  getAllTasksFromDB,
   saveTasksToDB,
   setMetadata,
 } from "./db";
-import { apiClient } from "./api";
-import { TaskUI } from "@/types";
+import { api } from "./api";
 
 export interface SyncStatus {
   isSyncing: boolean;
@@ -193,31 +191,39 @@ class SyncService {
 
     switch (operation.type) {
       case "create":
-        if (!operation.data) {
-          throw new Error("No data for create operation");
+        if (!operation.data || !operation.data.title) {
+          throw new Error("No data or title for create operation");
         }
-        await apiClient.createTask(userId, operation.data);
+        // Convert Partial<TaskUI> to TaskFormData
+        const createData = {
+          title: operation.data.title,
+          description: operation.data.description,
+          priority: operation.data.priority,
+          due_date: operation.data.due_date,
+          tags: operation.data.tags,
+        };
+        await api.createTask(userId, createData);
         break;
 
       case "update":
         if (!operation.taskId || !operation.data) {
           throw new Error("No task ID or data for update operation");
         }
-        await apiClient.updateTask(userId, operation.taskId, operation.data);
+        await api.updateTask(userId, operation.taskId, operation.data);
         break;
 
       case "delete":
         if (!operation.taskId) {
           throw new Error("No task ID for delete operation");
         }
-        await apiClient.deleteTask(userId, operation.taskId);
+        await api.deleteTask(userId, operation.taskId);
         break;
 
       case "complete":
         if (!operation.taskId || operation.data?.completed === undefined) {
           throw new Error("No task ID or completed status for complete operation");
         }
-        await apiClient.toggleTaskComplete(
+        await api.toggleTaskComplete(
           userId,
           operation.taskId,
           operation.data.completed
@@ -232,7 +238,7 @@ class SyncService {
   // Sync tasks from server to local storage
   async syncTasksFromServer(userId: string): Promise<boolean> {
     try {
-      const response = await apiClient.getTasks(userId, {});
+      const response = await api.getTasks(userId, {});
       if (!response.success || !response.data) {
         throw new Error("Failed to fetch tasks from server");
       }
@@ -273,7 +279,10 @@ class SyncService {
     if ("serviceWorker" in navigator && "sync" in ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await (registration as any).sync.register("sync-tasks");
+        const syncManager = (registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } }).sync;
+        if (syncManager) {
+          await syncManager.register("sync-tasks");
+        }
         console.log("Background sync registered");
       } catch (error) {
         console.error("Failed to register background sync:", error);

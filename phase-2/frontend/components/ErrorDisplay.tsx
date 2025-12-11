@@ -23,7 +23,7 @@ export default function ErrorDisplay({
       aria-live="polite"
     >
       <div className="flex items-start">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <AlertCircle className="h-5 w-5 text-red-400 dark:text-red-300" aria-hidden="true" />
         </div>
         <div className="ml-3">

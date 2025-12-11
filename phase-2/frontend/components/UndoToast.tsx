@@ -86,7 +86,7 @@ export default function UndoToast({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="flex-shrink-0 text-green-500"
+          className="shrink-0 text-green-500"
           aria-hidden="true"
         >
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -118,7 +118,7 @@ export default function UndoToast({
             setTimeout(onDismiss, 300);
           }}
           className={cn(
-            "flex-shrink-0 p-1 rounded",
+            "shrink-0 p-1 rounded",
             "text-gray-400 hover:text-white",
             "focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
             "focus:ring-offset-gray-900",

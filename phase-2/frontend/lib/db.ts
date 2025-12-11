@@ -45,7 +45,7 @@ export async function initDB(): Promise<IDBPDatabase<TodoAppDB>> {
 
   try {
     dbInstance = await openDB<TodoAppDB>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion, newVersion, transaction) {
+      upgrade(db) {
         // Create tasks store
         if (!db.objectStoreNames.contains("tasks")) {
           const taskStore = db.createObjectStore("tasks", { keyPath: "id" });

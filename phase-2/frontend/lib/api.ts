@@ -12,9 +12,9 @@ import {
   Task,
   TaskFormData,
   TaskQueryParams,
+  TaskPriority,
   ApiResponse,
   PaginatedResponse,
-  User,
   UserSignupData,
   UserCredentials,
   AuthResponse,
@@ -65,7 +65,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * Handle API errors and redirect to login if unauthorized
  */
-const handleApiError = (error: any, statusCode?: number): never => {
+const handleApiError = (error: unknown, statusCode?: number): never => {
   // Redirect to login on 401 Unauthorized
   if (statusCode === 401) {
     if (typeof window !== "undefined") {
@@ -74,9 +74,12 @@ const handleApiError = (error: any, statusCode?: number): never => {
     }
   }
 
+  const errorMessage = error instanceof Error ? error.message : "An error occurred";
+  const errorCode = (error as { code?: string })?.code || "UNKNOWN_ERROR";
+
   throw {
-    message: error.message || "An error occurred",
-    code: error.code || "UNKNOWN_ERROR",
+    message: errorMessage,
+    code: errorCode,
     statusCode: statusCode || 500,
   };
 };
@@ -129,9 +132,9 @@ async function apiFetch<T>(
     }
 
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Retry on network errors
-    if (retries > 0 && error.name === "TypeError") {
+    if (retries > 0 && error instanceof Error && error.name === "TypeError") {
       await delay(RETRY_DELAY);
       return apiFetch<T>(endpoint, options, retries - 1);
     }

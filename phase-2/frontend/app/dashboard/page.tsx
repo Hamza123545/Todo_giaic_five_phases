@@ -9,12 +9,12 @@
  * Requires authentication
  */
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { usePolling } from "@/hooks/usePolling";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
-import { User, Task, LoadingState, TaskQueryParams, SortField, SortParam, TaskFilter, SortConfig } from "@/types";
+import { User, Task, LoadingState, TaskQueryParams, SortParam, TaskFilter, SortConfig } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import TaskForm from "@/components/TaskForm";
@@ -58,8 +58,8 @@ function DashboardContent() {
             id: currentUser.id,
             name: currentUser.name,
             email: currentUser.email,
-            created_at: currentUser.createdAt.toISOString(),
-            updated_at: currentUser.updatedAt.toISOString(),
+            createdAt: currentUser.createdAt?.toISOString(),
+            updatedAt: currentUser.updatedAt?.toISOString(),
           };
           setUser(mappedUser);
 
@@ -74,6 +74,7 @@ function DashboardContent() {
     }
 
     loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadTasks = useCallback(async (userId: string, silent: boolean = false) => {
@@ -118,8 +119,8 @@ function DashboardContent() {
       const response = await api.getTasks(userId, queryParams);
       if (response.success && response.data) {
         setTasks(response.data.data || []);
-        setTotalItems(response.data.total || 0);
-        setTotalPages(response.data.pages || 1);
+        setTotalItems(response.data.meta?.total || 0);
+        setTotalPages(response.data.meta?.totalPages || 1);
         setLoadingState("success");
       } else {
         throw new Error(response.message || "Failed to load tasks");
@@ -259,7 +260,7 @@ function DashboardContent() {
                 />
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Click "Add Task" to create a new task.
+                  Click &quot;Add Task&quot; to create a new task.
                 </p>
               )}
             </div>

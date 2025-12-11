@@ -65,7 +65,7 @@ export const LazyUndoRedoControls = dynamic(
 );
 
 export const LazySortableTaskItem = dynamic(
-  () => import("./SortableTaskItem"),
+  () => import("./SortableTaskItem").then((mod) => ({ default: mod.SortableTaskItem })),
   {
     loading: () => (
       <div className="h-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />

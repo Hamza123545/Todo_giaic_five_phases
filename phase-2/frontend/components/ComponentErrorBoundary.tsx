@@ -67,7 +67,7 @@ export default class ComponentErrorBoundary extends Component<Props, State> {
       return (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+            <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-red-900 dark:text-red-200">
                 {this.props.componentName || "Component"} Error

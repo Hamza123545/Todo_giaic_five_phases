@@ -9,7 +9,7 @@
  */
 
 import { useState, memo } from "react";
-import { Task, TaskPriority, ApiResponse } from "@/types";
+import { Task, TaskPriority } from "@/types";
 import { cn, formatDate } from "@/lib/utils";
 import { api } from "@/lib/api";
 
@@ -52,11 +52,11 @@ const TaskItem = memo(function TaskItem({
         setOptimisticCompleted(!newCompleted);
         throw new Error(response.message || "Failed to toggle task");
       }
-    } catch (error: any) {
+    } catch (error) {
       // Revert optimistic update
       setOptimisticCompleted(!newCompleted);
       console.error("Failed to toggle task:", error);
-      onError?.(error);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsToggling(false);
     }
@@ -77,10 +77,10 @@ const TaskItem = memo(function TaskItem({
         throw new Error(response.message || "Failed to delete task");
       }
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to delete task:", error);
       setIsDeleting(false);
-      onError?.(error);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -134,11 +134,11 @@ const TaskItem = memo(function TaskItem({
 
       setIsEditingTitle(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to update task title:", error);
       setEditedTitle(task.title);
       setIsEditingTitle(false);
-      onError?.(error);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsSaving(false);
     }
@@ -240,7 +240,7 @@ const TaskItem = memo(function TaskItem({
               ) : (
                 <h4
                   className={cn(
-                    "text-base font-medium break-words cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
+                    "text-base font-medium wrap-break-word cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
                     optimisticCompleted
                       ? "line-through text-gray-500 dark:text-gray-400"
                       : "text-gray-900 dark:text-white"
@@ -358,7 +358,7 @@ const TaskItem = memo(function TaskItem({
         onClick={handleToggleComplete}
         disabled={isToggling || isDeleting}
         className={cn(
-          "mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
+          "mt-1 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0",
           "focus:outline-none focus:ring-2 focus:ring-blue-500",
           "transition-colors",
           optimisticCompleted
@@ -410,7 +410,7 @@ const TaskItem = memo(function TaskItem({
             ) : (
               <h4
                 className={cn(
-                  "text-base font-medium break-words cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
+                  "text-base font-medium wrap-break-word cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors",
                   optimisticCompleted
                     ? "line-through text-gray-500 dark:text-gray-400"
                     : "text-gray-900 dark:text-white"
@@ -436,7 +436,7 @@ const TaskItem = memo(function TaskItem({
             className={cn(
               "p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400",
               "focus:outline-none focus:ring-2 focus:ring-red-500 rounded",
-              "transition-colors flex-shrink-0"
+              "transition-colors shrink-0"
             )}
             aria-label={`Delete task ${task.title}`}
           >

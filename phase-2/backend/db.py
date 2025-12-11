@@ -6,13 +6,23 @@ and connection pooling for the Todo application.
 """
 
 import os
+from pathlib import Path
 from typing import AsyncGenerator
 
+from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+# Load environment variables from .env file
+# Look for .env file in the backend directory
+env_path = Path(__file__).parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Fallback: try to load from current directory
+    load_dotenv()
 
 # Get database URL from environment variable
 DATABASE_URL = os.getenv("DATABASE_URL", "")
