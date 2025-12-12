@@ -8,7 +8,9 @@
       "Bash(bash:*)",
       "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
       "Bash(python -m src:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

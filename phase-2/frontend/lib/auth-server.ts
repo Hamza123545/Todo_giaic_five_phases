@@ -56,7 +56,9 @@ function getAuth() {
     secret: secret,
 
     // Base URL for authentication endpoints
-    baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    // Auto-detect from Vercel or use environment variable
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || 
+             (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
 
     // Email and password authentication
     emailAndPassword: {
@@ -76,7 +78,8 @@ function getAuth() {
 
     // Trusted origins for CORS
     trustedOrigins: [
-      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      process.env.NEXT_PUBLIC_APP_URL || 
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
     ],
 

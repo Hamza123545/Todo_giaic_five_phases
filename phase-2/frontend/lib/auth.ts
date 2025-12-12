@@ -19,8 +19,29 @@ import { jwtClient } from "better-auth/client/plugins";
  * - Session management via cookies
  * - Client-side session storage
  */
+// Auto-detect production URL from Vercel or use environment variable
+const getBaseURL = (): string => {
+  // Priority 1: Explicit environment variable
+  if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  
+  // Priority 2: Vercel's automatic URL (production)
+  if (typeof process !== "undefined" && process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Priority 3: Browser-side: use current location
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.host}`;
+  }
+  
+  // Priority 4: Fallback to localhost for development
+  return "http://localhost:3000";
+};
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  baseURL: getBaseURL(),
 
   // Plugins (JWT client for token generation)
   plugins: [jwtClient()],

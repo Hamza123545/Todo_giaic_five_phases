@@ -24,6 +24,7 @@ import {
 import { getToken } from "@/lib/auth";
 
 // API Configuration
+// Use environment variable or fallback to localhost
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // ms
