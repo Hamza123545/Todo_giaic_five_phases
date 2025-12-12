@@ -54,7 +54,8 @@ function getDb() {
 export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
   get(_target, prop) {
     const dbInstance = getDb();
-    const value = (dbInstance as Record<string, unknown>)[prop as string];
+    // Use type assertion through unknown to avoid type errors
+    const value = (dbInstance as unknown as Record<string, unknown>)[prop as string];
     return typeof value === "function" ? value.bind(dbInstance) : value;
   },
 });
