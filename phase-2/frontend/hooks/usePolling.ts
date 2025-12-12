@@ -15,10 +15,7 @@ interface UsePollingOptions {
   onError?: (error: Error) => void; // Error handler
 }
 
-export function usePolling(
-  callback: () => Promise<void> | void,
-  options: UsePollingOptions = {}
-) {
+export function usePolling(callback: () => Promise<void> | void, options: UsePollingOptions = {}) {
   const { interval = 30000, enabled = true, onError } = options;
 
   const savedCallback = useRef(callback);

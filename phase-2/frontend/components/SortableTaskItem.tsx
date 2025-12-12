@@ -90,12 +90,7 @@ export function SortableTaskItem({
 
         {/* Task Item */}
         <div className="flex-1 min-w-0">
-          <TaskItem
-            task={task}
-            userId={userId}
-            onSuccess={onSuccess}
-            onError={onError}
-          />
+          <TaskItem task={task} userId={userId} onSuccess={onSuccess} onError={onError} />
         </div>
       </div>
     </li>

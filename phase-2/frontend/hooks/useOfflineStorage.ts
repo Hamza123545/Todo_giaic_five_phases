@@ -33,8 +33,7 @@ export function useOfflineStorage(userId: string | null) {
 
         setState({
           isInitialized: true,
-          lastSyncTime:
-            typeof lastSync === "number" ? lastSync : Date.now(),
+          lastSyncTime: typeof lastSync === "number" ? lastSync : Date.now(),
           hasPendingChanges: hasPending === true,
         });
       } catch (error) {
@@ -47,9 +46,7 @@ export function useOfflineStorage(userId: string | null) {
   }, []);
 
   // Load tasks from IndexedDB
-  const loadTasksFromStorage = useCallback(async (): Promise<
-    TaskUI[] | null
-  > => {
+  const loadTasksFromStorage = useCallback(async (): Promise<TaskUI[] | null> => {
     if (!userId) return null;
 
     try {
@@ -62,22 +59,19 @@ export function useOfflineStorage(userId: string | null) {
   }, [userId]);
 
   // Save tasks to IndexedDB
-  const saveTasksToStorage = useCallback(
-    async (tasks: TaskUI[]): Promise<boolean> => {
-      try {
-        const success = await saveTasksToDB(tasks);
-        if (success) {
-          await setMetadata("lastSyncTime", Date.now());
-          setState((prev) => ({ ...prev, lastSyncTime: Date.now() }));
-        }
-        return success;
-      } catch (error) {
-        console.error("Failed to save tasks to storage:", error);
-        return false;
+  const saveTasksToStorage = useCallback(async (tasks: TaskUI[]): Promise<boolean> => {
+    try {
+      const success = await saveTasksToDB(tasks);
+      if (success) {
+        await setMetadata("lastSyncTime", Date.now());
+        setState((prev) => ({ ...prev, lastSyncTime: Date.now() }));
       }
-    },
-    []
-  );
+      return success;
+    } catch (error) {
+      console.error("Failed to save tasks to storage:", error);
+      return false;
+    }
+  }, []);
 
   // Save single task to IndexedDB
   const saveTaskToStorage = useCallback(async (task: TaskUI): Promise<boolean> => {
@@ -91,18 +85,15 @@ export function useOfflineStorage(userId: string | null) {
   }, []);
 
   // Delete task from IndexedDB
-  const deleteTaskFromStorage = useCallback(
-    async (taskId: number): Promise<boolean> => {
-      try {
-        const success = await deleteTaskFromDB(taskId);
-        return success;
-      } catch (error) {
-        console.error("Failed to delete task from storage:", error);
-        return false;
-      }
-    },
-    []
-  );
+  const deleteTaskFromStorage = useCallback(async (taskId: number): Promise<boolean> => {
+    try {
+      const success = await deleteTaskFromDB(taskId);
+      return success;
+    } catch (error) {
+      console.error("Failed to delete task from storage:", error);
+      return false;
+    }
+  }, []);
 
   // Mark as having pending changes
   const markPendingChanges = useCallback(async (hasPending: boolean) => {

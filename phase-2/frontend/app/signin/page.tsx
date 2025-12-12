@@ -68,7 +68,7 @@ export default function SigninPage() {
 
       // Session is now established via Better Auth cookies
       // Token will be fetched fresh on each API call (same pattern as phase-2-web)
-      
+
       // Store user data if needed
       if (result.data?.user) {
         sessionStorage.setItem("user", JSON.stringify(result.data.user));
@@ -79,7 +79,8 @@ export default function SigninPage() {
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectPath);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred during sign in";
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred during sign in";
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -124,7 +125,10 @@ export default function SigninPage() {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Email Address
               </label>
               <input
@@ -142,13 +146,18 @@ export default function SigninPage() {
                 }`}
                 placeholder="you@example.com"
               />
-              {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Password
                 </label>
                 <Link
@@ -173,7 +182,9 @@ export default function SigninPage() {
                 }`}
                 placeholder="••••••••"
               />
-              {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+              )}
             </div>
 
             {/* Remember Me Checkbox */}
@@ -184,7 +195,10 @@ export default function SigninPage() {
                 type="checkbox"
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
+              >
                 Remember me
               </label>
             </div>
@@ -195,7 +209,11 @@ export default function SigninPage() {
               disabled={isLoading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? <LoadingSpinner size="small" color="white" label="Signing in..." /> : "Sign in"}
+              {isLoading ? (
+                <LoadingSpinner size="small" color="white" label="Signing in..." />
+              ) : (
+                "Sign in"
+              )}
             </button>
           </div>
 

@@ -35,10 +35,7 @@ type HistoryAction<T> =
 
 const UNDO_TIMEOUT = 5000; // 5 seconds
 
-function historyReducer<T>(
-  state: HistoryState<T>,
-  action: HistoryAction<T>
-): HistoryState<T> {
+function historyReducer<T>(state: HistoryState<T>, action: HistoryAction<T>): HistoryState<T> {
   switch (action.type) {
     case "EXECUTE": {
       // Clear any existing timeout

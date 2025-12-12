@@ -17,10 +17,7 @@ interface UndoRedoControlsProps {
   className?: string;
 }
 
-export default function UndoRedoControls({
-  undoRedo,
-  className,
-}: UndoRedoControlsProps) {
+export default function UndoRedoControls({ undoRedo, className }: UndoRedoControlsProps) {
   const { undo, redo, canUndo, canRedo } = undoRedo;
 
   // Keyboard shortcuts
@@ -52,10 +49,7 @@ export default function UndoRedoControls({
 
   return (
     <div
-      className={cn(
-        "flex items-center gap-2",
-        className
-      )}
+      className={cn("flex items-center gap-2", className)}
       role="group"
       aria-label="Undo and redo controls"
     >

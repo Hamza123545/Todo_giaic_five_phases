@@ -111,13 +111,9 @@ export function TaskStatistics({ tasks, className = "" }: TaskStatisticsProps) {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {stat.label}
               </p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stat.count}
-              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stat.count}</p>
             </div>
-            <div className={`${stat.color} ${stat.bgColor} p-2 rounded-lg`}>
-              {stat.icon}
-            </div>
+            <div className={`${stat.color} ${stat.bgColor} p-2 rounded-lg`}>{stat.icon}</div>
           </div>
 
           {/* Progress bar */}
@@ -129,7 +125,7 @@ export function TaskStatistics({ tasks, className = "" }: TaskStatisticsProps) {
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
               <div
-                className={`h-full ${stat.color.replace('text-', 'bg-')} transition-all duration-300 ease-out`}
+                className={`h-full ${stat.color.replace("text-", "bg-")} transition-all duration-300 ease-out`}
                 style={{ width: `${stat.percentage}%` }}
                 role="progressbar"
                 aria-valuenow={stat.percentage}

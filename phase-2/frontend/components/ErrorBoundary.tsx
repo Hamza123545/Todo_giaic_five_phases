@@ -90,8 +90,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             </h2>
 
             <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-              We encountered an unexpected error. Please try refreshing the page or contact
-              support if the problem persists.
+              We encountered an unexpected error. Please try refreshing the page or contact support
+              if the problem persists.
             </p>
 
             {process.env.NODE_ENV === "development" && this.state.error && (

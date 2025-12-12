@@ -39,11 +39,7 @@ class RouteErrorBoundaryClass extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error(
-      `Error in route ${this.props.routeName || "unknown"}:`,
-      error,
-      errorInfo
-    );
+    console.error(`Error in route ${this.props.routeName || "unknown"}:`, error, errorInfo);
 
     this.setState({
       error,
@@ -97,8 +93,8 @@ class RouteErrorBoundaryClass extends Component<
             </h1>
 
             <p className="mb-6 text-center text-gray-600 dark:text-gray-400">
-              We encountered an error while loading this page. This might be temporary,
-              so please try again.
+              We encountered an error while loading this page. This might be temporary, so please
+              try again.
             </p>
 
             {process.env.NODE_ENV === "development" && this.state.error && (
@@ -108,9 +104,7 @@ class RouteErrorBoundaryClass extends Component<
                 </summary>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                      Error:
-                    </p>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Error:</p>
                     <pre className="overflow-auto rounded bg-red-50 p-2 text-xs text-red-600 dark:bg-red-900/30 dark:text-red-400">
                       {this.state.error.toString()}
                     </pre>

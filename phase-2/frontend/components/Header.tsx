@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
-import DarkModeToggle from './DarkModeToggle';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import DarkModeToggle from "./DarkModeToggle";
 
 interface HeaderProps {
   user?: {
@@ -30,8 +30,8 @@ export default function Header({ user, onSignOut }: HeaderProps) {
   }, [pathname, isMenuOpen]);
 
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Tasks', href: '/dashboard' },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Tasks", href: "/dashboard" },
   ];
 
   return (
@@ -54,8 +54,8 @@ export default function Header({ user, onSignOut }: HeaderProps) {
                   href={item.href}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     pathname === item.href
-                      ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                      ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   }`}
                 >
                   {item.name}
@@ -134,8 +134,8 @@ export default function Header({ user, onSignOut }: HeaderProps) {
                 href={item.href}
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
                   pathname === item.href
-                    ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >

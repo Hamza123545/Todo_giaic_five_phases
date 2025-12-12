@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Github, Twitter, Mail, Heart } from 'lucide-react';
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Github, Twitter, Mail, Heart } from "lucide-react";
 
 export function LandingFooter() {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     product: [
-      { name: 'Features', href: '#features' },
-      { name: 'How It Works', href: '#how-it-works' },
-      { name: 'Pricing', href: '#' },
+      { name: "Features", href: "#features" },
+      { name: "How It Works", href: "#how-it-works" },
+      { name: "Pricing", href: "#" },
     ],
     company: [
-      { name: 'About', href: '#' },
-      { name: 'Blog', href: '#' },
-      { name: 'Careers', href: '#' },
+      { name: "About", href: "#" },
+      { name: "Blog", href: "#" },
+      { name: "Careers", href: "#" },
     ],
     legal: [
-      { name: 'Privacy', href: '#' },
-      { name: 'Terms', href: '#' },
-      { name: 'Security', href: '#' },
+      { name: "Privacy", href: "#" },
+      { name: "Terms", href: "#" },
+      { name: "Security", href: "#" },
     ],
   };
 
@@ -90,9 +90,7 @@ export function LandingFooter() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <h3 className="text-sm font-semibold text-foreground mb-4 capitalize">
-                {category}
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 capitalize">{category}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.name}>
@@ -118,7 +116,7 @@ export function LandingFooter() {
           className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row"
         >
           <p className="text-sm text-muted-foreground flex items-center gap-1">
-            © {currentYear} Todo App. Made with{' '}
+            © {currentYear} Todo App. Made with{" "}
             <Heart className="h-4 w-4 text-primary fill-primary" /> All rights reserved.
           </p>
 

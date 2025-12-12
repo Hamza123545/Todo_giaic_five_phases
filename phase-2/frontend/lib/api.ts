@@ -62,7 +62,7 @@ const handleApiError = (error: unknown, statusCode?: number): never => {
 
 /**
  * Generic fetch wrapper with retry logic and error handling
- * 
+ *
  * @param endpoint - API endpoint (without base URL)
  * @param options - Fetch options
  * @param token - JWT token (required for authenticated requests)
@@ -108,10 +108,7 @@ async function apiFetch<T>(
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("application/json")) {
       if (!response.ok) {
-        handleApiError(
-          { message: `HTTP error ${response.status}` },
-          response.status
-        );
+        handleApiError({ message: `HTTP error ${response.status}` }, response.status);
       }
       return { success: true, data: {} as T };
     }
@@ -153,27 +150,31 @@ export class ApiClient {
 
   async signup(userData: UserSignupData): Promise<ApiResponse<AuthResponse>> {
     // Signup doesn't require token
-    return apiFetch<AuthResponse>("/api/auth/signup", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    }, null);
+    return apiFetch<AuthResponse>(
+      "/api/auth/signup",
+      {
+        method: "POST",
+        body: JSON.stringify(userData),
+      },
+      null
+    );
   }
 
   async signin(credentials: UserCredentials): Promise<ApiResponse<AuthResponse>> {
     // Signin doesn't require token
-    return apiFetch<AuthResponse>("/api/auth/signin", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    }, null);
+    return apiFetch<AuthResponse>(
+      "/api/auth/signin",
+      {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      },
+      null
+    );
   }
 
   async signout(): Promise<ApiResponse<void>> {
     const { data: tokenData } = await getToken();
-    return apiFetch<void>(
-      "/api/auth/signout",
-      { method: "POST" },
-      tokenData?.token || null
-    );
+    return apiFetch<void>("/api/auth/signout", { method: "POST" }, tokenData?.token || null);
   }
 
   // ==================== Task Management Methods ====================
@@ -188,7 +189,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
 
@@ -206,17 +207,14 @@ export class ApiClient {
     return apiFetch<PaginatedResponse<Task>>(endpoint, {}, tokenData.token);
   }
 
-  async createTask(
-    userId: string,
-    taskData: TaskFormData
-  ): Promise<ApiResponse<Task>> {
+  async createTask(userId: string, taskData: TaskFormData): Promise<ApiResponse<Task>> {
     // Get token first
     const { data: tokenData, error: tokenError } = await getToken();
     if (tokenError || !tokenData?.token) {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
 
@@ -236,7 +234,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<Task>(`/api/${userId}/tasks/${taskId}`, {}, tokenData.token);
@@ -252,7 +250,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<Task>(
@@ -271,7 +269,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<void>(`/api/${userId}/tasks/${taskId}`, { method: "DELETE" }, tokenData.token);
@@ -287,7 +285,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<Task>(
@@ -309,7 +307,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<{ reordered: number }>(
@@ -330,14 +328,11 @@ export class ApiClient {
       throw new Error("Authentication required");
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/${userId}/tasks/export?format=${format}`,
-      {
-        headers: {
-          "Authorization": `Bearer ${tokenData.token}`
-        }
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/${userId}/tasks/export?format=${format}`, {
+      headers: {
+        Authorization: `Bearer ${tokenData.token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error("Export failed");
@@ -346,16 +341,13 @@ export class ApiClient {
     return response.blob();
   }
 
-  async importTasks(
-    userId: string,
-    file: File
-  ): Promise<ApiResponse<ImportResult>> {
+  async importTasks(userId: string, file: File): Promise<ApiResponse<ImportResult>> {
     const { data: tokenData, error: tokenError } = await getToken();
     if (tokenError || !tokenData?.token) {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
 
@@ -365,7 +357,7 @@ export class ApiClient {
     const response = await fetch(`${API_BASE_URL}/api/${userId}/tasks/import`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${tokenData.token}`
+        Authorization: `Bearer ${tokenData.token}`,
       },
       body: formData,
     });
@@ -384,7 +376,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<{ deleted: number }>(
@@ -410,7 +402,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<{ updated: number }>(
@@ -437,7 +429,7 @@ export class ApiClient {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch<{ updated: number }>(
@@ -456,25 +448,25 @@ export class ApiClient {
 
   // ==================== Statistics Methods ====================
 
-  async getTaskStatistics(
-    userId: string
-  ): Promise<ApiResponse<{
-    total: number;
-    completed: number;
-    pending: number;
-    overdue: number;
-    by_priority: {
-      low: number;
-      medium: number;
-      high: number;
-    };
-  }>> {
+  async getTaskStatistics(userId: string): Promise<
+    ApiResponse<{
+      total: number;
+      completed: number;
+      pending: number;
+      overdue: number;
+      by_priority: {
+        low: number;
+        medium: number;
+        high: number;
+      };
+    }>
+  > {
     const { data: tokenData, error: tokenError } = await getToken();
     if (tokenError || !tokenData?.token) {
       return {
         success: false,
         message: "Authentication required",
-        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" }
+        error: { code: "UNAUTHORIZED", message: "Please sign in to continue" },
       };
     }
     return apiFetch(`/api/${userId}/tasks/statistics`, {}, tokenData.token);

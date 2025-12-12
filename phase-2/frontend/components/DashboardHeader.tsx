@@ -1,14 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { User } from '@/types';
-import { signOut } from '@/lib/auth';
-import { LayoutDashboard, CheckSquare, Menu, X, LogOut, User as UserIcon, Home } from 'lucide-react';
-import DarkModeToggle from './DarkModeToggle';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { User } from "@/types";
+import { signOut } from "@/lib/auth";
+import {
+  LayoutDashboard,
+  CheckSquare,
+  Menu,
+  X,
+  LogOut,
+  User as UserIcon,
+  Home,
+} from "lucide-react";
+import DarkModeToggle from "./DarkModeToggle";
 
 interface DashboardHeaderProps {
   user?: User;
@@ -26,23 +34,23 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
       setIsScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       onSignOut?.();
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Sign out failed:', error);
+      console.error("Sign out failed:", error);
     }
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Tasks', href: '/dashboard', icon: CheckSquare },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Tasks", href: "/dashboard", icon: CheckSquare },
   ];
 
   return (
@@ -52,8 +60,8 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
       transition={{ duration: 0.5 }}
       className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
         isScrolled
-          ? 'border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-lg shadow-black/5'
-          : 'border-transparent bg-background/60 backdrop-blur-sm'
+          ? "border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-lg shadow-black/5"
+          : "border-transparent bg-background/60 backdrop-blur-sm"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -85,8 +93,8 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
                     whileTap={{ scale: 0.95 }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-primary/10 text-primary shadow-sm'
-                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                        ? "bg-primary/10 text-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
                     }`}
                   >
                     <item.icon className="h-4 w-4" />
@@ -162,7 +170,7 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
           {isMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
               className="md:hidden border-t border-border py-4"
@@ -177,8 +185,8 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
                       onClick={() => setIsMenuOpen(false)}
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
@@ -215,4 +223,3 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
     </motion.header>
   );
 }
-

@@ -76,9 +76,7 @@ export async function initDB(): Promise<IDBPDatabase<TodoAppDB>> {
 }
 
 // Tasks operations
-export async function getAllTasksFromDB(
-  userId: string
-): Promise<TaskUI[] | null> {
+export async function getAllTasksFromDB(userId: string): Promise<TaskUI[] | null> {
   try {
     const db = await initDB();
     const tasks = await db.getAllFromIndex("tasks", "by-user", userId);
@@ -89,9 +87,7 @@ export async function getAllTasksFromDB(
   }
 }
 
-export async function getTaskByIdFromDB(
-  taskId: number
-): Promise<TaskUI | null> {
+export async function getTaskByIdFromDB(taskId: number): Promise<TaskUI | null> {
   try {
     const db = await initDB();
     const task = await db.get("tasks", taskId);
@@ -118,10 +114,7 @@ export async function saveTasksToDB(tasks: TaskUI[]): Promise<boolean> {
     const db = await initDB();
     const tx = db.transaction("tasks", "readwrite");
 
-    await Promise.all([
-      ...tasks.map((task) => tx.store.put(task)),
-      tx.done,
-    ]);
+    await Promise.all([...tasks.map((task) => tx.store.put(task)), tx.done]);
 
     return true;
   } catch (error) {
@@ -169,10 +162,7 @@ export async function addPendingOperation(
 export async function getPendingOperations(): Promise<PendingOperation[]> {
   try {
     const db = await initDB();
-    const operations = await db.getAllFromIndex(
-      "pendingOperations",
-      "by-timestamp"
-    );
+    const operations = await db.getAllFromIndex("pendingOperations", "by-timestamp");
     return operations;
   } catch (error) {
     console.error("Failed to get pending operations:", error);
@@ -180,9 +170,7 @@ export async function getPendingOperations(): Promise<PendingOperation[]> {
   }
 }
 
-export async function updatePendingOperation(
-  operation: PendingOperation
-): Promise<boolean> {
+export async function updatePendingOperation(operation: PendingOperation): Promise<boolean> {
   try {
     const db = await initDB();
     await db.put("pendingOperations", operation);
@@ -216,10 +204,7 @@ export async function clearPendingOperations(): Promise<boolean> {
 }
 
 // Metadata operations
-export async function setMetadata(
-  key: string,
-  value: string | number | boolean
-): Promise<boolean> {
+export async function setMetadata(key: string, value: string | number | boolean): Promise<boolean> {
   try {
     const db = await initDB();
     await db.put("metadata", {
@@ -234,9 +219,7 @@ export async function setMetadata(
   }
 }
 
-export async function getMetadata(
-  key: string
-): Promise<string | number | boolean | null> {
+export async function getMetadata(key: string): Promise<string | number | boolean | null> {
   try {
     const db = await initDB();
     const item = await db.get("metadata", key);
@@ -262,11 +245,7 @@ export async function deleteMetadata(key: string): Promise<boolean> {
 export async function clearDatabase(): Promise<boolean> {
   try {
     const db = await initDB();
-    await Promise.all([
-      db.clear("tasks"),
-      db.clear("pendingOperations"),
-      db.clear("metadata"),
-    ]);
+    await Promise.all([db.clear("tasks"), db.clear("pendingOperations"), db.clear("metadata")]);
     return true;
   } catch (error) {
     console.error("Failed to clear database:", error);

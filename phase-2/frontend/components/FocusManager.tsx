@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface FocusManagerProps {
   children: React.ReactNode;
@@ -11,13 +11,13 @@ interface FocusManagerProps {
 export default function FocusManager({
   children,
   autoFocus = false,
-  restoreFocus = true
+  restoreFocus = true,
 }: FocusManagerProps) {
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (autoFocus) {
-      const autoFocusElement = document.querySelector('[data-autofocus]') as HTMLElement;
+      const autoFocusElement = document.querySelector("[data-autofocus]") as HTMLElement;
       if (autoFocusElement) {
         autoFocusElement.focus();
       }

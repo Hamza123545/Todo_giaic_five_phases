@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { getCurrentUser, signOut } from '@/lib/auth';
-import { Menu, X, LogIn, LayoutDashboard } from 'lucide-react';
-import DarkModeToggle from './DarkModeToggle';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { getCurrentUser, signOut } from "@/lib/auth";
+import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
+import DarkModeToggle from "./DarkModeToggle";
 
 export function LandingNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,24 +31,24 @@ export function LandingNavbar() {
       setMounted(true);
     }, 0);
     checkAuth();
-    
+
     return () => clearTimeout(timeoutId);
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setUser(null);
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Sign out failed:', error);
+      console.error("Sign out failed:", error);
     }
   };
 
@@ -71,17 +71,14 @@ export function LandingNavbar() {
       transition={{ duration: 0.5 }}
       className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
         isScrolled
-          ? 'border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm'
-          : 'border-transparent bg-transparent'
+          ? "border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm"
+          : "border-transparent bg-transparent"
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link href="/" className="flex items-center space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <span className="text-lg font-bold">✓</span>
@@ -106,7 +103,7 @@ export function LandingNavbar() {
             >
               How It Works
             </Link>
-            
+
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
 
@@ -119,12 +116,7 @@ export function LandingNavbar() {
                     Dashboard
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="gap-2"
-                >
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
                   Sign Out
                 </Button>
               </div>
@@ -162,7 +154,7 @@ export function LandingNavbar() {
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
               className="md:hidden border-t border-border"
@@ -230,4 +222,3 @@ export function LandingNavbar() {
     </motion.nav>
   );
 }
-

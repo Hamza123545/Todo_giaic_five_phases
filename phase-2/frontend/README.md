@@ -25,6 +25,7 @@ This frontend is fully functional and includes all required features for the ful
 ## Features
 
 ### Core Features
+
 - **Authentication**: Secure user signup/signin with JWT tokens via Better Auth
 - **Task Management**: Create, read, update, and delete tasks with rich metadata
 - **Filtering & Sorting**: Filter by status, priority, due date; Sort by multiple criteria
@@ -32,6 +33,7 @@ This frontend is fully functional and includes all required features for the ful
 - **Dark Mode**: System-aware theme with manual toggle
 
 ### Advanced Features
+
 - **Offline Support**: PWA with service workers for offline functionality
 - **Drag & Drop**: Reorder tasks with smooth animations
 - **Bulk Operations**: Select and modify multiple tasks at once
@@ -41,6 +43,7 @@ This frontend is fully functional and includes all required features for the ful
 - **Responsive Design**: Mobile-first design that adapts to all screen sizes
 
 ### UX Features
+
 - **Loading States**: Skeleton screens and spinners during async operations
 - **Error Handling**: User-friendly error messages with recovery actions
 - **Optimistic Updates**: Instant UI feedback with server reconciliation
@@ -202,13 +205,13 @@ phase-2/frontend/
 All API calls use the centralized API client at `/lib/api.ts`:
 
 ```typescript
-import { api } from '@/lib/api';
+import { api } from "@/lib/api";
 
 // Get tasks
-const tasks = await api.getTasks(userId, { status: 'pending' });
+const tasks = await api.getTasks(userId, { status: "pending" });
 
 // Create task
-const newTask = await api.createTask(userId, { title: 'New task' });
+const newTask = await api.createTask(userId, { title: "New task" });
 ```
 
 ### Dark Mode Support
@@ -270,6 +273,7 @@ docker run -p 3000:3000 --env-file .env.production frontend-todo-app
 ## Accessibility
 
 WCAG 2.1 AA compliant with:
+
 - Semantic HTML
 - ARIA labels and roles
 - Keyboard navigation
@@ -279,12 +283,14 @@ WCAG 2.1 AA compliant with:
 ## Performance
 
 ### Targets
+
 - Lighthouse scores: >90 in all categories
 - First Contentful Paint: <2s
 - Largest Contentful Paint: <3s
 - Cumulative Layout Shift: <0.1
 
 ### Optimizations
+
 - Code splitting
 - Image optimization
 - Font optimization

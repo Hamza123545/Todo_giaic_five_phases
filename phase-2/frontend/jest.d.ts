@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom';
-import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
+import "@testing-library/jest-dom";
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
 
 declare global {
   namespace jest {
@@ -10,4 +10,3 @@ declare global {
     }
   }
 }
-

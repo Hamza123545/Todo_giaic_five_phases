@@ -34,10 +34,13 @@ const DropdownMenu = React.forwardRef<
     <div ref={ref} className={cn("relative", className)} {...props}>
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<{ isOpen?: boolean; setIsOpen?: (open: boolean) => void }>, {
-            isOpen,
-            setIsOpen: handleOpenChange,
-          });
+          return React.cloneElement(
+            child as React.ReactElement<{ isOpen?: boolean; setIsOpen?: (open: boolean) => void }>,
+            {
+              isOpen,
+              setIsOpen: handleOpenChange,
+            }
+          );
         }
         return child;
       })}
@@ -64,7 +67,7 @@ const DropdownMenuTrigger = React.forwardRef<
         originalOnClick(e);
       }
     };
-    
+
     // Clone element without ref to avoid refs during render
     return React.cloneElement(child, {
       ...child.props,
@@ -135,9 +138,12 @@ const DropdownMenuContent = React.forwardRef<
   // Pass setIsOpen to children (DropdownMenuItem components)
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child as React.ReactElement<{ setIsOpen?: (open: boolean) => void }>, {
-        setIsOpen,
-      });
+      return React.cloneElement(
+        child as React.ReactElement<{ setIsOpen?: (open: boolean) => void }>,
+        {
+          setIsOpen,
+        }
+      );
     }
     return child;
   });
@@ -216,16 +222,15 @@ const DropdownMenuSeparator = React.forwardRef<
 ));
 DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
 
-const DropdownMenuLabel = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("px-2 py-1.5 text-sm font-semibold text-gray-900 dark:text-white", className)}
-    {...props}
-  />
-));
+const DropdownMenuLabel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("px-2 py-1.5 text-sm font-semibold text-gray-900 dark:text-white", className)}
+      {...props}
+    />
+  )
+);
 DropdownMenuLabel.displayName = "DropdownMenuLabel";
 
 export {

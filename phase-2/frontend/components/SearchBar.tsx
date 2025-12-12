@@ -44,7 +44,11 @@ export default function SearchBar({
   // Handle clear button
   const handleClear = () => {
     setSearchValue("");
-    if (debouncedSearch && 'cancel' in debouncedSearch && typeof debouncedSearch.cancel === 'function') {
+    if (
+      debouncedSearch &&
+      "cancel" in debouncedSearch &&
+      typeof debouncedSearch.cancel === "function"
+    ) {
       debouncedSearch.cancel();
     }
     onSearch("");

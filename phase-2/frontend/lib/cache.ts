@@ -22,10 +22,7 @@ class APICache {
   private defaultTTL = 5 * 60 * 1000; // 5 minutes default
 
   // Generate cache key from URL and params
-  private generateKey(
-    endpoint: string,
-    params?: Record<string, unknown>
-  ): string {
+  private generateKey(endpoint: string, params?: Record<string, unknown>): string {
     const paramString = params ? JSON.stringify(params) : "";
     return `${endpoint}:${paramString}`;
   }
@@ -96,15 +93,8 @@ class APICache {
   }
 
   // Fetch with cache (stale-while-revalidate strategy)
-  async fetch<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    options: CacheOptions = {}
-  ): Promise<T> {
-    const {
-      ttl = this.defaultTTL,
-      staleWhileRevalidate = true,
-    } = options;
+  async fetch<T>(key: string, fetcher: () => Promise<T>, options: CacheOptions = {}): Promise<T> {
+    const { ttl = this.defaultTTL, staleWhileRevalidate = true } = options;
 
     // Check cache first
     const cached = this.cache.get(key);
@@ -206,7 +196,10 @@ export const invalidateUserCache = () => {
 
 // Periodic cleanup (run every 5 minutes)
 if (typeof window !== "undefined") {
-  setInterval(() => {
-    apiCache.clearExpired();
-  }, 5 * 60 * 1000);
+  setInterval(
+    () => {
+      apiCache.clearExpired();
+    },
+    5 * 60 * 1000
+  );
 }

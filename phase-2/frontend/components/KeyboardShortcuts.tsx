@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useEffect } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface KeyboardShortcutsProps {
   onSearchToggle?: () => void;
@@ -10,12 +10,12 @@ interface KeyboardShortcutsProps {
 
 export default function KeyboardShortcuts({ onSearchToggle, onNewTask }: KeyboardShortcutsProps) {
   // Define keyboard shortcuts
-  useHotkeys('ctrl+k, cmd+k', (e) => {
+  useHotkeys("ctrl+k, cmd+k", (e) => {
     e.preventDefault();
     onSearchToggle?.();
   });
 
-  useHotkeys('ctrl+n, cmd+n', (e) => {
+  useHotkeys("ctrl+n, cmd+n", (e) => {
     e.preventDefault();
     onNewTask?.();
   });

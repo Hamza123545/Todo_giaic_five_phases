@@ -15,10 +15,7 @@ export function usePerformance(componentName: string) {
   }, [componentName]);
 
   // Helper to measure async operations within the component
-  const measure = async <T,>(
-    operationName: string,
-    operation: () => Promise<T>
-  ): Promise<T> => {
+  const measure = async <T>(operationName: string, operation: () => Promise<T>): Promise<T> => {
     return measureAsync(`${componentName}-${operationName}`, operation);
   };
 

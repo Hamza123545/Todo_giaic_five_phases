@@ -65,9 +65,7 @@ const TaskItem = memo(function TaskItem({
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${task.title}"?`
-    );
+    const confirmed = window.confirm(`Are you sure you want to delete "${task.title}"?`);
 
     if (!confirmed) return;
 
@@ -159,10 +157,7 @@ const TaskItem = memo(function TaskItem({
     }
   };
 
-  const isOverdue =
-    task.due_date &&
-    !optimisticCompleted &&
-    new Date(task.due_date) < new Date();
+  const isOverdue = task.due_date && !optimisticCompleted && new Date(task.due_date) < new Date();
 
   const baseClasses = cn(
     "relative transition-all",
@@ -205,9 +200,7 @@ const TaskItem = memo(function TaskItem({
                   ? "bg-blue-600 border-blue-600"
                   : "border-gray-300 dark:border-gray-600 hover:border-blue-500"
               )}
-              aria-label={
-                optimisticCompleted ? "Mark as incomplete" : "Mark as complete"
-              }
+              aria-label={optimisticCompleted ? "Mark as incomplete" : "Mark as complete"}
               aria-pressed={optimisticCompleted}
             >
               <AnimatePresence mode="wait">
@@ -309,10 +302,7 @@ const TaskItem = memo(function TaskItem({
         <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
           {/* Priority Badge */}
           <span
-            className={cn(
-              "px-2 py-1 rounded-full font-medium",
-              getPriorityColor(task.priority)
-            )}
+            className={cn("px-2 py-1 rounded-full font-medium", getPriorityColor(task.priority))}
             aria-label={`Priority: ${task.priority}`}
           >
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
@@ -393,12 +383,7 @@ const TaskItem = memo(function TaskItem({
             stroke="currentColor"
             aria-hidden="true"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={3}
-              d="M5 13l4 4L19 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         )}
       </button>
@@ -439,9 +424,7 @@ const TaskItem = memo(function TaskItem({
               </h4>
             )}
             {task.description && (
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {task.description}
-              </p>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{task.description}</p>
             )}
           </div>
 
@@ -478,10 +461,7 @@ const TaskItem = memo(function TaskItem({
         <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
           {/* Priority Badge */}
           <span
-            className={cn(
-              "px-2 py-1 rounded-full font-medium",
-              getPriorityColor(task.priority)
-            )}
+            className={cn("px-2 py-1 rounded-full font-medium", getPriorityColor(task.priority))}
             aria-label={`Priority: ${task.priority}`}
           >
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}

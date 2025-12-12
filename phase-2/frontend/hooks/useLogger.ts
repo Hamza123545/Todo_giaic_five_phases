@@ -16,53 +16,35 @@ export function useLogger(componentName?: string) {
 
   const debug = useCallback(
     (message: string, context?: Record<string, unknown>) => {
-      logger.debug(
-        componentName ? `[${componentName}] ${message}` : message,
-        context
-      );
+      logger.debug(componentName ? `[${componentName}] ${message}` : message, context);
     },
     [componentName]
   );
 
   const info = useCallback(
     (message: string, context?: Record<string, unknown>) => {
-      logger.info(
-        componentName ? `[${componentName}] ${message}` : message,
-        context
-      );
+      logger.info(componentName ? `[${componentName}] ${message}` : message, context);
     },
     [componentName]
   );
 
   const warn = useCallback(
     (message: string, context?: Record<string, unknown>) => {
-      logger.warn(
-        componentName ? `[${componentName}] ${message}` : message,
-        context
-      );
+      logger.warn(componentName ? `[${componentName}] ${message}` : message, context);
     },
     [componentName]
   );
 
   const error = useCallback(
     (message: string, context?: Record<string, unknown>, err?: Error) => {
-      logger.error(
-        componentName ? `[${componentName}] ${message}` : message,
-        context,
-        err
-      );
+      logger.error(componentName ? `[${componentName}] ${message}` : message, context, err);
     },
     [componentName]
   );
 
   const trackAction = useCallback(
     (action: string, category?: string, label?: string, value?: number) => {
-      logger.trackAction(
-        action,
-        category || componentName,
-        label,
-        value
-      );
+      logger.trackAction(action, category || componentName, label, value);
     },
     [componentName]
   );

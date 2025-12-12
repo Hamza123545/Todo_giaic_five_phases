@@ -9,9 +9,7 @@ export default function SyncIndicator() {
 
   const getSyncIcon = () => {
     if (syncStatus.isSyncing) {
-      return (
-        <RefreshCw className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
-      );
+      return <RefreshCw className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />;
     }
 
     if (syncStatus.error) {
@@ -22,9 +20,7 @@ export default function SyncIndicator() {
       return <Cloud className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />;
     }
 
-    return (
-      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-    );
+    return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
   };
 
   const getSyncText = () => {
@@ -76,9 +72,7 @@ export default function SyncIndicator() {
       aria-label={getTooltipText()}
     >
       {getSyncIcon()}
-      <span className="hidden text-gray-700 dark:text-gray-300 sm:inline">
-        {getSyncText()}
-      </span>
+      <span className="hidden text-gray-700 dark:text-gray-300 sm:inline">{getSyncText()}</span>
     </button>
   );
 }

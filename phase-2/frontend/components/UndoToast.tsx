@@ -19,12 +19,7 @@ interface UndoToastProps {
   className?: string;
 }
 
-export default function UndoToast({
-  command,
-  onUndo,
-  onDismiss,
-  className,
-}: UndoToastProps) {
+export default function UndoToast({ command, onUndo, onDismiss, className }: UndoToastProps) {
   const [isVisible, setIsVisible] = useState(() => !!command);
 
   useEffect(() => {
@@ -69,9 +64,7 @@ export default function UndoToast({
     <div
       className={cn(
         "fixed bottom-4 right-4 z-50 transition-all duration-300",
-        isVisible
-          ? "translate-y-0 opacity-100"
-          : "translate-y-2 opacity-0 pointer-events-none",
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0 pointer-events-none",
         className
       )}
       role="alert"

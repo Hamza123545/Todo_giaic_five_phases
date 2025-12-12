@@ -186,9 +186,7 @@ export function TaskDetailModal({
         <div className="p-6 space-y-6">
           {/* Status */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Status:
-            </span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status:</span>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 task.completed
@@ -209,9 +207,7 @@ export function TaskDetailModal({
             {isEditing ? (
               <textarea
                 value={editedData.description ?? task.description ?? ""}
-                onChange={(e) =>
-                  setEditedData({ ...editedData, description: e.target.value })
-                }
+                onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={4}
                 placeholder="Add a description..."
@@ -265,9 +261,7 @@ export function TaskDetailModal({
               <input
                 type="date"
                 value={editedData.due_date ?? task.due_date ?? ""}
-                onChange={(e) =>
-                  setEditedData({ ...editedData, due_date: e.target.value })
-                }
+                onChange={(e) => setEditedData({ ...editedData, due_date: e.target.value })}
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             ) : (
@@ -290,7 +284,10 @@ export function TaskDetailModal({
                 onChange={(e) =>
                   setEditedData({
                     ...editedData,
-                    tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean),
+                    tags: e.target.value
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean),
                   })
                 }
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

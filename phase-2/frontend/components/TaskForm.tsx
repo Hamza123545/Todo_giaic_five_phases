@@ -208,7 +208,10 @@ export default function TaskForm({
           htmlFor="title"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
-          Title <span className="text-red-500" aria-label="required">*</span>
+          Title{" "}
+          <span className="text-red-500" aria-label="required">
+            *
+          </span>
         </label>
         <input
           type="text"

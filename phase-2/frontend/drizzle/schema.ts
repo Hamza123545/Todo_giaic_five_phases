@@ -11,12 +11,7 @@
  * - jwks: JWT signing keys
  */
 
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
 /**
  * User table

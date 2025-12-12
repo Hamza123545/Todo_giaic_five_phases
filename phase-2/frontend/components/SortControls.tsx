@@ -59,10 +59,7 @@ export default function SortControls({
       aria-label="Sort tasks"
     >
       {/* Sort By Label */}
-      <label
-        htmlFor="sort-select"
-        className="text-sm font-medium text-gray-700 dark:text-gray-300"
-      >
+      <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
         Sort by:
       </label>
 

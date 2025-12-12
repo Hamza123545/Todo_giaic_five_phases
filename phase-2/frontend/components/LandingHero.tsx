@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Zap, Shield, Infinity as InfinityIcon } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, Zap, Shield, Infinity as InfinityIcon } from "lucide-react";
 
 const benefits = [
-  'Organize tasks with ease',
-  'Work offline seamlessly',
-  'Secure & private',
-  'Cross-device sync',
+  "Organize tasks with ease",
+  "Work offline seamlessly",
+  "Secure & private",
+  "Cross-device sync",
 ];
 
 export function LandingHero() {
@@ -20,16 +20,16 @@ export function LandingHero() {
         <motion.div
           animate={{
             background: [
-              'radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)',
-              'radial-gradient(circle at 80% 80%, rgba(37, 99, 235, 0.15) 0%, transparent 50%)',
-              'radial-gradient(circle at 40% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)',
-              'radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)',
+              "radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 80%, rgba(37, 99, 235, 0.15) 0%, transparent 50%)",
+              "radial-gradient(circle at 40% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%)",
             ],
           }}
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
-            ease: 'linear',
+            ease: "linear",
           }}
           className="absolute inset-0"
         />
@@ -55,7 +55,7 @@ export function LandingHero() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="mb-6 text-5xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl"
         >
-          Stay Productive,{' '}
+          Stay Productive,{" "}
           <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
             Stay Organized
           </span>
@@ -68,8 +68,8 @@ export function LandingHero() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-8 text-lg text-muted-foreground sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed"
         >
-          The ultimate task management solution with offline support, real-time sync, and powerful features
-          to help you stay on top of your goals. Work seamlessly across all your devices.
+          The ultimate task management solution with offline support, real-time sync, and powerful
+          features to help you stay on top of your goals. Work seamlessly across all your devices.
         </motion.p>
 
         {/* Benefits List */}
@@ -151,12 +151,12 @@ export function LandingHero() {
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="h-8 w-6 rounded-full border-2 border-primary/30 p-1"
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             className="h-2 w-2 rounded-full bg-primary/50"
           />
         </motion.div>

@@ -32,7 +32,9 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
-  const [position, setPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [position, setPosition] = useState<{ top: number; left: number; width: number } | null>(
+    null
+  );
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isMountedRef = useRef(true);
@@ -92,7 +94,7 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
 
     // Close dropdown
     setIsOpen(false);
-    
+
     // Set exporting state
     setIsExporting(true);
     setExportingFormat(format);
@@ -177,17 +179,17 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
             onClick={() => setIsOpen(!isOpen)}
             className="w-full justify-start"
           >
-          {isExporting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Exporting {exportingFormat?.toUpperCase()}...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </>
-          )}
+            {isExporting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Exporting {exportingFormat?.toUpperCase()}...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </>
+            )}
           </Button>
         </motion.div>
       </div>
@@ -219,7 +221,7 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
                     top: `${position.top}px`,
                     left: `${position.left}px`,
                     width: `${position.width}px`,
-                    maxHeight: '300px',
+                    maxHeight: "300px",
                   }}
                 >
                   <div className="max-h-[280px] overflow-y-auto">
@@ -232,41 +234,42 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
                       </div>
 
                       <div className="space-y-1">
-                {exportOptions.map((option) => {
-                  const Icon = option.icon;
-                  const isCurrentlyExporting = isExporting && exportingFormat === option.format;
+                        {exportOptions.map((option) => {
+                          const Icon = option.icon;
+                          const isCurrentlyExporting =
+                            isExporting && exportingFormat === option.format;
 
-                  return (
-                    <motion.button
-                      key={option.format}
-                      onClick={() => handleExport(option.format)}
-                      disabled={isExporting}
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={cn(
-                        "w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-left transition-colors",
-                        "hover:bg-accent focus:bg-accent focus:outline-none",
-                        disabled || isExporting
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      )}
-                    >
-                      {isCurrentlyExporting ? (
-                        <Loader2 className="w-4 h-4 mt-0.5 shrink-0 animate-spin" />
-                      ) : (
-                        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-muted-foreground" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-foreground">
-                          {isCurrentlyExporting ? "Exporting..." : option.label}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {option.description}
-                        </div>
-                      </div>
-                    </motion.button>
-                      );
-                    })}
+                          return (
+                            <motion.button
+                              key={option.format}
+                              onClick={() => handleExport(option.format)}
+                              disabled={isExporting}
+                              whileHover={{ scale: 1.02, x: 4 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={cn(
+                                "w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-left transition-colors",
+                                "hover:bg-accent focus:bg-accent focus:outline-none",
+                                disabled || isExporting
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "cursor-pointer"
+                              )}
+                            >
+                              {isCurrentlyExporting ? (
+                                <Loader2 className="w-4 h-4 mt-0.5 shrink-0 animate-spin" />
+                              ) : (
+                                <Icon className="w-4 h-4 mt-0.5 shrink-0 text-muted-foreground" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-foreground">
+                                  {isCurrentlyExporting ? "Exporting..." : option.label}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {option.description}
+                                </div>
+                              </div>
+                            </motion.button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

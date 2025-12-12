@@ -195,12 +195,7 @@ class Logger {
   }
 
   // Track user action for analytics
-  trackAction(
-    action: string,
-    category?: string,
-    label?: string,
-    value?: number
-  ): void {
+  trackAction(action: string, category?: string, label?: string, value?: number): void {
     this.info("User action", {
       action,
       category,
@@ -292,18 +287,10 @@ export const logInfo = (message: string, context?: Record<string, unknown>) =>
 export const logWarn = (message: string, context?: Record<string, unknown>) =>
   logger.warn(message, context);
 
-export const logError = (
-  message: string,
-  context?: Record<string, unknown>,
-  error?: Error
-) => logger.error(message, context, error);
+export const logError = (message: string, context?: Record<string, unknown>, error?: Error) =>
+  logger.error(message, context, error);
 
-export const trackAction = (
-  action: string,
-  category?: string,
-  label?: string,
-  value?: number
-) => logger.trackAction(action, category, label, value);
+export const trackAction = (action: string, category?: string, label?: string, value?: number) =>
+  logger.trackAction(action, category, label, value);
 
-export const trackPageView = (path: string, title?: string) =>
-  logger.trackPageView(path, title);
+export const trackPageView = (path: string, title?: string) => logger.trackPageView(path, title);

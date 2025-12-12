@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { AlertCircle, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ErrorDisplayProps {
   message: string;
@@ -14,7 +14,7 @@ export default function ErrorDisplay({
   message,
   onRetry,
   showRetry = true,
-  title = 'Error'
+  title = "Error",
 }: ErrorDisplayProps) {
   return (
     <div
@@ -27,9 +27,7 @@ export default function ErrorDisplay({
           <AlertCircle className="h-5 w-5 text-red-400 dark:text-red-300" aria-hidden="true" />
         </div>
         <div className="ml-3">
-          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-            {title}
-          </h3>
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{title}</h3>
           <div className="mt-2 text-sm text-red-700 dark:text-red-300">
             <p>{message}</p>
           </div>

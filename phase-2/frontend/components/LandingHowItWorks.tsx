@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { CheckCircle2, UserPlus, ListChecks, Zap } from 'lucide-react';
+import { motion } from "framer-motion";
+import { CheckCircle2, UserPlus, ListChecks, Zap } from "lucide-react";
 
 const steps = [
   {
-    number: '01',
+    number: "01",
     icon: UserPlus,
-    title: 'Create Your Account',
+    title: "Create Your Account",
     description:
-      'Sign up in seconds with just your email. No credit card required. Get started with a free account and unlock all features.',
+      "Sign up in seconds with just your email. No credit card required. Get started with a free account and unlock all features.",
   },
   {
-    number: '02',
+    number: "02",
     icon: ListChecks,
-    title: 'Start Adding Tasks',
+    title: "Start Adding Tasks",
     description:
-      'Create your first task, add descriptions, set priorities, and organize with tags. Your tasks sync instantly across all devices.',
+      "Create your first task, add descriptions, set priorities, and organize with tags. Your tasks sync instantly across all devices.",
   },
   {
-    number: '03',
+    number: "03",
     icon: Zap,
-    title: 'Stay Productive',
+    title: "Stay Productive",
     description:
-      'Use filters, search, and shortcuts to manage tasks efficiently. Work offline, export data, and track your progress.',
+      "Use filters, search, and shortcuts to manage tasks efficiently. Work offline, export data, and track your progress.",
   },
 ];
 
@@ -62,7 +62,7 @@ export function LandingHowItWorks() {
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            How It{' '}
+            How It{" "}
             <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Works
             </span>
@@ -77,7 +77,7 @@ export function LandingHowItWorks() {
           variants={container}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, margin: "-100px" }}
           className="relative"
         >
           {/* Connection Line (Desktop) */}
@@ -85,11 +85,7 @@ export function LandingHowItWorks() {
 
           <div className="grid gap-12 lg:grid-cols-3">
             {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                variants={item}
-                className="relative"
-              >
+              <motion.div key={index} variants={item} className="relative">
                 <div className="relative flex flex-col items-center text-center">
                   {/* Step Number Background */}
                   <motion.div
@@ -121,9 +117,7 @@ export function LandingHowItWorks() {
                   <h3 className="mb-3 text-xl font-bold text-foreground sm:text-2xl">
                     {step.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {step.description}
-                  </p>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -153,4 +147,3 @@ export function LandingHowItWorks() {
     </section>
   );
 }
-

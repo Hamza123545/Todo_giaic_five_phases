@@ -35,11 +35,7 @@ export default class ComponentErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error(
-      `Error in component ${this.props.componentName || "unknown"}:`,
-      error,
-      errorInfo
-    );
+    console.error(`Error in component ${this.props.componentName || "unknown"}:`, error, errorInfo);
 
     // Call custom error handler if provided
     if (this.props.onError) {

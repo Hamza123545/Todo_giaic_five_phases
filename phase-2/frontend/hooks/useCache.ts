@@ -3,11 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiCache, CacheOptions } from "@/lib/cache";
 
-export function useCache<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  options?: CacheOptions
-) {
+export function useCache<T>(key: string, fetcher: () => Promise<T>, options?: CacheOptions) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -9,8 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
@@ -40,10 +39,7 @@ export default function PWAInstallPrompt() {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
@@ -89,10 +85,7 @@ export default function PWAInstallPrompt() {
     >
       <div className="flex items-start gap-3">
         <div className="shrink-0 rounded-full bg-blue-100 p-2 dark:bg-blue-900">
-          <Download
-            className="h-5 w-5 text-blue-600 dark:text-blue-400"
-            aria-hidden="true"
-          />
+          <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
         </div>
         <div className="flex-1">
           <h3
@@ -101,10 +94,7 @@ export default function PWAInstallPrompt() {
           >
             Install Todo App
           </h3>
-          <p
-            id="pwa-install-description"
-            className="mt-1 text-sm text-gray-600 dark:text-gray-400"
-          >
+          <p id="pwa-install-description" className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Install this app on your device for quick access and offline use.
           </p>
           <div className="mt-3 flex gap-2">

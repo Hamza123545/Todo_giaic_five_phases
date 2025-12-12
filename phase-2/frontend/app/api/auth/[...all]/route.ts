@@ -17,7 +17,10 @@ import { toNextJsHandler } from "better-auth/next-js";
  * Lazy load auth handler to avoid build-time initialization
  * This ensures DATABASE_URL is only checked at runtime, not during build
  */
-let handlers: { GET: (req: Request) => Promise<Response>; POST: (req: Request) => Promise<Response> } | null = null;
+let handlers: {
+  GET: (req: Request) => Promise<Response>;
+  POST: (req: Request) => Promise<Response>;
+} | null = null;
 
 async function getHandlers() {
   if (!handlers) {

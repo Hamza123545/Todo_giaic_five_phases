@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useTheme } from 'next-themes';
-import { MoonIcon, SunIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useTheme } from "next-themes";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function DarkModeToggle() {
   const { theme, setTheme } = useTheme();
@@ -25,15 +25,15 @@ export default function DarkModeToggle() {
   }
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   return (
     <button
       onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200"
     >
       {isDark ? (
@@ -41,9 +41,7 @@ export default function DarkModeToggle() {
       ) : (
         <MoonIcon className="h-5 w-5 text-gray-700" />
       )}
-      <span className="sr-only">
-        {isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      </span>
+      <span className="sr-only">{isDark ? "Switch to light mode" : "Switch to dark mode"}</span>
     </button>
   );
 }

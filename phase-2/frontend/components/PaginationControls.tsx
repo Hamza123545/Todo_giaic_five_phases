@@ -74,7 +74,10 @@ export default function PaginationControls({
 
   return (
     <nav
-      className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4", className)}
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
+        className
+      )}
       role="navigation"
       aria-label="Pagination navigation"
     >
@@ -110,13 +113,9 @@ export default function PaginationControls({
 
         {/* Items Range Display */}
         <div className="text-sm text-gray-700 dark:text-gray-300">
-          Showing{" "}
-          <span className="font-medium">{startItem}</span>
-          {" "}-{" "}
-          <span className="font-medium">{endItem}</span>
-          {" "}of{" "}
-          <span className="font-medium">{totalItems}</span>
-          {" "}items
+          Showing <span className="font-medium">{startItem}</span> -{" "}
+          <span className="font-medium">{endItem}</span> of{" "}
+          <span className="font-medium">{totalItems}</span> items
         </div>
       </div>
 
@@ -139,8 +138,19 @@ export default function PaginationControls({
             )}
             aria-label="Go to previous page"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
 
@@ -194,7 +204,13 @@ export default function PaginationControls({
             )}
             aria-label="Go to next page"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>

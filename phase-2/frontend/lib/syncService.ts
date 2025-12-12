@@ -142,10 +142,7 @@ class SyncService {
 
           // Delete if max retries reached
           if (updatedOp.retries >= this.maxRetries) {
-            console.error(
-              "Max retries reached for operation:",
-              operation.id
-            );
+            console.error("Max retries reached for operation:", operation.id);
             await deletePendingOperation(operation.id!);
             failedCount++;
           } else {
@@ -169,9 +166,7 @@ class SyncService {
         pendingCount: remainingOps.length,
       });
 
-      console.log(
-        `Sync completed: ${successCount} successful, ${failedCount} failed`
-      );
+      console.log(`Sync completed: ${successCount} successful, ${failedCount} failed`);
     } catch (error) {
       console.error("Sync failed:", error);
       this.notifyStatusChange({
@@ -223,11 +218,7 @@ class SyncService {
         if (!operation.taskId || operation.data?.completed === undefined) {
           throw new Error("No task ID or completed status for complete operation");
         }
-        await api.toggleTaskComplete(
-          userId,
-          operation.taskId,
-          operation.data.completed
-        );
+        await api.toggleTaskComplete(userId, operation.taskId, operation.data.completed);
         break;
 
       default:
@@ -279,7 +270,11 @@ class SyncService {
     if ("serviceWorker" in navigator && "sync" in ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        const syncManager = (registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } }).sync;
+        const syncManager = (
+          registration as ServiceWorkerRegistration & {
+            sync?: { register: (tag: string) => Promise<void> };
+          }
+        ).sync;
         if (syncManager) {
           await syncManager.register("sync-tasks");
         }

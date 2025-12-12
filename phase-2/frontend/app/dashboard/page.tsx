@@ -15,7 +15,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePolling } from "@/hooks/usePolling";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser, signOut } from "@/lib/auth";
-import { User, Task, LoadingState, TaskQueryParams, SortParam, TaskFilter, SortConfig, TaskViewMode } from "@/types";
+import {
+  User,
+  Task,
+  LoadingState,
+  TaskQueryParams,
+  SortParam,
+  TaskFilter,
+  SortConfig,
+  TaskViewMode,
+} from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
@@ -40,7 +49,7 @@ function DashboardContent() {
   const [filter, setFilter] = useState<TaskFilter>("all");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "created",
-    direction: "desc"
+    direction: "desc",
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
@@ -82,70 +91,73 @@ function DashboardContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadTasks = useCallback(async (userId: string, silent: boolean = false) => {
-    try {
-      // Only show loading state if not a background refresh
-      if (!silent) {
-        setLoadingState("loading");
+  const loadTasks = useCallback(
+    async (userId: string, silent: boolean = false) => {
+      try {
+        // Only show loading state if not a background refresh
+        if (!silent) {
+          setLoadingState("loading");
+        }
+
+        // Convert sort key to API format
+        let apiSortKey: string;
+        switch (sortConfig.key) {
+          case "created":
+            apiSortKey = "created";
+            break;
+          case "updated":
+            apiSortKey = "updated";
+            break;
+          case "due_date":
+            apiSortKey = "due_date";
+            break;
+          case "title":
+            apiSortKey = "title";
+            break;
+          case "priority":
+            apiSortKey = "priority";
+            break;
+          default:
+            apiSortKey = "created";
+        }
+
+        const sortParam: SortParam = `${apiSortKey}:${sortConfig.direction}` as SortParam;
+
+        const queryParams: TaskQueryParams = {
+          status: filter,
+          sort: sortParam,
+          search: searchQuery,
+          page: currentPage,
+          limit: itemsPerPage,
+        };
+
+        const response = await api.getTasks(userId, queryParams);
+        console.log("Tasks API response:", response); // Debug log
+        if (response.success && response.data) {
+          // Backend now returns: { success: true, data: { items: Task[], total, page, limit, totalPages } }
+          const tasksList = response.data.items || [];
+          const total = response.data.total || 0;
+          const totalPages = response.data.totalPages || 1;
+
+          console.log("Setting tasks:", tasksList, "Total:", total, "Pages:", totalPages); // Debug log
+          setTasks(tasksList);
+          setTotalItems(total);
+          setTotalPages(totalPages);
+          setLoadingState("success");
+        } else {
+          console.error("Failed to load tasks - response:", response); // Debug log
+          throw new Error(response.message || "Failed to load tasks");
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Failed to load tasks:", errorMessage, error);
+        if (!silent) {
+          setLoadingState("error");
+        }
       }
-
-      // Convert sort key to API format
-      let apiSortKey: string;
-      switch (sortConfig.key) {
-        case "created":
-          apiSortKey = "created";
-          break;
-        case "updated":
-          apiSortKey = "updated";
-          break;
-        case "due_date":
-          apiSortKey = "due_date";
-          break;
-        case "title":
-          apiSortKey = "title";
-          break;
-        case "priority":
-          apiSortKey = "priority";
-          break;
-        default:
-          apiSortKey = "created";
-      }
-
-      const sortParam: SortParam = `${apiSortKey}:${sortConfig.direction}` as SortParam;
-
-      const queryParams: TaskQueryParams = {
-        status: filter,
-        sort: sortParam,
-        search: searchQuery,
-        page: currentPage,
-        limit: itemsPerPage,
-      };
-
-      const response = await api.getTasks(userId, queryParams);
-      console.log("Tasks API response:", response); // Debug log
-      if (response.success && response.data) {
-        // Backend now returns: { success: true, data: { items: Task[], total, page, limit, totalPages } }
-        const tasksList = response.data.items || [];
-        const total = response.data.total || 0;
-        const totalPages = response.data.totalPages || 1;
-
-        console.log("Setting tasks:", tasksList, "Total:", total, "Pages:", totalPages); // Debug log
-        setTasks(tasksList);
-        setTotalItems(total);
-        setTotalPages(totalPages);
-        setLoadingState("success");
-      } else {
-        console.error("Failed to load tasks - response:", response); // Debug log
-        throw new Error(response.message || "Failed to load tasks");
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("Failed to load tasks:", errorMessage, error);
-      if (!silent) {
-        setLoadingState("error");
-      }
-    }
-  }, [filter, sortConfig, searchQuery, currentPage, itemsPerPage]);
+    },
+    [filter, sortConfig, searchQuery, currentPage, itemsPerPage]
+  );
 
   // Load tasks when filter, sort, search, or pagination changes
   useEffect(() => {
@@ -212,10 +224,13 @@ function DashboardContent() {
     }
   };
 
-  const handleSortChange = (key: "created" | "title" | "updated" | "priority" | "due_date", direction?: "asc" | "desc") => {
-    setSortConfig(prev => ({
+  const handleSortChange = (
+    key: "created" | "title" | "updated" | "priority" | "due_date",
+    direction?: "asc" | "desc"
+  ) => {
+    setSortConfig((prev) => ({
       key,
-      direction: direction || (prev.key === key && prev.direction === "asc" ? "desc" : "asc")
+      direction: direction || (prev.key === key && prev.direction === "asc" ? "desc" : "asc"),
     }));
     setCurrentPage(1); // Reset to first page when sort changes
   };
@@ -271,12 +286,14 @@ function DashboardContent() {
 
   const handleClearCompleted = async () => {
     if (!user) return;
-    if (!confirm("Are you sure you want to delete all completed tasks? This action cannot be undone.")) {
+    if (
+      !confirm("Are you sure you want to delete all completed tasks? This action cannot be undone.")
+    ) {
       return;
     }
 
     try {
-      const completedTasks = tasks.filter(t => t.completed);
+      const completedTasks = tasks.filter((t) => t.completed);
       for (const task of completedTasks) {
         await api.deleteTask(user.id, task.id);
       }
@@ -322,11 +339,9 @@ function DashboardContent() {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}! 👋
+            Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}! 👋
           </h1>
-          <p className="mt-2 text-muted-foreground">
-            Manage your tasks and stay productive
-          </p>
+          <p className="mt-2 text-muted-foreground">Manage your tasks and stay productive</p>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 md:gap-8">
@@ -345,18 +360,18 @@ function DashboardContent() {
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                      {isTaskFormOpen ? 'Create New Task' : 'Quick Add Task'}
+                      {isTaskFormOpen ? "Create New Task" : "Quick Add Task"}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {isTaskFormOpen
-                        ? 'Fill in the details below to create a new task'
-                        : 'Click the button below to add a new task to your list'}
+                        ? "Fill in the details below to create a new task"
+                        : "Click the button below to add a new task to your list"}
                     </p>
                   </div>
                   {!isTaskFormOpen && (
                     <motion.button
                       onClick={() => setIsTaskFormOpen(true)}
-                      whileHover={{ scale: 1.05, boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)' }}
+                      whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(37, 99, 235, 0.3)" }}
                       whileTap={{ scale: 0.95 }}
                       className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     >
@@ -366,41 +381,41 @@ function DashboardContent() {
                   )}
                 </div>
 
-              <AnimatePresence mode="wait">
-                {isTaskFormOpen ? (
-                  <motion.div
-                    key="task-form"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <TaskForm
-                      userId={user?.id || ""}
-                      onSuccess={handleTaskCreated}
-                      onError={handleTaskError}
-                      onCancel={() => setIsTaskFormOpen(false)}
-                    />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="placeholder"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 p-12 text-center"
-                  >
-                    <div>
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                        <span className="text-3xl text-primary">+</span>
+                <AnimatePresence mode="wait">
+                  {isTaskFormOpen ? (
+                    <motion.div
+                      key="task-form"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <TaskForm
+                        userId={user?.id || ""}
+                        onSuccess={handleTaskCreated}
+                        onError={handleTaskError}
+                        onCancel={() => setIsTaskFormOpen(false)}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="placeholder"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 p-12 text-center"
+                    >
+                      <div>
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                          <span className="text-3xl text-primary">+</span>
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Click &quot;Add Task&quot; to create a new task
+                        </p>
                       </div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Click &quot;Add Task&quot; to create a new task
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
 
@@ -420,7 +435,7 @@ function DashboardContent() {
                         Your Tasks
                       </h2>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} total
+                        {tasks.length} {tasks.length === 1 ? "task" : "tasks"} total
                       </p>
                     </div>
                     {/* Real-time updates indicator */}
@@ -430,23 +445,27 @@ function DashboardContent() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className={cn(
-                        'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
+                        "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-all",
                         pollingEnabled
-                          ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border border-green-500/20'
-                          : 'bg-muted text-muted-foreground border border-border'
+                          ? "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border border-green-500/20"
+                          : "bg-muted text-muted-foreground border border-border"
                       )}
-                      aria-label={pollingEnabled ? 'Auto-refresh enabled' : 'Auto-refresh disabled'}
-                      title={pollingEnabled ? 'Auto-refresh enabled (every 30s)' : 'Auto-refresh disabled'}
+                      aria-label={pollingEnabled ? "Auto-refresh enabled" : "Auto-refresh disabled"}
+                      title={
+                        pollingEnabled
+                          ? "Auto-refresh enabled (every 30s)"
+                          : "Auto-refresh disabled"
+                      }
                     >
                       <motion.span
                         animate={pollingEnabled ? { scale: [1, 1.2, 1] } : {}}
                         transition={{ duration: 1, repeat: pollingEnabled ? Infinity : 0 }}
                         className={cn(
-                          'h-2 w-2 rounded-full',
-                          pollingEnabled ? 'bg-green-500' : 'bg-muted-foreground'
+                          "h-2 w-2 rounded-full",
+                          pollingEnabled ? "bg-green-500" : "bg-muted-foreground"
                         )}
                       />
-                      {pollingEnabled ? 'Live' : 'Off'}
+                      {pollingEnabled ? "Live" : "Off"}
                     </motion.button>
                   </div>
 
@@ -456,8 +475,8 @@ function DashboardContent() {
                       onFilterChange={handleFilterChange}
                       taskCounts={{
                         all: tasks.length,
-                        pending: tasks.filter(t => !t.completed).length,
-                        completed: tasks.filter(t => t.completed).length
+                        pending: tasks.filter((t) => !t.completed).length,
+                        completed: tasks.filter((t) => t.completed).length,
                       }}
                     />
 
@@ -471,21 +490,18 @@ function DashboardContent() {
 
                 {/* Search Bar */}
                 <div className="mb-6">
-                  <SearchBar
-                    onSearch={handleSearchChange}
-                    placeholder="Search tasks..."
-                  />
+                  <SearchBar onSearch={handleSearchChange} placeholder="Search tasks..." />
                 </div>
 
-              {/* Task List */}
-              <TaskList
-                tasks={tasks}
-                userId={user?.id || ""}
-                onTaskChange={handleTaskUpdated}
-                onError={handleTaskError}
-                isLoading={loadingState === "loading"}
-                viewMode={viewMode}
-              />
+                {/* Task List */}
+                <TaskList
+                  tasks={tasks}
+                  userId={user?.id || ""}
+                  onTaskChange={handleTaskUpdated}
+                  onError={handleTaskError}
+                  isLoading={loadingState === "loading"}
+                  viewMode={viewMode}
+                />
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -552,12 +568,12 @@ function DashboardContent() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Pending</p>
                         <motion.span
-                          key={`pending-${tasks.filter(t => !t.completed).length}`}
+                          key={`pending-${tasks.filter((t) => !t.completed).length}`}
                           initial={{ scale: 1.2, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           className="mt-1 block text-3xl font-bold text-yellow-600 dark:text-yellow-400"
                         >
-                          {tasks.filter(t => !t.completed).length}
+                          {tasks.filter((t) => !t.completed).length}
                         </motion.span>
                       </div>
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">
@@ -575,12 +591,12 @@ function DashboardContent() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Completed</p>
                         <motion.span
-                          key={`completed-${tasks.filter(t => t.completed).length}`}
+                          key={`completed-${tasks.filter((t) => t.completed).length}`}
                           initial={{ scale: 1.2, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           className="mt-1 block text-3xl font-bold text-green-600 dark:text-green-400"
                         >
-                          {tasks.filter(t => t.completed).length}
+                          {tasks.filter((t) => t.completed).length}
                         </motion.span>
                       </div>
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 text-green-600 dark:text-green-400">
@@ -605,12 +621,7 @@ function DashboardContent() {
                   Quick Actions
                 </h2>
                 <div className="space-y-3">
-                  {user && (
-                    <ExportDropdown
-                      userId={user.id}
-                      className="w-full"
-                    />
-                  )}
+                  {user && <ExportDropdown userId={user.id} className="w-full" />}
                   <motion.button
                     type="button"
                     onClick={handleImportTasks}
@@ -627,11 +638,9 @@ function DashboardContent() {
                   <motion.button
                     type="button"
                     onClick={handleClearCompleted}
-                    disabled={tasks.filter(t => t.completed).length === 0}
+                    disabled={tasks.filter((t) => t.completed).length === 0}
                     whileHover={
-                      tasks.filter(t => t.completed).length > 0
-                        ? { scale: 1.02, x: 4 }
-                        : {}
+                      tasks.filter((t) => t.completed).length > 0 ? { scale: 1.02, x: 4 } : {}
                     }
                     whileTap={{ scale: 0.98 }}
                     className="flex w-full items-center justify-between rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-left text-sm font-medium text-destructive transition-all hover:border-destructive/50 hover:bg-destructive/20 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
@@ -664,12 +673,12 @@ function DashboardContent() {
                     whileHover={{ scale: 1.02, x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     className={cn(
-                      'w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all',
-                      viewMode === 'list'
-                        ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-sm'
-                        : 'border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50'
+                      "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all",
+                      viewMode === "list"
+                        ? "bg-primary/10 text-primary border-2 border-primary/20 shadow-sm"
+                        : "border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50"
                     )}
-                    onClick={() => setViewMode('list')}
+                    onClick={() => setViewMode("list")}
                   >
                     <span className="flex items-center gap-2">
                       <span>📝</span>
@@ -681,12 +690,12 @@ function DashboardContent() {
                     whileHover={{ scale: 1.02, x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     className={cn(
-                      'w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all',
-                      viewMode === 'grid'
-                        ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-sm'
-                        : 'border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50'
+                      "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all",
+                      viewMode === "grid"
+                        ? "bg-primary/10 text-primary border-2 border-primary/20 shadow-sm"
+                        : "border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50"
                     )}
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => setViewMode("grid")}
                   >
                     <span className="flex items-center gap-2">
                       <span>🔲</span>
@@ -698,12 +707,12 @@ function DashboardContent() {
                     whileHover={{ scale: 1.02, x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     className={cn(
-                      'w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all',
-                      viewMode === 'kanban'
-                        ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-sm'
-                        : 'border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50'
+                      "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all",
+                      viewMode === "kanban"
+                        ? "bg-primary/10 text-primary border-2 border-primary/20 shadow-sm"
+                        : "border border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-muted/50"
                     )}
-                    onClick={() => setViewMode('kanban')}
+                    onClick={() => setViewMode("kanban")}
                   >
                     <span className="flex items-center gap-2">
                       <span>📊</span>

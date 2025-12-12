@@ -56,9 +56,7 @@ export default function FilterControls({
   taskCounts,
   className,
 }: FilterControlsProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(["status"])
-  );
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["status"]));
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -136,9 +134,7 @@ export default function FilterControls({
     >
       {/* Header with Clear Filters button */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Filters
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
@@ -162,7 +158,11 @@ export default function FilterControls({
         </button>
 
         {expandedSections.has("status") && (
-          <div className="flex flex-wrap gap-2 pl-2" role="group" aria-label="Filter tasks by status">
+          <div
+            className="flex flex-wrap gap-2 pl-2"
+            role="group"
+            aria-label="Filter tasks by status"
+          >
             {statusFilters.map((filter) => {
               const isActive = currentFilter === filter.value;
               const count = taskCounts?.[filter.value];
@@ -215,7 +215,11 @@ export default function FilterControls({
           </button>
 
           {expandedSections.has("priority") && (
-            <div className="flex flex-wrap gap-2 pl-2" role="group" aria-label="Filter tasks by priority">
+            <div
+              className="flex flex-wrap gap-2 pl-2"
+              role="group"
+              aria-label="Filter tasks by priority"
+            >
               {priorityFilters.map((filter) => {
                 const isActive = selectedPriorities.includes(filter.value);
 
@@ -230,8 +234,8 @@ export default function FilterControls({
                         ? filter.color === "red"
                           ? "bg-red-600 text-white"
                           : filter.color === "yellow"
-                          ? "bg-yellow-600 text-white"
-                          : "bg-green-600 text-white"
+                            ? "bg-yellow-600 text-white"
+                            : "bg-green-600 text-white"
                         : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                     )}
                     aria-label={filter.label}
@@ -260,7 +264,11 @@ export default function FilterControls({
           </button>
 
           {expandedSections.has("due-date") && (
-            <div className="flex flex-wrap gap-2 pl-2" role="group" aria-label="Filter tasks by due date">
+            <div
+              className="flex flex-wrap gap-2 pl-2"
+              role="group"
+              aria-label="Filter tasks by due date"
+            >
               {dueDateFilters.map((filter) => {
                 const isActive = dueDateFilter === filter.value;
 
@@ -301,7 +309,11 @@ export default function FilterControls({
           </button>
 
           {expandedSections.has("tags") && (
-            <div className="flex flex-wrap gap-2 pl-2" role="group" aria-label="Filter tasks by tags">
+            <div
+              className="flex flex-wrap gap-2 pl-2"
+              role="group"
+              aria-label="Filter tasks by tags"
+            >
               {availableTags.map((tag) => {
                 const isActive = selectedTags.includes(tag);
 

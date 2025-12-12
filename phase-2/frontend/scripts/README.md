@@ -9,12 +9,14 @@ Automated setup script for Better Auth integration.
 ### Usage
 
 **Windows:**
+
 ```cmd
 cd phase-2\frontend\scripts
 setup-better-auth.bat
 ```
 
 **Linux/Mac:**
+
 ```bash
 cd phase-2/frontend/scripts
 chmod +x setup-better-auth.sh
@@ -59,10 +61,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ### Troubleshooting
 
 **"DATABASE_URL not set"**
+
 - Edit `.env.local` and add your PostgreSQL connection string
 
 **"BETTER_AUTH_SECRET must be at least 32 characters"**
+
 - Generate a secure secret:
+
   ```bash
   # Linux/Mac
   openssl rand -base64 32
@@ -72,6 +77,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
   ```
 
 **"Database connection failed"**
+
 - Verify PostgreSQL is running
 - Check DATABASE_URL format
 - Test connection manually:
@@ -80,6 +86,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
   ```
 
 **"Migration failed"**
+
 - Ensure database user has CREATE TABLE permissions
 - Check database is accessible
 - Run migration manually:
@@ -92,22 +99,26 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 If the script doesn't work, follow these steps manually:
 
 1. **Create .env.local**:
+
    ```bash
    cp .env.example .env.local
    # Edit .env.local with your values
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Test database connection**:
+
    ```bash
    psql $DATABASE_URL -c "SELECT NOW()"
    ```
 
 4. **Run migration**:
+
    ```bash
    npx @better-auth/cli migrate
    ```
@@ -122,6 +133,7 @@ If the script doesn't work, follow these steps manually:
 After running the setup script:
 
 1. **Start the development server**:
+
    ```bash
    cd phase-2/frontend
    npm run dev
@@ -137,6 +149,7 @@ After running the setup script:
    - Should see JWT public keys
 
 4. **Verify database tables**:
+
    ```sql
    -- Connect to database
    psql $DATABASE_URL

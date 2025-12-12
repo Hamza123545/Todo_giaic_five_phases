@@ -90,7 +90,7 @@ export default function SignupPage() {
 
       // Session is now established via Better Auth cookies
       // Token will be fetched fresh on each API call (same pattern as phase-2-web)
-      
+
       // Store user data if needed
       if (result.data?.user) {
         sessionStorage.setItem("user", JSON.stringify(result.data.user));
@@ -101,7 +101,8 @@ export default function SignupPage() {
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectPath);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred during signup";
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred during signup";
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -148,7 +149,10 @@ export default function SignupPage() {
 
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Full Name
               </label>
               <input
@@ -166,12 +170,17 @@ export default function SignupPage() {
                 }`}
                 placeholder="John Doe"
               />
-              {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+              )}
             </div>
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Email Address
               </label>
               <input
@@ -189,12 +198,17 @@ export default function SignupPage() {
                 }`}
                 placeholder="you@example.com"
               />
-              {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Password
               </label>
               <input
@@ -212,15 +226,17 @@ export default function SignupPage() {
                 }`}
                 placeholder="••••••••"
               />
-              {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+              )}
               {formData.password && !errors.password && (
                 <p
                   className={`mt-1 text-sm ${
                     passwordStrength.strength === "strong"
                       ? "text-green-600 dark:text-green-400"
                       : passwordStrength.strength === "medium"
-                      ? "text-yellow-600 dark:text-yellow-400"
-                      : "text-red-600 dark:text-red-400"
+                        ? "text-yellow-600 dark:text-yellow-400"
+                        : "text-red-600 dark:text-red-400"
                   }`}
                 >
                   {passwordStrength.message}
@@ -252,7 +268,9 @@ export default function SignupPage() {
                 placeholder="••••••••"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -262,7 +280,11 @@ export default function SignupPage() {
               disabled={isLoading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? <LoadingSpinner size="small" color="white" label="Creating account..." /> : "Sign up"}
+              {isLoading ? (
+                <LoadingSpinner size="small" color="white" label="Creating account..." />
+              ) : (
+                "Sign up"
+              )}
             </button>
           </div>
 

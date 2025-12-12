@@ -79,7 +79,10 @@ class PerformanceMonitor {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+          const layoutEntry = entry as PerformanceEntry & {
+            hadRecentInput?: boolean;
+            value?: number;
+          };
           if (layoutEntry.hadRecentInput) continue;
           if (layoutEntry.value !== undefined) {
             clsValue += layoutEntry.value;
@@ -197,10 +200,7 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Helper function to measure async operations
-export async function measureAsync<T>(
-  name: string,
-  operation: () => Promise<T>
-): Promise<T> {
+export async function measureAsync<T>(name: string, operation: () => Promise<T>): Promise<T> {
   performanceMonitor.startMeasure(name);
   try {
     const result = await operation();
@@ -227,7 +227,7 @@ interface WebVitalsMetric {
   value: number;
   id: string;
   delta?: number;
-  rating?: 'good' | 'needs-improvement' | 'poor';
+  rating?: "good" | "needs-improvement" | "poor";
 }
 
 // Report web vitals to console or analytics

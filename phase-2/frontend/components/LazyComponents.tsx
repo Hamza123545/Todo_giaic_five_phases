@@ -16,60 +16,40 @@ const LoadingFallback = () => (
 );
 
 // Lazy load heavy components with suspense fallback
-export const LazyTaskDetailModal = dynamic(
-  () => import("./TaskDetailModal"),
-  {
-    loading: LoadingFallback,
-    ssr: false, // Modal doesn't need SSR
-  }
-);
+export const LazyTaskDetailModal = dynamic(() => import("./TaskDetailModal"), {
+  loading: LoadingFallback,
+  ssr: false, // Modal doesn't need SSR
+});
 
-export const LazyTaskStatistics = dynamic(
-  () => import("./TaskStatistics"),
-  {
-    loading: LoadingFallback,
-    ssr: false, // Statistics can be loaded on demand
-  }
-);
+export const LazyTaskStatistics = dynamic(() => import("./TaskStatistics"), {
+  loading: LoadingFallback,
+  ssr: false, // Statistics can be loaded on demand
+});
 
-export const LazyExportImportControls = dynamic(
-  () => import("./ExportImportControls"),
-  {
-    loading: LoadingFallback,
-    ssr: false, // Export/import features loaded on demand
-  }
-);
+export const LazyExportImportControls = dynamic(() => import("./ExportImportControls"), {
+  loading: LoadingFallback,
+  ssr: false, // Export/import features loaded on demand
+});
 
-export const LazyBulkActions = dynamic(
-  () => import("./BulkActions"),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+export const LazyBulkActions = dynamic(() => import("./BulkActions"), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
-export const LazyKeyboardShortcuts = dynamic(
-  () => import("./KeyboardShortcuts"),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+export const LazyKeyboardShortcuts = dynamic(() => import("./KeyboardShortcuts"), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
-export const LazyUndoRedoControls = dynamic(
-  () => import("./UndoRedoControls"),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+export const LazyUndoRedoControls = dynamic(() => import("./UndoRedoControls"), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
 export const LazySortableTaskItem = dynamic(
   () => import("./SortableTaskItem").then((mod) => ({ default: mod.SortableTaskItem })),
   {
-    loading: () => (
-      <div className="h-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
-    ),
+    loading: () => <div className="h-20 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />,
     ssr: true, // Can be server-rendered
   }
 );
