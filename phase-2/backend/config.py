@@ -26,10 +26,21 @@ class Settings:
 
     def __init__(self):
         self.database_url = os.getenv("DATABASE_URL", "")
-        self.better_auth_url = os.getenv("BETTER_AUTH_URL", os.getenv("NEXT_PUBLIC_APP_URL", "http://localhost:3000"))
+        # Better Auth URL - frontend URL where Better Auth is hosted
+        # Priority: BETTER_AUTH_URL > NEXT_PUBLIC_APP_URL > default
+        self.better_auth_url = (
+            os.getenv("BETTER_AUTH_URL") or 
+            os.getenv("NEXT_PUBLIC_APP_URL") or 
+            "https://todo-giaic-five-phases.vercel.app"  # Production default
+        )
         self.frontend_url = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")[0]
         self.debug = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
         self.environment = os.getenv("ENVIRONMENT", "development")
+        
+        # Log configuration for debugging
+        if self.environment != "production":
+            print(f"🔧 Better Auth URL: {self.better_auth_url}")
+            print(f"🔧 Frontend URL: {self.frontend_url}")
 
 
 settings = Settings()
