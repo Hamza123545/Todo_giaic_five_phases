@@ -8,6 +8,10 @@ from dotenv import load_dotenv
 
 from alembic import context
 
+# Import SQLModel models (needed for alembic to detect model changes)
+from models import Task  # noqa: F401, E402  # User model removed - Better Auth manages users
+from sqlmodel import SQLModel  # noqa: E402
+
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
 if env_path.exists():
@@ -15,10 +19,6 @@ if env_path.exists():
 else:
     # Fallback: try to load from current directory
     load_dotenv()
-
-# Import SQLModel models (needed for alembic to detect model changes)
-from models import Task  # noqa: F401  # User model removed - Better Auth manages users
-from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
