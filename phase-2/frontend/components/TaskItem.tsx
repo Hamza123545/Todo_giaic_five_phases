@@ -54,6 +54,9 @@ const TaskItem = memo(function TaskItem({
         setOptimisticCompleted(!newCompleted);
         throw new Error(response.message || "Failed to toggle task");
       }
+      
+      // Call onSuccess to trigger real-time update
+      onSuccess?.();
     } catch (error) {
       // Revert optimistic update
       setOptimisticCompleted(!newCompleted);
