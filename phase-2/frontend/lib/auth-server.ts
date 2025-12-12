@@ -108,12 +108,9 @@ function getAuth() {
       // JWT plugin for token generation
       // Note: JWT expiration is controlled by session.expiresIn above
       // JWT plugin uses baseURL from main config automatically
-      // Disable private key encryption to avoid secret mismatch issues
-      jwt({
-        // If secret changes, old encrypted keys will fail
-        // Setting this allows Better Auth to regenerate keys
-        algorithm: "RS256",
-      }),
+      // Uses RS256 algorithm by default
+      // If BETTER_AUTH_SECRET changes, delete old keys from jwks table
+      jwt(),
 
       // Next.js cookies plugin (MUST be last)
       nextCookies(),
