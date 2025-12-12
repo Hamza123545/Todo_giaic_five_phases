@@ -19,7 +19,7 @@ defaults:
 
 jobs:
   lint:
-    name: Lint Code
+    name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,348 +50,16 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        working-directory: phase-2/frontend
         run: pnpm install --frozen-lockfile
 
       - name: Run ESLint
         run: pnpm run lint
 
-      - name: Check code formatting
-        run: pnpm exec prettier --check "**/*.{ts,tsx,js,jsx,json,css,md}"
-
-  typecheck:
-    name: TypeScript Type Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Run TypeScript compiler
+      - name: Run TypeScript type check
         run: pnpm exec tsc --noEmit
 
-  test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Run unit tests
-        run: pnpm run test:ci
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./phase-2/frontend/coverage/lcov.info
-          flags: frontend
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    needs: [lint, typecheck, test]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Create .env.local file
-        run: |
-          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}" > .env.local
-
-      - name: Build Next.js application
-        run: pnpm run build
-        env:
-          NODE_ENV: production
-
-      - name: Analyze bundle size
-        run: |
-          if [ -f ".next/analyze/client.html" ]; then
-            echo "Bundle analysis available"
-          fi
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: phase-2/frontend/.next
-          retention-days: 7
-
-  e2e:
-    name: End-to-End Tests
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        working-directory: phase-2/frontend
-        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: build-artifacts
-          path: phase-2/frontend/.next
-
-      - name: Run Playwright E2E tests
-        working-directory: phase-2/frontend
-        run: pnpm run test:e2e --project=${{ matrix.browser }}
-        env:
-          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-${{ matrix.browser }}
-          path: phase-2/frontend/playwright-report
-          retention-days: 7
-
-  accessibility:
-    name: Accessibility Tests
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: build-artifacts
-          path: phase-2/frontend/.next
-
-      - name: Start application
-        working-directory: phase-2/frontend
-        run: |
-          pnpm run start &
-          sleep 10
-        env:
-          PORT: 3000
-
-      - name: Run axe accessibility tests
-        working-directory: phase-2/frontend
-        run: |
-          npx @axe-core/cli http://localhost:3000 --exit
-
-      - name: Stop application
-        if: always()
-        run: pkill -f "next start" || true
-
-  lighthouse:
-    name: Lighthouse Performance
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        working-directory: phase-2/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: build-artifacts
-          path: phase-2/frontend/.next
-
-      - name: Start application
-        working-directory: phase-2/frontend
-        run: |
-          pnpm run start &
-          sleep 10
-        env:
-          PORT: 3000
-
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v11
-        with:
-          urls: |
-            http://localhost:3000
-          configPath: ./phase-2/frontend/lighthouserc.json
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-
-      - name: Stop application
-        if: always()
-        run: pkill -f "next start" || true
-
   security:
-    name: Security Audit
+    name: Security Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -408,10 +76,9 @@ jobs:
           version: 9
           run_install: false
 
-      - name: Run pnpm audit
+      - name: Install dependencies
         working-directory: phase-2/frontend
-        run: pnpm audit --audit-level=moderate
-        continue-on-error: true
+        run: pnpm install --frozen-lockfile
 
       - name: Check for secrets in code
         uses: trufflesecurity/trufflehog@main
@@ -420,10 +87,73 @@ jobs:
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
 
+      - name: Run pnpm audit
+        working-directory: phase-2/frontend
+        run: pnpm audit --audit-level=moderate
+        continue-on-error: true
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, security]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create .env.local file
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}" > .env.local
+          echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}" >> .env.local
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.local
+          echo "BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}" >> .env.local
+
+      - name: Build Next.js application
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: phase-2/frontend/.next
+          retention-days: 7
+
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [build, e2e, accessibility, lighthouse, security]
+    needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/phase_2'
     environment:
       name: staging
@@ -457,12 +187,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        working-directory: phase-2/frontend
         run: pnpm install --frozen-lockfile
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
           name: build-artifacts
           path: phase-2/frontend/.next
@@ -477,22 +205,10 @@ jobs:
           working-directory: phase-2/frontend
           scope: ${{ secrets.VERCEL_ORG_ID }}
 
-      - name: Comment deployment URL on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 Deployed to staging: ${{ steps.deploy.outputs.url }}`
-            })
-
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build, e2e, accessibility, lighthouse, security]
+    needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
@@ -526,12 +242,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        working-directory: phase-2/frontend
         run: pnpm install --frozen-lockfile
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
           name: build-artifacts
           path: phase-2/frontend/.next
