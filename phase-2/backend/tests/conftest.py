@@ -24,16 +24,16 @@ warnings.filterwarnings("ignore", message=".*password cannot be longer than 72 b
 warnings.filterwarnings("ignore", category=UserWarning, module="passlib")
 warnings.filterwarnings("ignore", message=".*bcrypt.*")
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlmodel import Session, SQLModel, create_engine  # noqa: E402
+from sqlmodel.pool import StaticPool  # noqa: E402
 
-from main import app
-from db import get_session
-from models import Task, User
-from utils.auth import generate_jwt_token
-from utils.password import hash_password
+from main import app  # noqa: E402
+from db import get_session  # noqa: E402
+from models import Task, User  # noqa: E402
+from utils.auth import generate_jwt_token  # noqa: E402
+from utils.password import hash_password  # noqa: E402
 
 # Create in-memory SQLite database for testing
 SQLITE_DATABASE_URL = "sqlite:///:memory:"
