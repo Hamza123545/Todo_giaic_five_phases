@@ -206,7 +206,7 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed inset-0 z-40 bg-black/5"
+                  className="fixed inset-0 z-[9998] bg-black/5"
                   onClick={() => setIsOpen(false)}
                 />
                 {/* Dropdown Menu */}
@@ -216,7 +216,7 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed z-50 min-w-[200px] rounded-lg border border-border bg-card shadow-xl"
+                  className="fixed z-[9999] min-w-[200px] rounded-lg border border-border bg-card shadow-xl dark:bg-gray-800 dark:border-gray-700"
                   style={{
                     top: `${position.top}px`,
                     left: `${position.left}px`,
