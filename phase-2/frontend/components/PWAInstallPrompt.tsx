@@ -31,10 +31,12 @@ export default function PWAInstallPrompt() {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      // IMPORTANT: Don't preventDefault() - this allows browser to show install icon in address bar
+      // The browser will automatically show the install icon when PWA criteria are met
+      // Only preventDefault if we want to control when to show our custom prompt
+      // For now, let browser show its native icon, and we'll show our prompt as a bonus
+      const installEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(installEvent);
       setCanInstall(true);
       // Show install prompt after a delay
       setTimeout(() => {

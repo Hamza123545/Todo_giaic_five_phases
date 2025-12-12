@@ -30,14 +30,15 @@ export default function PWAInstallButton() {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Don't prevent default immediately - let browser show its install icon
-      // We'll only prevent when user clicks our button
+      // IMPORTANT: Don't preventDefault() - this allows browser to show install icon in address bar
+      // The browser will automatically show the install icon when PWA criteria are met
       const installEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(installEvent);
       setShowButton(true);
       
       // Browser will show install icon in address bar automatically
-      // Our button will trigger the same native prompt
+      // Our custom button provides an alternative way to trigger the same prompt
+      // Both will work - browser's native icon and our custom button
     };
 
     const handleAppInstalled = () => {
