@@ -1,0 +1,142 @@
+# Alertmanager Configuration
+# Defines how alerts are routed and delivered
+
+global:
+  # Global settings
+  resolve_timeout: 5m
+  smtp_from: 'alerts@todo-app.com'
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_auth_username: 'alerts@todo-app.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+# Templates for alert notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree for alerts
+route:
+  # Default receiver for all alerts
+  receiver: 'default-receiver'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'severity', 'component']
+
+  # How long to wait before sending notification
+  group_wait: 30s
+
+  # How long to wait before sending updates
+  group_interval: 5m
+
+  # How long to wait before resending notification
+  repeat_interval: 4h
+
+  # Child routes
+  routes:
+    # Critical alerts go to PagerDuty and Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+
+    # Warning alerts go to Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      continue: true
+
+    # Database alerts
+    - match:
+        component: database
+      receiver: 'database-alerts'
+      continue: true
+
+    # Security alerts
+    - match:
+        component: security
+      receiver: 'security-alerts'
+      continue: true
+
+# Alert receivers
+receivers:
+  # Default receiver (email)
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'team@todo-app.com'
+        headers:
+          Subject: 'Todo Backend Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .GroupLabels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+
+  # Critical alerts (PagerDuty + Slack)
+  - name: 'critical-alerts'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .CommonAnnotations.summary }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#backend-alerts'
+        title: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          *Severity:* Critical
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        color: 'danger'
+
+  # Warning alerts (Slack)
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#backend-alerts'
+        title: 'WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          *Severity:* Warning
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        color: 'warning'
+
+  # Database alerts
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba-team@todo-app.com'
+        headers:
+          Subject: 'Database Alert: {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-alerts'
+        title: 'Database: {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.description }}'
+
+  # Security alerts
+  - name: 'security-alerts'
+    email_configs:
+      - to: 'security-team@todo-app.com'
+        headers:
+          Subject: 'SECURITY ALERT: {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security-alerts'
+        title: 'SECURITY: {{ .GroupLabels.alertname }}'
+        text: |
+          *⚠️ SECURITY ALERT*
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        color: 'danger'
+
+# Inhibition rules (suppress certain alerts when others fire)
+inhibit_rules:
+  # If backend is down, suppress high error rate alerts
+  - source_match:
+      alertname: 'BackendDown'
+    target_match:
+      alertname: 'HighErrorRate'
+    equal: ['instance']
+
+  # If database is down, suppress connection pool alerts
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      alertname: 'DatabaseConnectionPoolExhausted'
+    equal: ['instance']

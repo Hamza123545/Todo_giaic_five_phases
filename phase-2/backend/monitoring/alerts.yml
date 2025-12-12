@@ -1,0 +1,224 @@
+# Prometheus Alert Rules for Todo Backend
+# These rules define conditions that trigger alerts
+
+groups:
+  - name: backend_api_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (instance)
+            /
+            sum(rate(http_requests_total[5m])) by (instance)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected on {{ $labels.instance }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes (threshold: 5%)"
+
+      # High response time alert
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High response time on {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s)"
+
+      # API down alert
+      - alert: BackendDown
+        expr: up{job="todo-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Backend API is down on {{ $labels.instance }}"
+          description: "The backend API has been unreachable for more than 2 minutes"
+
+      # High request rate alert
+      - alert: HighRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) by (instance) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High request rate on {{ $labels.instance }}"
+          description: "Request rate is {{ $value }} req/s (threshold: 1000 req/s)"
+
+      # Memory usage alert
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_resident_memory_bytes{job="todo-backend"}
+            /
+            1024 / 1024 / 1024
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}GB (threshold: 1GB)"
+
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # Database connection pool exhaustion
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            db_connection_pool_active
+            /
+            db_connection_pool_max
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Connection pool is {{ $value | humanizePercentage }} utilized (threshold: 90%)"
+
+      # Slow database queries
+      - alert: SlowDatabaseQueries
+        expr: |
+          rate(db_query_duration_seconds_sum[5m])
+          /
+          rate(db_query_duration_seconds_count[5m])
+          > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query duration is {{ $value }}s (threshold: 1s)"
+
+      # Database down
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Database has been unreachable for more than 2 minutes"
+
+  - name: authentication_alerts
+    interval: 30s
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthenticationFailureRate
+        expr: |
+          (
+            sum(rate(auth_failures_total[5m]))
+            /
+            sum(rate(auth_attempts_total[5m]))
+          ) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          component: auth
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value | humanizePercentage }} (threshold: 30%)"
+
+      # Potential brute force attack
+      - alert: PotentialBruteForceAttack
+        expr: |
+          sum(rate(auth_failures_total[1m])) by (ip_address) > 10
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Potential brute force attack from {{ $labels.ip_address }}"
+          description: "{{ $value }} failed authentication attempts per minute from same IP"
+
+  - name: rate_limiting_alerts
+    interval: 30s
+    rules:
+      # High rate limit hit rate
+      - alert: HighRateLimitHits
+        expr: |
+          sum(rate(rate_limit_exceeded_total[5m])) by (endpoint) > 50
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High rate of rate limit hits on {{ $labels.endpoint }}"
+          description: "{{ $value }} rate limit hits per second (threshold: 50/s)"
+
+  - name: business_metrics_alerts
+    interval: 30s
+    rules:
+      # Low task creation rate (potential issue)
+      - alert: LowTaskCreationRate
+        expr: |
+          sum(rate(tasks_created_total[1h])) < 0.01
+        for: 30m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Low task creation rate"
+          description: "Only {{ $value }} tasks created per second over the last hour"
+
+      # High task deletion rate (unusual activity)
+      - alert: HighTaskDeletionRate
+        expr: |
+          sum(rate(tasks_deleted_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Unusually high task deletion rate"
+          description: "{{ $value }} tasks deleted per second (threshold: 10/s)"
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"}
+            /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Only {{ $value }}% disk space remaining (threshold: 10%)"
