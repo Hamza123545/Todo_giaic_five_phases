@@ -36,6 +36,7 @@ import SearchBar from "@/components/SearchBar";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import DashboardHeader from "@/components/DashboardHeader";
 import PaginationControls from "@/components/PaginationControls";
+import PWAInstallButton from "@/components/PWAInstallButton";
 import ExportDropdown from "@/components/ExportDropdown";
 import { api } from "@/lib/api";
 
@@ -167,14 +168,14 @@ function DashboardContent() {
   }, [user, loadTasks]);
 
   // Set up polling for real-time updates
-  usePolling(
+  const { trigger: triggerPoll } = usePolling(
     async () => {
       if (user && pollingEnabled) {
         await loadTasks(user.id, true); // Silent refresh
       }
     },
     {
-      interval: 30000, // Poll every 30 seconds
+      interval: 5000, // Poll every 5 seconds for faster updates
       enabled: pollingEnabled && !!user,
     }
   );
@@ -193,10 +194,14 @@ function DashboardContent() {
     });
   };
 
-  const handleTaskUpdated = () => {
-    // Reload tasks to get the latest data
+  const handleTaskUpdated = async () => {
+    // Immediately reload tasks to get the latest data
     if (user) {
-      loadTasks(user.id);
+      await loadTasks(user.id, true); // Silent refresh
+      // Also trigger polling immediately for real-time sync
+      if (pollingEnabled) {
+        triggerPoll();
+      }
     }
     toast({
       type: "success",
@@ -488,9 +493,12 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="mb-6">
-                  <SearchBar onSearch={handleSearchChange} placeholder="Search tasks..." />
+                {/* Search Bar with Install Button */}
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex-1">
+                    <SearchBar onSearch={handleSearchChange} placeholder="Search tasks..." />
+                  </div>
+                  <PWAInstallButton />
                 </div>
 
                 {/* Task List */}

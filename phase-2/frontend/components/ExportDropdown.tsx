@@ -52,10 +52,26 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const dropdownHeight = 280; // Approximate dropdown height
+      
+      // Check if there's enough space below, otherwise open above
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      let top: number;
+      if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+        // Open below button
+        top = rect.bottom + window.scrollY + 8;
+      } else {
+        // Open above button
+        top = rect.top + window.scrollY - dropdownHeight - 8;
+      }
+      
       setPosition({
-        top: rect.bottom + window.scrollY + 8,
+        top,
         left: rect.left + window.scrollX,
-        width: rect.width,
+        width: Math.max(rect.width, 200), // Minimum width
       });
     } else {
       setPosition(null);
