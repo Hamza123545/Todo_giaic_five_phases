@@ -24,9 +24,14 @@ let handlers: {
 
 async function getHandlers() {
   if (!handlers) {
-    // Dynamic import to avoid build-time execution
-    const { auth } = await import("@/lib/auth-server");
-    handlers = toNextJsHandler(auth.handler);
+    try {
+      // Dynamic import to avoid build-time execution
+      const { auth } = await import("@/lib/auth-server");
+      handlers = toNextJsHandler(auth.handler);
+    } catch (error) {
+      console.error("Failed to initialize Better Auth handlers:", error);
+      throw error;
+    }
   }
   return handlers;
 }
@@ -40,13 +45,24 @@ async function getHandlers() {
 export async function GET(req: Request) {
   try {
     const handlers = await getHandlers();
-    return handlers.GET(req);
+    const response = await handlers.GET(req);
+    return response;
   } catch (error) {
-    console.error("Better Auth GET handler error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error("Better Auth GET handler error:", {
+      message: errorMessage,
+      stack: errorStack,
+      url: req.url,
+    });
+    
     return new Response(
       JSON.stringify({
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: errorMessage,
+        // Only include stack in development
+        ...(process.env.NODE_ENV === "development" && { stack: errorStack }),
       }),
       {
         status: 500,
@@ -58,14 +74,36 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Log request details for debugging
+    const url = new URL(req.url);
+    console.log("Better Auth POST request:", {
+      path: url.pathname,
+      hasBody: !!req.body,
+    });
+    
     const handlers = await getHandlers();
-    return handlers.POST(req);
+    const response = await handlers.POST(req);
+    
+    // Log response status
+    console.log("Better Auth POST response status:", response.status);
+    
+    return response;
   } catch (error) {
-    console.error("Better Auth POST handler error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error("Better Auth POST handler error:", {
+      message: errorMessage,
+      stack: errorStack,
+      url: req.url,
+    });
+    
     return new Response(
       JSON.stringify({
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: errorMessage,
+        // Only include stack in development
+        ...(process.env.NODE_ENV === "development" && { stack: errorStack }),
       }),
       {
         status: 500,

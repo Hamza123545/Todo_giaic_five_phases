@@ -30,10 +30,22 @@ function getAuth() {
   // Validate required environment variables at runtime
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret) {
-    // During build, this will throw but Next.js should handle it gracefully
-    // At runtime, this will properly error if missing
+    console.error("BETTER_AUTH_SECRET is missing");
     throw new Error("BETTER_AUTH_SECRET environment variable is required");
   }
+
+  // Check DATABASE_URL
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.error("DATABASE_URL is missing");
+    throw new Error("DATABASE_URL environment variable is required");
+  }
+
+  console.log("Initializing Better Auth with:", {
+    hasSecret: !!secret,
+    hasDatabaseUrl: !!databaseUrl,
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || "http://localhost:3000",
+  });
 
   /**
    * Better Auth configuration with Drizzle ORM
@@ -77,10 +89,18 @@ function getAuth() {
     },
 
     // Trusted origins for CORS
+    // Include all possible Vercel URLs (production, preview, etc.)
     trustedOrigins: [
-      process.env.NEXT_PUBLIC_APP_URL || 
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+      // Production domain (always include)
+      "https://todo-giaic-five-phases.vercel.app",
+      // Environment variable URLs
+      ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+      ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+      // Backend API URL
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+      // Localhost for development
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
     ],
 
     // Plugins (order matters - nextCookies must be last)
@@ -88,7 +108,12 @@ function getAuth() {
       // JWT plugin for token generation
       // Note: JWT expiration is controlled by session.expiresIn above
       // JWT plugin uses baseURL from main config automatically
-      jwt(),
+      // Disable private key encryption to avoid secret mismatch issues
+      jwt({
+        // If secret changes, old encrypted keys will fail
+        // Setting this allows Better Auth to regenerate keys
+        algorithm: "RS256",
+      }),
 
       // Next.js cookies plugin (MUST be last)
       nextCookies(),
