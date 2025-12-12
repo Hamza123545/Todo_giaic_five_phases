@@ -3,7 +3,9 @@ import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers'
 
 declare global {
   namespace jest {
-    interface Matchers<R> extends TestingLibraryMatchers<typeof expect.stringContaining, R> {}
+    interface Matchers<R> extends TestingLibraryMatchers<typeof expect.stringContaining, R> {
+      // Type augmentation for jest-dom matchers
+    }
   }
 }
 
