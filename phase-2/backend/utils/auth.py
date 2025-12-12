@@ -63,7 +63,14 @@ def get_jwk_client() -> PyJWKClient:
     Returns:
         PyJWKClient: Configured JWKS client
     """
-    jwks_url = f"{settings.better_auth_url}/api/auth/jwks"
+    # Better Auth JWKS endpoint is at /.well-known/jwks.json
+    jwks_url = f"{settings.better_auth_url}/.well-known/jwks.json"
+    
+    # Log the JWKS URL for debugging
+    import logging
+    logger = logging.getLogger("todo_api")
+    logger.info(f"JWKS URL: {jwks_url}")
+    
     return PyJWKClient(jwks_url)
 
 
@@ -96,10 +103,21 @@ def verify_jwt_token(token: str) -> Dict[str, str]:
         >>> print(payload["user_id"])
         123e4567-e89b-12d3-a456-426614174000
     """
+    import logging
+    logger = logging.getLogger("todo_api")
+    
     try:
         # Get JWKS client and signing key
-        jwk_client = _get_cached_jwk_client()
-        signing_key = jwk_client.get_signing_key_from_jwt(token)
+        # Clear cache if connection fails to force refresh
+        try:
+            jwk_client = _get_cached_jwk_client()
+            signing_key = jwk_client.get_signing_key_from_jwt(token)
+        except Exception as jwks_error:
+            # If JWKS fetch fails, clear cache and retry once
+            logger.warning(f"JWKS fetch failed, clearing cache: {jwks_error}")
+            _get_cached_jwk_client.cache_clear()
+            jwk_client = _get_cached_jwk_client()
+            signing_key = jwk_client.get_signing_key_from_jwt(token)
 
         # Verify and decode the JWT
         # Better Auth uses EdDSA (Ed25519) or RS256 by default
