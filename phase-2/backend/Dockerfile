@@ -20,9 +20,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir uv==0.5.0
 
 # Copy dependency files
-COPY pyproject.toml uv.lock ./
+# Note: uv.lock should be present for reproducible builds
+# If it's missing, generate it before building: `uv lock --no-dev`
+COPY pyproject.toml ./
+COPY uv.lock ./
 
-# Install dependencies using UV (production only, no dev dependencies)
+# Install dependencies using UV with frozen lockfile for reproducibility
 RUN uv sync --frozen --no-dev
 
 # ============================================================================

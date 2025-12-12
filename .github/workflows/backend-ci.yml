@@ -66,6 +66,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Install UV
+        working-directory: ./phase-2/backend
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Generate uv.lock if missing
+        working-directory: ./phase-2/backend
+        run: |
+          if [ ! -f "uv.lock" ]; then
+            echo "Generating uv.lock..."
+            uv lock --no-dev
+          else
+            echo "uv.lock already exists"
+          fi
+
       - name: Build Docker image
         working-directory: ./phase-2/backend
         run: |

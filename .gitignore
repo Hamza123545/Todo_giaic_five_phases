@@ -67,7 +67,8 @@ LPT9
 
 # Project specific
 *.egg-info/
-uv.lock
+# uv.lock should be committed for reproducible builds
+# phase-2/backend/uv.lock
 todo_console.egg-info/
 
 # Claude Code
