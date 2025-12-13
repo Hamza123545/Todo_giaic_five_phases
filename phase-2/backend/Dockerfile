@@ -11,9 +11,11 @@ FROM python:3.13-slim AS builder
 WORKDIR /app
 
 # Install system dependencies for building Python packages
+# Note: psycopg2-binary doesn't require compilation, but keeping gcc for other packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install UV package manager
