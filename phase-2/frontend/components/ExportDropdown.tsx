@@ -53,25 +53,83 @@ function ExportDropdown({ userId, disabled = false, className = "" }: ExportDrop
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
       const dropdownHeight = 280; // Approximate dropdown height
+      const dropdownWidth = Math.max(rect.width, 200); // Minimum width
       
-      // Check if there's enough space below, otherwise open above
+      // Check available space
       const spaceBelow = viewportHeight - rect.bottom;
       const spaceAbove = rect.top;
+      const spaceRight = viewportWidth - rect.right;
+      const spaceLeft = rect.left;
       
+      // Determine vertical position - prefer opening above for sidebar buttons
       let top: number;
-      if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
-        // Open below button
-        top = rect.bottom + window.scrollY + 8;
+      let shouldOpenAbove = false;
+      
+      // Check if button is in right side of viewport (likely sidebar)
+      const isInSidebar = rect.left > viewportWidth * 0.6;
+      
+      // For sidebar buttons, prefer opening above
+      if (isInSidebar) {
+        // In sidebar, prefer above unless there's not enough space
+        if (spaceAbove >= dropdownHeight) {
+          shouldOpenAbove = true;
+        } else if (spaceBelow >= dropdownHeight) {
+          shouldOpenAbove = false;
+        } else {
+          // Not enough space either way, use whichever has more space
+          shouldOpenAbove = spaceAbove > spaceBelow;
+        }
       } else {
+        // For main content area, use standard logic
+        // If button is in lower 50% of viewport, prefer opening above
+        if (rect.top > viewportHeight * 0.5) {
+          shouldOpenAbove = true;
+        } else if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
+          shouldOpenAbove = true;
+        } else if (spaceBelow < dropdownHeight && spaceAbove < dropdownHeight) {
+          // Not enough space either way, prefer below and adjust
+          shouldOpenAbove = false;
+        }
+      }
+      
+      if (shouldOpenAbove) {
         // Open above button
         top = rect.top + window.scrollY - dropdownHeight - 8;
+      } else {
+        // Open below button
+        top = rect.bottom + window.scrollY + 8;
+      }
+      
+      // Ensure dropdown doesn't go off-screen vertically
+      const minTop = window.scrollY + 8;
+      const maxTop = window.scrollY + viewportHeight - dropdownHeight - 8;
+      
+      if (top < minTop) {
+        top = minTop;
+      }
+      if (top > maxTop) {
+        top = maxTop;
+      }
+      
+      // Determine horizontal position - align with button left edge
+      let left = rect.left + window.scrollX;
+      
+      // If dropdown would overflow right, align to button right edge instead
+      if (left + dropdownWidth > viewportWidth) {
+        left = rect.right + window.scrollX - dropdownWidth;
+      }
+      
+      // Ensure dropdown doesn't go off-screen horizontally
+      if (left < window.scrollX) {
+        left = window.scrollX + 8;
       }
       
       setPosition({
         top,
-        left: rect.left + window.scrollX,
-        width: Math.max(rect.width, 200), // Minimum width
+        left,
+        width: dropdownWidth,
       });
     } else {
       setPosition(null);
