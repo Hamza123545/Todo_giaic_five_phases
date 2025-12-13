@@ -3,16 +3,20 @@
 /**
  * Signin Page
  *
- * User login page with email and password
- * Form validation and error handling
- * Redirects to dashboard on successful signin
+ * User login page with comprehensive validation
+ * Features:
+ * - Email format validation with Zod
+ * - Password required validation
+ * - Field-level validation on blur
+ * - Clear error messages from backend (401, 400)
+ * - Accessibility-compliant error display
  */
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth";
-import { isValidEmail } from "@/lib/utils";
+import { signinSchema, safeParse } from "@/lib/validations";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function SigninPage() {
@@ -24,24 +28,61 @@ export default function SigninPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const validationTimeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    // Use Zod schema for comprehensive validation
+    const result = safeParse(signinSchema, formData);
 
-    // Validate email
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!result.success && result.errors) {
+      setErrors(result.errors);
+
+      // Focus first invalid field for accessibility
+      const firstErrorField = Object.keys(result.errors)[0];
+      if (firstErrorField) {
+        const element = document.getElementById(firstErrorField);
+        element?.focus();
+      }
+
+      return false;
     }
 
-    // Validate password
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
+    setErrors({});
+    return true;
+  };
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  /**
+   * Validate a single field on blur
+   * Provides immediate feedback as user completes each field
+   */
+  const validateField = (fieldName: "email" | "password") => {
+    const value = formData[fieldName];
+
+    // Create validation for specific field
+    try {
+      if (fieldName === "email") {
+        signinSchema.shape.email.parse(value);
+      } else if (fieldName === "password") {
+        signinSchema.shape.password.parse(value);
+      }
+
+      // Clear error if validation passes
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    } catch (error: unknown) {
+      // Set error if validation fails
+      let errorMessage = "Invalid value";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === "object" && "errors" in error) {
+        const zodError = error as { errors: Array<{ message: string }> };
+        errorMessage = zodError.errors[0]?.message || "Invalid value";
+      }
+      setErrors((prev) => ({ ...prev, [fieldName]: errorMessage }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,14 +131,43 @@ export default function SigninPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for this field when user starts typing
+    
+    // Real-time validation: clear error immediately when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
+    
+    // Clear API error when user starts typing
     if (apiError) {
       setApiError("");
     }
+
+    // Clear previous timeout for this field
+    if (validationTimeoutsRef.current[name]) {
+      clearTimeout(validationTimeoutsRef.current[name]);
+    }
+
+    // Real-time validation: validate field after a short delay (debounced)
+    // This provides immediate feedback without being too aggressive
+    validationTimeoutsRef.current[name] = setTimeout(() => {
+      validateField(name as "email" | "password");
+      delete validationTimeoutsRef.current[name];
+    }, 500); // 500ms debounce
   };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const timeouts = validationTimeoutsRef.current;
+    return () => {
+      Object.values(timeouts).forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-12">
@@ -129,7 +199,7 @@ export default function SigninPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Email Address
+                Email Address <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="email"
@@ -139,15 +209,22 @@ export default function SigninPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={() => validateField("email")}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
                   errors.email
                     ? "border-red-500 dark:border-red-400"
                     : "border-gray-300 dark:border-gray-600"
                 }`}
                 placeholder="you@example.com"
+                aria-required="true"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                <p id="email-error" className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1" role="alert">
+                  <span className="inline-block">⚠</span>
+                  {errors.email}
+                </p>
               )}
             </div>
 
@@ -158,7 +235,7 @@ export default function SigninPage() {
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Password
+                  Password <span className="text-red-500" aria-label="required">*</span>
                 </label>
                 <Link
                   href="/forgot-password"
@@ -175,15 +252,22 @@ export default function SigninPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
+                onBlur={() => validateField("password")}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
                   errors.password
                     ? "border-red-500 dark:border-red-400"
                     : "border-gray-300 dark:border-gray-600"
                 }`}
                 placeholder="••••••••"
+                aria-required="true"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                <p id="password-error" className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1" role="alert">
+                  <span className="inline-block">⚠</span>
+                  {errors.password}
+                </p>
               )}
             </div>
 

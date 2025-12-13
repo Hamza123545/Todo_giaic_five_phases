@@ -11,7 +11,8 @@
       "Bash(test:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

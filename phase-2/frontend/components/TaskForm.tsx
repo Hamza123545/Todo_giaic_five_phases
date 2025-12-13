@@ -3,16 +3,26 @@
 /**
  * TaskForm Component
  *
- * Form for creating and editing tasks with validation
+ * Form for creating and editing tasks with comprehensive Zod validation
  * Supports title, description, priority, due date, and tags
- * Integrates with API client for task creation and updates
- * Enhanced with Framer Motion animations
+ * Features:
+ * - Field-level validation on blur
+ * - Form-level validation on submit
+ * - Character count for title (200) and description (1000)
+ * - Real-time error display with accessibility
+ * - Enhanced UX with Framer Motion animations
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Task, TaskFormData } from "@/types";
 import { cn, sanitizeInput } from "@/lib/utils";
+import {
+  taskFormSchema,
+  formatCharCount,
+  isOverLimit,
+  safeParse,
+} from "@/lib/validations";
 import LoadingSpinner from "./LoadingSpinner";
 import { api } from "@/lib/api";
 
@@ -45,6 +55,7 @@ export default function TaskForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tagInput, setTagInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const validationTimeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Load initial data if editing
   useEffect(() => {
@@ -60,33 +71,70 @@ export default function TaskForm({
   }, [initialData]);
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    // Use Zod schema for comprehensive validation
+    const result = safeParse(taskFormSchema, formData);
 
-    // Title validation
-    if (!formData.title.trim()) {
-      newErrors.title = "Title is required";
-    } else if (formData.title.trim().length > 200) {
-      newErrors.title = "Title must be 200 characters or less";
-    }
+    if (!result.success && result.errors) {
+      setErrors(result.errors);
 
-    // Description validation
-    if (formData.description && formData.description.length > 1000) {
-      newErrors.description = "Description must be 1000 characters or less";
-    }
-
-    // Due date validation
-    if (formData.due_date) {
-      const dueDate = new Date(formData.due_date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (dueDate < today) {
-        newErrors.due_date = "Due date cannot be in the past";
+      // Focus first invalid field for accessibility
+      const firstErrorField = Object.keys(result.errors)[0];
+      if (firstErrorField) {
+        const element = document.getElementById(firstErrorField);
+        element?.focus();
       }
+
+      return false;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
+  };
+
+  /**
+   * Validate a single field on blur
+   * Provides immediate feedback as user completes each field
+   */
+  const validateField = (fieldName: keyof TaskFormData) => {
+    const value = formData[fieldName];
+
+    // Create a partial schema for the specific field
+    try {
+      if (fieldName === "title") {
+        taskFormSchema.shape.title.parse(value);
+      } else if (fieldName === "description") {
+        taskFormSchema.shape.description.parse(value);
+      } else if (fieldName === "priority") {
+        taskFormSchema.shape.priority.parse(value);
+      } else if (fieldName === "due_date") {
+        taskFormSchema.shape.due_date.parse(value);
+      } else if (fieldName === "tags") {
+        taskFormSchema.shape.tags.parse(value);
+      }
+
+      // Clear error if validation passes
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    } catch (error: unknown) {
+      // Set error if validation fails
+      let errorMessage = "Invalid value";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === "object") {
+        // Zod error format
+        if ("issues" in error) {
+          const zodError = error as { issues: Array<{ message: string }> };
+          errorMessage = zodError.issues[0]?.message || "Invalid value";
+        } else if ("errors" in error) {
+          const zodError = error as { errors: Array<{ message: string }> };
+          errorMessage = zodError.errors[0]?.message || "Invalid value";
+        }
+      }
+      setErrors((prev) => ({ ...prev, [fieldName]: errorMessage }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,19 +205,48 @@ export default function TaskForm({
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error for this field when user starts typing
+    // Clear error immediately when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
+
+    // Clear previous timeout for this field
+    if (validationTimeoutsRef.current[name]) {
+      clearTimeout(validationTimeoutsRef.current[name]);
+    }
+
+    // Real-time validation: validate field after a short delay (debounced)
+    // This provides immediate feedback without being too aggressive
+    validationTimeoutsRef.current[name] = setTimeout(() => {
+      validateField(name as keyof TaskFormData);
+      delete validationTimeoutsRef.current[name];
+    }, 500); // 500ms debounce
   };
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const timeouts = validationTimeoutsRef.current;
+    return () => {
+      Object.values(timeouts).forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
+
   const handleAddTag = () => {
-    const tag = tagInput.trim().toLowerCase();
+    // Backend behavior: strips but doesn't lowercase
+    // Match backend exactly: cleaned_tags = [tag.strip() for tag in v if tag and tag.strip()]
+    const tag = tagInput.trim();
 
     if (!tag) {
       return;
     }
 
+    // Check if tag already exists (case-sensitive to match backend)
     if (formData.tags?.includes(tag)) {
       setTagInput("");
       return;
@@ -204,21 +281,35 @@ export default function TaskForm({
     >
       {/* Title Field */}
       <div>
-        <label
-          htmlFor="title"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-        >
-          Title{" "}
-          <span className="text-red-500" aria-label="required">
-            *
+        <div className="flex items-center justify-between mb-1">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Title{" "}
+            <span className="text-red-500" aria-label="required">
+              *
+            </span>
+          </label>
+          <span
+            className={cn(
+              "text-xs",
+              isOverLimit(formData.title, 200)
+                ? "text-red-600 dark:text-red-400 font-medium"
+                : "text-gray-500 dark:text-gray-400"
+            )}
+            aria-live="polite"
+          >
+            {formatCharCount(formData.title, 200)}
           </span>
-        </label>
+        </div>
         <input
           type="text"
           id="title"
           name="title"
           value={formData.title}
           onChange={handleChange}
+          onBlur={() => validateField("title")}
           className={cn(
             "w-full px-3 py-2 border rounded-md shadow-sm",
             "focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -226,7 +317,6 @@ export default function TaskForm({
             errors.title && "border-red-500 focus:ring-red-500"
           )}
           placeholder="Enter task title"
-          maxLength={200}
           required
           aria-required="true"
           aria-invalid={!!errors.title}
@@ -240,9 +330,10 @@ export default function TaskForm({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               id="title-error"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
               role="alert"
             >
+              <span className="inline-block">⚠</span>
               {errors.title}
             </motion.p>
           )}
@@ -251,17 +342,31 @@ export default function TaskForm({
 
       {/* Description Field */}
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-        >
-          Description
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Description
+          </label>
+          <span
+            className={cn(
+              "text-xs",
+              isOverLimit(formData.description || "", 1000)
+                ? "text-red-600 dark:text-red-400 font-medium"
+                : "text-gray-500 dark:text-gray-400"
+            )}
+            aria-live="polite"
+          >
+            {formatCharCount(formData.description || "", 1000)}
+          </span>
+        </div>
         <textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
+          onBlur={() => validateField("description")}
           rows={3}
           className={cn(
             "w-full px-3 py-2 border rounded-md shadow-sm",
@@ -270,7 +375,6 @@ export default function TaskForm({
             errors.description && "border-red-500 focus:ring-red-500"
           )}
           placeholder="Enter task description (optional)"
-          maxLength={1000}
           aria-invalid={!!errors.description}
           aria-describedby={errors.description ? "description-error" : undefined}
           disabled={isLoading}
@@ -282,9 +386,10 @@ export default function TaskForm({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               id="description-error"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
               role="alert"
             >
+              <span className="inline-block">⚠</span>
               {errors.description}
             </motion.p>
           )}
@@ -333,6 +438,7 @@ export default function TaskForm({
             name="due_date"
             value={formData.due_date}
             onChange={handleChange}
+            onBlur={() => validateField("due_date")}
             className={cn(
               "w-full px-3 py-2 border rounded-md shadow-sm",
               "focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -343,11 +449,21 @@ export default function TaskForm({
             aria-describedby={errors.due_date ? "due-date-error" : undefined}
             disabled={isLoading}
           />
-          {errors.due_date && (
-            <p id="due-date-error" className="mt-1 text-sm text-red-600" role="alert">
-              {errors.due_date}
-            </p>
-          )}
+          <AnimatePresence>
+            {errors.due_date && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                id="due-date-error"
+                className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
+                role="alert"
+              >
+                <span className="inline-block">⚠</span>
+                {errors.due_date}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
