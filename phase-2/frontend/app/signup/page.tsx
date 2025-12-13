@@ -84,14 +84,24 @@ export default function SignupPage() {
         return newErrors;
       });
     } catch (error: unknown) {
-      // Set error if validation fails
+      // Set error if validation fails - extract just the message
       let errorMessage = "Invalid value";
-      if (error instanceof Error) {
+      
+      // Check if it's a ZodError
+      if (error && typeof error === "object" && "issues" in error && Array.isArray((error as { issues: unknown[] }).issues)) {
+        // Zod error - extract first issue message
+        const zodError = error as { issues: Array<{ message?: string }> };
+        errorMessage = zodError.issues[0]?.message || "Invalid value";
+      } else if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (error && typeof error === "object" && "errors" in error) {
-        const zodError = error as { errors: Array<{ message: string }> };
-        errorMessage = zodError.errors[0]?.message || "Invalid value";
+      } else if (error && typeof error === "object") {
+        // Handle serialized Zod error format
+        if ("errors" in error && Array.isArray((error as { errors: unknown[] }).errors)) {
+          const zodError = error as { errors: Array<{ message?: string }> };
+          errorMessage = zodError.errors[0]?.message || "Invalid value";
+        }
       }
+      
       setErrors((prev) => ({ ...prev, [fieldName]: errorMessage }));
     }
   };
@@ -115,7 +125,22 @@ export default function SignupPage() {
       });
 
       if (result.error) {
-        setApiError(result.error.message || "Signup failed. Please try again.");
+        // Extract error message from Better Auth error response
+        let errorMessage = "Signup failed. Please try again.";
+        
+        if (result.error.message) {
+          errorMessage = result.error.message;
+        } else if (Array.isArray(result.error)) {
+          // Handle array format: [{ message: "...", ... }]
+          const firstError = result.error[0];
+          if (firstError && typeof firstError === "object" && "message" in firstError) {
+            errorMessage = String(firstError.message);
+          }
+        } else if (typeof result.error === "object" && "message" in result.error) {
+          errorMessage = String(result.error.message);
+        }
+        
+        setApiError(errorMessage);
         return;
       }
 
@@ -132,8 +157,28 @@ export default function SignupPage() {
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectPath);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An error occurred during signup";
+      // Extract error message from various error formats
+      let errorMessage = "An error occurred during signup";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (Array.isArray(error)) {
+        // Handle array format: [{ message: "...", ... }]
+        const firstError = error[0];
+        if (firstError && typeof firstError === "object" && "message" in firstError) {
+          errorMessage = String(firstError.message);
+        }
+      } else if (error && typeof error === "object") {
+        if ("message" in error) {
+          errorMessage = String(error.message);
+        } else if ("error" in error && typeof error.error === "object" && error.error !== null) {
+          const errorObj = error.error as { message?: string };
+          if (errorObj.message) {
+            errorMessage = String(errorObj.message);
+          }
+        }
+      }
+      
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);

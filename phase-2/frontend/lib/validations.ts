@@ -191,9 +191,32 @@ export const signinSchema = z.object({
   password: passwordSigninSchema,
 });
 
+/**
+ * Forgot Password Schema
+ * Validates email for password reset request
+ */
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+/**
+ * Reset Password Schema
+ * Validates new password for reset
+ */
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  password: passwordSignupSchema,
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 // Type exports for TypeScript
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 // ==================== Field-Level Validation Helpers ====================
 

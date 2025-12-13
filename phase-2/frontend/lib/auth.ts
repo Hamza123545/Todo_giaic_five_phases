@@ -141,6 +141,38 @@ export async function refreshSession() {
   }
 }
 
+/**
+ * Request password reset email
+ */
+export async function forgotPassword(email: string) {
+  try {
+    const response = await authClient.forgetPassword({
+      email,
+      redirectTo: "/reset-password",
+    });
+    return response;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to send reset email";
+    throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Reset password with token from email
+ */
+export async function resetPassword(token: string, newPassword: string) {
+  try {
+    const response = await authClient.resetPassword({
+      token,
+      newPassword: newPassword,
+    });
+    return response;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to reset password";
+    throw new Error(errorMessage);
+  }
+}
+
 // Export token getter function (same pattern as phase-2-web)
 export const getToken = authClient.token;
 

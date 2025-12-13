@@ -127,6 +127,42 @@ class AuthService:
             return False
         return bool(re.match(pattern, email))
 
+    def reset_password(self, db: Session, email: str, new_password: str) -> User:
+        """
+        Reset user password by email.
+
+        Args:
+            db: Database session
+            email: User's email address
+            new_password: New plain text password
+
+        Returns:
+            User: Updated user object
+
+        Raises:
+            ValueError: If user not found or validation fails
+        """
+        # Find user by email
+        user = self.get_user_by_email(db, email)
+
+        if not user:
+            raise ValueError("User not found with this email")
+
+        # Validate password strength
+        if not self._validate_password_strength(new_password):
+            raise ValueError("Password must be at least 8 characters long")
+
+        # Hash new password
+        password_hash = hash_password(new_password)
+
+        # Update user password
+        user.password_hash = password_hash
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return user
+
     def _validate_password_strength(self, password: str) -> bool:
         """
         Validate password strength.

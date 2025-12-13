@@ -90,6 +90,44 @@ class SigninRequest(BaseModel):
     password: str = Field(..., description="User's password", examples=["SecurePass123!"])
 
 
+class ResetPasswordRequest(BaseModel):
+    """
+    Request schema for password reset.
+
+    Attributes:
+        email: User's email address
+        new_password: New password (min 8 characters)
+
+    Example:
+        {
+            "email": "user@example.com",
+            "new_password": "NewSecurePass123!"
+        }
+    """
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "email": "user@example.com",
+                    "new_password": "NewSecurePass123!"
+                }
+            ]
+        }
+    }
+
+    email: EmailStr = Field(..., description="User's email address", examples=["user@example.com"])
+    new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)", examples=["NewSecurePass123!"])
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """Validate password meets strength requirements."""
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
+
 class CreateTaskRequest(BaseModel):
     """
     Request schema for creating a new task.

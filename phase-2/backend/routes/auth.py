@@ -12,7 +12,7 @@ from sqlmodel import Session
 
 from db import get_session
 from middleware.jwt import verify_jwt_token
-from schemas.requests import SigninRequest, SignupRequest
+from schemas.requests import ResetPasswordRequest, SigninRequest, SignupRequest
 from services.auth_service import AuthService
 from utils.auth import generate_jwt_token
 
@@ -216,3 +216,73 @@ async def signout(current_user: Dict[str, str] = Depends(verify_jwt_token)):
     # For stateless JWT, signout is handled client-side by removing the token
     # We just verify the token is valid and return success
     return {"success": True}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(reset_data: ResetPasswordRequest, db: Session = Depends(get_session)):
+    """
+    Reset user password by email.
+
+    Request Body:
+        - email: User's email address
+        - new_password: New password (minimum 8 characters)
+
+    Returns:
+        200: {
+            "success": true,
+            "message": "Password reset successfully"
+        }
+
+    Raises:
+        400: Validation error (invalid email, weak password)
+        404: User not found
+        500: Internal server error
+    """
+    try:
+        # Reset password
+        user = auth_service.reset_password(
+            db=db, email=reset_data.email, new_password=reset_data.new_password
+        )
+
+        # Return success response
+        return {
+            "success": True,
+            "message": "Password reset successfully",
+        }
+
+    except ValueError as e:
+        error_msg = str(e)
+
+        # Check if it's user not found error
+        if "not found" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "error": {"code": "USER_NOT_FOUND", "message": "User not found with this email"},
+                },
+            )
+
+        # Validation error
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": error_msg},
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the actual error for debugging
+        import traceback
+        print(f"Password reset error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "error": {"code": "INTERNAL_ERROR", "message": f"Failed to reset password: {str(e)}"},
+            },
+        )

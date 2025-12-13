@@ -76,6 +76,17 @@ function getAuth() {
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false, // Set to true in production with email service
+      sendResetPassword: async ({ user, url }) => {
+        // TODO: Configure email service (SendGrid, Postmark, etc.) in production
+        // For now, log the reset URL (in production, send email)
+        console.log(`Password reset link for ${user.email}: ${url}`);
+        // In production, implement actual email sending:
+        // await sendEmail({
+        //   to: user.email,
+        //   subject: "Reset your password",
+        //   html: `<a href="${url}">Reset Password</a>`,
+        // });
+      },
     },
 
     // Session configuration

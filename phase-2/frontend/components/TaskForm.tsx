@@ -119,20 +119,24 @@ export default function TaskForm({
         return newErrors;
       });
     } catch (error: unknown) {
-      // Set error if validation fails
+      // Set error if validation fails - extract just the message
       let errorMessage = "Invalid value";
-      if (error instanceof Error) {
+      
+      // Check if it's a ZodError
+      if (error && typeof error === "object" && "issues" in error && Array.isArray((error as { issues: unknown[] }).issues)) {
+        // Zod error - extract first issue message
+        const zodError = error as { issues: Array<{ message?: string }> };
+        errorMessage = zodError.issues[0]?.message || "Invalid value";
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       } else if (error && typeof error === "object") {
-        // Zod error format
-        if ("issues" in error) {
-          const zodError = error as { issues: Array<{ message: string }> };
-          errorMessage = zodError.issues[0]?.message || "Invalid value";
-        } else if ("errors" in error) {
-          const zodError = error as { errors: Array<{ message: string }> };
+        // Handle serialized Zod error format
+        if ("errors" in error && Array.isArray((error as { errors: unknown[] }).errors)) {
+          const zodError = error as { errors: Array<{ message?: string }> };
           errorMessage = zodError.errors[0]?.message || "Invalid value";
         }
       }
+      
       setErrors((prev) => ({ ...prev, [fieldName]: errorMessage }));
     }
   };
