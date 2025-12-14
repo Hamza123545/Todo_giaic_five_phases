@@ -1,0 +1,76 @@
+# Prometheus Configuration for Todo Backend
+# This configuration defines how Prometheus scrapes metrics from the backend
+
+global:
+  scrape_interval: 15s      # How often to scrape targets
+  evaluation_interval: 15s  # How often to evaluate rules
+  external_labels:
+    cluster: 'todo-backend'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load rules and check for updates every 10s
+rule_files:
+  - 'alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Backend API scraping
+  - job_name: 'todo-backend'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - 'backend:8000'
+        labels:
+          service: 'todo-api'
+          tier: 'backend'
+
+    # Relabeling for better metric organization
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__scheme__]
+        target_label: scheme
+
+  # PostgreSQL exporter (if using postgres_exporter)
+  - job_name: 'postgres'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - 'postgres-exporter:9187'
+        labels:
+          service: 'database'
+          tier: 'data'
+
+  # Node exporter for system metrics (optional)
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - 'node-exporter:9100'
+        labels:
+          service: 'system'
+
+  # Cadvisor for container metrics (optional)
+  - job_name: 'cadvisor'
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - 'cadvisor:8080'
+        labels:
+          service: 'containers'
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention:
+      time: 15d      # Keep metrics for 15 days
+      size: 10GB     # Max storage size

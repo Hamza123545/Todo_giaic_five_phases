@@ -1,61 +1,60 @@
 <!--
 Sync Impact Report:
-Version change: 2.2.0 → 2.3.0
+Version change: 2.3.0 → 3.0.0 (MAJOR)
 Modified principles:
-  - II. Web-First Multi-User Application: Enhanced with task filtering and sorting requirements
-  - X. RESTful API Design: Enhanced with query parameters, filtering, and OpenAPI documentation requirements
-  - IV. Modular Monorepo Structure: Enhanced with detailed directory structure
+  - Added XII. AI-Powered Conversational Interface (new principle)
 Added sections:
-  - IX. Multi-User Architecture
-  - X. RESTful API Design (enhanced with query parameters and OpenAPI)
-  - XI. JWT Authentication
-  - Enhanced Features section
-  - Specification Organization subsection
-  - Specification Referencing subsection
-  - Spec-Kit Plus Configuration subsection
-  - Development Workflow with Spec-Kit subsection
-  - Development Commands subsection
-  - Version Control and GitHub Integration section
-  - Root CLAUDE.md Requirements subsection
-  - Frontend CLAUDE.md Requirements subsection
-  - Backend CLAUDE.md Requirements subsection
-  - Docker Compose (Optional) subsection
-  - Docker Configuration for Deployment section
-  - CI/CD Pipelines section
-  - Frontend File Structure subsection
-  - Frontend Patterns subsection
-  - Backend File Structure subsection
-  - Backend Patterns subsection
-  - Phase II Mandatory Requirements section
+  - Phase III Mandatory Requirements (complete new phase)
+  - AI Chatbot Functionality subsection
+  - Technology Stack for Phase III subsection
+  - Database Models (Conversation, Message) subsection
+  - Chat API Endpoint subsection
+  - MCP Tools (5 required tools) subsection
+  - Agent Behavior subsection
+  - Conversation Flow subsection
+  - Natural Language Commands subsection
+  - OpenAI ChatKit Setup subsection
+  - Architecture Requirements subsection
+  - Service Layer subsection
+  - Agent Integration subsection
+  - Environment Variables (Phase III) subsection
+  - Dependencies (Phase III) subsection
+  - Project Structure Updates (Phase III) subsection
+  - Success Criteria (Phase III) subsection
 Modified Technical Standards:
-  - Added Version Control requirements
-  - Added MCP Servers requirements
-  - Added Commit Tools requirements
-  - Added Context Management requirements
-  - Added Docker and CI/CD requirements
+  - Added AI Framework (OpenAI Agents SDK) requirement
+  - Added MCP Server (Official MCP SDK) requirement
+  - Added Chat Frontend (OpenAI ChatKit) requirement
+  - Added Streaming (Server-Sent Events) requirement
+  - Added Stateless Architecture requirement
 Modified Development Workflow:
-  - Added steps 9-12 for GitHub operations using MCP servers
-Modified Root CLAUDE.md Requirements:
-  - Added GitHub Workflow requirements
-  - Added MCP Server Usage requirements
-  - Added Commit Practices requirements
-  - Added Branch Management requirements
-  - Added Context Management requirements
-  - Added Docker and CI/CD requirements
-Modified Frontend CLAUDE.md Requirements:
-  - Added Better Auth requirement
-  - Added Better Auth MCP Server requirement
-  - Added API client requirement
-Modified Backend CLAUDE.md Requirements:
-  - Added JWT Verification requirement
-  - Added User Isolation requirement
-  - Added Better Auth Integration requirement
+  - Added Phase 3 development steps
+  - Added MCP tools implementation requirement
+  - Added Agent development requirement
+  - Added Chat endpoint implementation requirement
+  - Added Service layer extraction requirement
+Modified Repository Structure:
+  - Added /backend/src/agents/ directory
+  - Added /backend/src/mcp/ directory
+  - Added /backend/src/services/ directory
+  - Added /backend/src/models/conversation.py
+  - Added /backend/src/models/message.py
+  - Added /backend/src/routers/chat.py
+  - Added /backend/src/schemas/chat.py
+  - Added /frontend/src/components/chatkit/ directory
+  - Added /frontend/src/app/chat/ directory
+  - Added /specs/features/chatbot.md
+  - Added /specs/api/chat-endpoint.md
+  - Updated /specs/api/mcp-tools.md (enhanced)
+Modified Spec-Kit Plus Configuration:
+  - Added phase3-chatbot: features: [task-crud, authentication, chatbot]
 Modified Governance:
-  - Added Version Control Compliance requirement
-  - Added MCP Server Requirement
-  - Added CI/CD Pipeline Compliance requirement
-  - Added Phase II Mandatory Requirements section
-  - Added Better Auth MCP Server Requirement section
+  - Added Phase III Mandatory Requirements section
+  - Added Stateless Architecture Requirement
+  - Added MCP Server Requirement (for task operations)
+Modified Version:
+  - Version: 2.3.0 → 3.0.0 (MAJOR bump for new phase)
+  - Last Amended: 2025-12-08 → 2025-12-14
 Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md: ⚠ pending
@@ -63,7 +62,11 @@ Templates requiring updates:
   - .specify/templates/tasks-template.md: ⚠ pending
   - .specify/templates/commands/sp.constitution.md: ⚠ pending
   - .specify/templates/commands/sp.phr.md: ⚠ pending
-Follow-up TODOs: None
+Follow-up TODOs:
+  - Create chatbot.md specification in /specs/features/
+  - Create chat-endpoint.md specification in /specs/api/
+  - Update or create mcp-tools.md specification in /specs/api/
+  - Review and update templates to align with Phase III requirements
 -->
 # Full-Stack Web Todo Application Constitution
 
@@ -146,6 +149,182 @@ All advanced features MUST be implemented as part of Phase II:
 - Context7 MCP Server MUST be used for code context
 - Better Auth MCP Server MUST be used for authentication patterns
 - All operations MUST go through MCP servers, not direct commands
+
+## Phase III Mandatory Requirements
+
+**All Phase III requirements are MANDATORY - nothing is optional.**
+
+### AI Chatbot Functionality (All Required)
+All AI chatbot features MUST be implemented:
+1. **Conversational Interface** - Users MUST be able to manage tasks through natural language conversation
+2. **Natural Language Task Management** - All 5 Basic Level features (Add, List, Complete, Delete, Update) MUST work via natural language commands
+3. **Conversation Persistence** - All conversations MUST be persisted to database (stateless server architecture)
+4. **Streaming Responses** - Chat responses MUST stream in real-time using Server-Sent Events (SSE)
+5. **Conversation Context** - Chatbot MUST maintain conversation context across multiple messages
+6. **Error Handling** - Chatbot MUST provide helpful error messages when commands cannot be understood
+7. **Action Confirmations** - Chatbot MUST confirm all successful task operations with friendly responses
+
+### Technology Stack (All Required)
+- **Frontend Chat Interface**: OpenAI ChatKit MUST be used for the conversational UI
+- **Backend AI Framework**: OpenAI Agents SDK MUST be used for AI logic and agent orchestration
+- **MCP Server**: Official MCP SDK MUST be used to build MCP server with task operations as tools
+- **Database Models**: New models MUST be added: Conversation and Message (in addition to existing Task model)
+- **Stateless Architecture**: Chat endpoint MUST be stateless - all conversation state persisted to database
+- **Authentication**: Better Auth JWT authentication MUST be used (same as Phase 2)
+
+### Database Models (All Required)
+Three database models MUST exist:
+1. **Task** (existing from Phase 2) - user_id, id, title, description, completed, created_at, updated_at
+2. **Conversation** (NEW) - user_id, id, created_at, updated_at (represents chat session)
+3. **Message** (NEW) - user_id, id, conversation_id, role (user/assistant), content, tool_calls (JSON), created_at
+
+### Chat API Endpoint (Required)
+- **Endpoint**: `POST /api/{user_id}/chat` MUST be implemented
+- **Request Fields**:
+  - `conversation_id` (integer, optional) - Existing conversation ID (creates new if not provided)
+  - `message` (string, required) - User's natural language message
+- **Response Fields**:
+  - `conversation_id` (integer) - The conversation ID
+  - `response` (string) - AI assistant's response
+  - `tool_calls` (array) - List of MCP tools invoked
+- **Streaming**: Response MUST be streamed via Server-Sent Events (SSE)
+- **Authentication**: Endpoint MUST require valid JWT token
+- **User Isolation**: Endpoint MUST enforce user isolation (users can only access their own conversations)
+
+### MCP Tools (All 5 Required)
+MCP server MUST expose exactly 5 tools for the AI agent:
+
+1. **add_task** (Required)
+   - Purpose: Create a new task
+   - Parameters: user_id (string, required), title (string, required), description (string, optional)
+   - Returns: task_id, status, title
+   - Example: `{"user_id": "ziakhan", "title": "Buy groceries", "description": "Milk, eggs, bread"}`
+
+2. **list_tasks** (Required)
+   - Purpose: Retrieve tasks from the list
+   - Parameters: user_id (string, required), status (string, optional: "all", "pending", "completed")
+   - Returns: Array of task objects
+   - Example: `{"user_id": "ziakhan", "status": "pending"}`
+
+3. **complete_task** (Required)
+   - Purpose: Mark a task as complete
+   - Parameters: user_id (string, required), task_id (integer, required)
+   - Returns: task_id, status, title
+   - Example: `{"user_id": "ziakhan", "task_id": 3}`
+
+4. **delete_task** (Required)
+   - Purpose: Remove a task from the list
+   - Parameters: user_id (string, required), task_id (integer, required)
+   - Returns: task_id, status, title
+   - Example: `{"user_id": "ziakhan", "task_id": 2}`
+
+5. **update_task** (Required)
+   - Purpose: Modify task title or description
+   - Parameters: user_id (string, required), task_id (integer, required), title (string, optional), description (string, optional)
+   - Returns: task_id, status, title
+   - Example: `{"user_id": "ziakhan", "task_id": 1, "title": "Buy groceries and fruits"}`
+
+All MCP tools MUST be stateless and MUST store state in the database.
+
+### Agent Behavior (All Required)
+AI agent MUST follow these behaviors:
+- **Task Creation**: When user mentions adding/creating/remembering something, use add_task
+- **Task Listing**: When user asks to see/show/list tasks, use list_tasks with appropriate filter
+- **Task Completion**: When user says done/complete/finished, use complete_task
+- **Task Deletion**: When user says delete/remove/cancel, use delete_task
+- **Task Update**: When user says change/update/rename, use update_task
+- **Confirmation**: Always confirm actions with friendly response
+- **Error Handling**: Gracefully handle task not found and other errors
+
+### Conversation Flow (Stateless Request Cycle) (Required)
+Every chat request MUST follow this stateless flow:
+1. Receive user message
+2. Fetch conversation history from database
+3. Build message array for agent (history + new message)
+4. Store user message in database
+5. Run agent with MCP tools
+6. Agent invokes appropriate MCP tool(s)
+7. Store assistant response in database
+8. Return response to client
+9. Server holds NO state (ready for next request)
+
+### Natural Language Commands (All Required)
+Chatbot MUST understand and respond to these natural language patterns:
+- "Add a task to buy groceries" → Call add_task with title "Buy groceries"
+- "Show me all my tasks" → Call list_tasks with status "all"
+- "What's pending?" → Call list_tasks with status "pending"
+- "Mark task 3 as complete" → Call complete_task with task_id 3
+- "Delete the meeting task" → Call list_tasks first, then delete_task
+- "Change task 1 to 'Call mom tonight'" → Call update_task with new title
+- "I need to remember to pay bills" → Call add_task with title "Pay bills"
+- "What have I completed?" → Call list_tasks with status "completed"
+
+### OpenAI ChatKit Setup (Required)
+- Frontend MUST use OpenAI ChatKit for the conversational interface
+- ChatKit MUST be configured with domain allowlist (for production)
+- Environment variable `NEXT_PUBLIC_OPENAI_DOMAIN_KEY` MUST be set (for production)
+- Local development (`localhost`) typically works without domain allowlist configuration
+
+### Architecture Requirements (All Required)
+- **Stateless Server**: Server MUST hold NO state between requests
+- **Database Persistence**: All conversation state MUST be persisted to database
+- **Horizontal Scaling**: Architecture MUST support horizontal scaling (multiple server instances)
+- **Resilience**: Server restarts MUST NOT lose conversation state
+- **Testability**: Each request MUST be independent and reproducible
+
+### Service Layer (Required)
+- Business logic MUST be extracted into service layer
+- MCP tools and REST endpoints MUST share same service layer logic
+- Service layer MUST include:
+  - `task_service.py` - Task CRUD operations (shared by MCP tools and REST endpoints)
+  - `conversation_service.py` - Conversation and message management
+
+### Agent Integration (Required)
+- `agents/factory.py` MUST provide centralized model factory for AI provider abstraction
+- `agents/todo_agent.py` MUST implement TodoAgent with MCP tools
+- Agent MUST use OpenAI Agents SDK (Agent + Runner)
+- Agent MUST support multiple AI providers via environment variables (OpenAI, Gemini)
+
+### Environment Variables (New - All Required)
+Backend MUST include:
+- `LLM_PROVIDER` (openai or gemini)
+- `OPENAI_API_KEY` (required if LLM_PROVIDER=openai)
+- `OPENAI_DEFAULT_MODEL` (e.g., gpt-4o-mini)
+- `GEMINI_API_KEY` (required if LLM_PROVIDER=gemini)
+- `GEMINI_DEFAULT_MODEL` (e.g., gemini-2.0-flash)
+
+Frontend MUST include:
+- `NEXT_PUBLIC_CHATKIT_API_URL` (e.g., /api/chat)
+
+### Dependencies (New - All Required)
+Backend `pyproject.toml` MUST include:
+- `openai-agents >= 0.1.0`
+- `mcp >= 1.0.0`
+
+Frontend `package.json` MUST include:
+- `@openai/chatkit >= 0.1.0`
+
+### Project Structure Updates (Required)
+Add to repository structure:
+- `/backend/src/agents/` - Agent factory and TodoAgent
+- `/backend/src/mcp/` - MCP tools implementation
+- `/backend/src/services/` - Service layer (task_service, conversation_service)
+- `/backend/src/models/conversation.py` - Conversation model
+- `/backend/src/models/message.py` - Message model
+- `/backend/src/routers/chat.py` - Chat endpoint
+- `/backend/src/schemas/chat.py` - Chat request/response schemas
+- `/frontend/src/components/chatkit/` - ChatKit components
+- `/frontend/src/app/chat/` - Chat page
+
+### Success Criteria (All Required)
+- Users can add a task through natural language in under 5 seconds from message submission to confirmation
+- Users can complete all 5 core operations (add, list, complete, delete, update) through conversation
+- Conversation history persists across browser refreshes and server restarts
+- System correctly interprets at least 90% of clearly-phrased task management requests on first attempt
+- Response streaming begins within 2 seconds of user message submission
+- System handles 50 concurrent chat sessions without degradation
+- Users report the chat interface as "intuitive" or "easy to use" in 80% of feedback
+- Error messages guide users toward successful task completion 90% of the time
 
 ## Core Principles
 
@@ -239,6 +418,9 @@ FastAPI MUST automatically generate OpenAPI/Swagger documentation
 ### XI. JWT Authentication
 Authentication MUST use Better Auth library on the frontend. Better Auth MUST be configured to issue JWT (JSON Web Token) tokens upon user login (signup/signin). Better Auth MUST enable JWT plugin to issue tokens. Backend MUST verify JWT tokens on every API request using a shared secret key (BETTER_AUTH_SECRET). JWT tokens MUST be included in the Authorization header: `Authorization: Bearer <token>`. Frontend API client MUST attach JWT token to every API request header. Backend MUST extract user information from JWT token and validate it matches the requested user_id in the URL path. Tokens MUST have expiration (e.g., 7 days) and be stateless (no server-side session storage required). Requests without valid token MUST receive 401 Unauthorized response. Backend MUST add middleware to verify JWT and extract user information.
 
+### XII. AI-Powered Conversational Interface
+The application MUST provide an AI-powered conversational interface for task management. Users MUST be able to manage tasks through natural language instead of traditional UI interactions. The chatbot MUST use OpenAI Agents SDK for AI logic, MCP (Model Context Protocol) server for task operations, and OpenAI ChatKit for the frontend interface. All conversations MUST be persisted to database for stateless server architecture. The chatbot MUST support all 5 Basic Level features (Add, List, Complete, Delete, Update) through natural language commands. The system MUST stream responses in real-time and maintain conversation context across multiple messages.
+
 ## Enhanced Features (All Mandatory for Phase II)
 
 **All enhanced features listed below are MANDATORY for Phase II completion. Nothing is optional.**
@@ -293,6 +475,12 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   **Styling**: Tailwind CSS MUST be used for frontend styling.
 *   **Spec-Driven Development**: Claude Code + Spec-Kit Plus MUST be used for spec-driven development.
 *   **Tooling**: UV MUST be used for Python dependency management. npm/pnpm MUST be used for frontend dependencies.
+
+*   **AI Framework**: OpenAI Agents SDK MUST be used for AI logic and agent orchestration.
+*   **MCP Server**: Official MCP SDK MUST be used to build MCP server with task operations as tools.
+*   **Chat Frontend**: OpenAI ChatKit MUST be used for the conversational UI.
+*   **Streaming**: Server-Sent Events (SSE) MUST be used for streaming chat responses.
+*   **Stateless Architecture**: Chat endpoint MUST be stateless - all conversation state persisted to database.
 
 *   **Version Control**: Git MUST be used for version control with GitHub as remote repository. All version control operations MUST be performed through MCP GitHub server.
 
@@ -368,15 +556,21 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   **Specification**: Specifications (`spec.md`) MUST clearly describe user stories for the application's core features: adding tasks, listing tasks with status indicators, updating task details, deleting tasks by ID, and marking tasks complete/incomplete as web application features.
 *   **Planning**: The architectural plan (`plan.md`) MUST include details on frontend and backend modules, key API endpoints, data models, authentication flow, and how the web interface maps to core task operations.
 *   **Implementation**: Code implementation MUST strictly follow the generated specification and plan.
+*   **Phase 3 Development**: All Phase 3 features MUST follow spec-driven development workflow.
+*   **MCP Tools**: MCP tools MUST be implemented using Official MCP SDK.
+*   **Agent Development**: AI agents MUST use OpenAI Agents SDK.
+*   **Chat Endpoint**: Chat endpoint MUST be implemented as stateless endpoint with database persistence.
+*   **Service Layer**: Business logic MUST be extracted into service layer shared by MCP tools and REST endpoints.
 *   **Repository Structure**: The project repository MUST contain:
   - `constitution.md` at `.specify/memory/constitution.md`
   - `/.spec-kit/config.yaml` - Spec-Kit Plus configuration file
   - `/specs/` - Organized specifications directory:
     - `/specs/overview.md` - Project overview and current phase status
     - `/specs/architecture.md` - System architecture documentation (MANDATORY - required for Phase II)
-    - `/specs/features/` - Feature specifications (task-crud.md, authentication.md, chatbot.md for future phases)
+    - `/specs/features/` - Feature specifications (task-crud.md, authentication.md, chatbot.md)
     - `/specs/api/rest-endpoints.md` - REST API endpoint specifications
-    - `/specs/api/mcp-tools.md` - MCP tools specifications (MANDATORY - required for Phase II)
+    - `/specs/api/chat-endpoint.md` - Chat API endpoint specification (MANDATORY - required for Phase III)
+    - `/specs/api/mcp-tools.md` - MCP tools specifications (MANDATORY - required for Phase III)
     - `/specs/database/schema.md` - Database schema and model specifications
     - `/specs/ui/components.md` - UI component specifications
     - `/specs/ui/pages.md` - UI page and route specifications
@@ -385,6 +579,8 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
     - `/frontend/app/` - Next.js App Router pages and layouts
     - `/frontend/components/` - Reusable UI components
     - `/frontend/lib/api.ts` - Centralized API client library
+    - `/frontend/src/components/chatkit/` - ChatKit UI components (Phase III)
+    - `/frontend/src/app/chat/` - Chat page route (Phase III)
   - `/backend/` - FastAPI application directory
     - `/backend/CLAUDE.md` - Backend-specific development guidelines
     - `/backend/main.py` - FastAPI application entry point
@@ -393,8 +589,15 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
     - `/backend/db.py` - Database connection and session management
     - `/backend/middleware/` - Custom middleware (JWT verification, CORS)
     - `/backend/schemas/` - Pydantic request/response models
-    - `/backend/services/` - Business logic layer
+    - `/backend/services/` - Business logic layer (task_service, conversation_service)
     - `/backend/tests/` - Test files
+    - `/backend/src/agents/` - Agent factory and TodoAgent implementation (Phase III)
+    - `/backend/src/mcp/` - MCP tools implementation (Phase III)
+    - `/backend/src/services/` - Service layer (task_service, conversation_service) (Phase III)
+    - `/backend/src/models/conversation.py` - Conversation database model (Phase III)
+    - `/backend/src/models/message.py` - Message database model (Phase III)
+    - `/backend/src/routers/chat.py` - Chat API endpoint (Phase III)
+    - `/backend/src/schemas/chat.py` - Chat request/response schemas (Phase III)
   - `/CLAUDE.md` - Root-level Claude Code instructions
   - `/docker-compose.yml` - Docker Compose configuration for running both services together (MANDATORY - required for Phase II)
   - `/README.md` - Project documentation with setup and run instructions
@@ -422,12 +625,12 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   Configuration file MUST be at `/.spec-kit/config.yaml`
 *   Configuration MUST include:
   - name: hackathon-todo (or project name)
-  - version: "2.0.0"
+  - version: "3.0.0"
   - structure: specs_dir, features_dir, api_dir, database_dir, ui_dir
   - phases:
     - phase1-console: features: [task-crud]
     - phase2-web: features: [task-crud, authentication]
-    - phase3-chatbot: features: [task-crud, authentication, chatbot] (future)
+    - phase3-chatbot: features: [task-crud, authentication, chatbot]
 
 **Development Workflow with Spec-Kit:**
 1. Read relevant specification: `@specs/features/[feature].md`
@@ -688,5 +891,8 @@ Authentication MUST use Better Auth library on the frontend. Better Auth MUST be
 *   **CI/CD Pipeline Compliance**: All CI/CD pipelines MUST be properly configured and tested. Backend deployment MUST use `api.phase_2` branch, frontend deployment MUST use `phase_2` branch. All deployments MUST go through CI/CD pipelines, not manual deployments.
 *   **Phase II Mandatory Requirements**: All Phase II requirements are MANDATORY. No features, endpoints, or configurations are optional. All 5 Basic Level features, all API endpoints, responsive frontend, database, authentication, Docker, CI/CD, and MCP server usage are required.
 *   **Better Auth MCP Server Requirement**: Better Auth MCP server MUST be used for all authentication-related patterns and configurations. This ensures consistent authentication implementation across the project.
+*   **Phase III Mandatory Requirements**: All Phase III requirements are MANDATORY. No features, endpoints, or configurations are optional. All AI chatbot functionality, MCP tools, conversation persistence, streaming responses, and agent behaviors are required.
+*   **Stateless Architecture Requirement**: Chat endpoint MUST be stateless. All conversation state MUST be persisted to database. Server MUST hold NO state between requests.
+*   **MCP Server Requirement (Task Operations)**: MCP server MUST be built using Official MCP SDK. All task operations MUST be exposed as MCP tools. MCP tools MUST be stateless and store state in database.
 
-**Version**: 2.3.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-08
+**Version**: 3.0.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-14
