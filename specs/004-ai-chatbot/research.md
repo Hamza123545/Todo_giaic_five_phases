@@ -226,17 +226,18 @@ async def chat_endpoint(
 
 ---
 
-## 4. Conversation Persistence
+## 4. Conversation Persistence (Updated Implementation)
 
 ### Decision
-Implement **database-first stateless architecture** where all conversation state is persisted to PostgreSQL.
+Implement **dual architecture** with SQLiteSession for ChatKit endpoint and database persistence for direct endpoint.
 
 ### Rationale
-- **Stateless Server Requirement**: Constitution Principle XII mandates stateless architecture
+- **ChatKit Integration**: OpenAI Agents SDK's `SQLiteSession` provides automatic conversation memory management
+- **Stateless Server Requirement**: Constitution Principle XII mandates stateless architecture (still maintained)
 - **Horizontal Scalability**: Any server instance can handle any user's request (no sticky sessions)
-- **Survives Server Restarts**: Conversations persist across deployments and crashes
-- **Clean Separation**: Clear separation between ephemeral (streaming) and persistent (database) state
-- **Multi-Device Support**: User can switch devices and resume conversation seamlessly
+- **Survives Server Restarts**: SQLiteSession persists in SQLite database, conversations survive restarts
+- **Automatic Memory**: SDK handles history retrieval/storage automatically
+- **Dual Support**: Both ChatKit protocol and direct REST endpoints supported
 
 ### Alternatives Considered
 1. **In-Memory with Redis Cache**
@@ -256,6 +257,23 @@ Implement **database-first stateless architecture** where all conversation state
 
 ### Stateless Request Cycle Flow
 
+**ChatKit Endpoint** (`/api/chatkit`):
+```text
+Step 1: User sends message via ChatKit widget to POST /api/chatkit
+Step 2: Middleware validates JWT token (user_id extracted)
+Step 3: ChatKit server creates/loads SQLiteSession for user+thread
+        session_id = f"user_{user_id}_thread_{thread.id}"
+        session = SQLiteSession(session_id, "chat_sessions.db")
+Step 4: SQLiteSession automatically retrieves conversation history
+        history = await session.get_items()  # Returns full conversation
+Step 5: Agent invoked with session (automatic memory management)
+        Runner.run_streamed(agent, user_message, session=session)
+Step 6: Agent streams response chunks to client via SSE
+Step 7: SQLiteSession automatically stores conversation for future turns
+Step 8: Server state cleared (stateless), session persists in SQLite
+```
+
+**Direct Chat Endpoint** (`/api/{user_id}/chat`):
 ```text
 Step 1: User sends message to POST /api/{user_id}/chat
 Step 2: Middleware validates JWT token (user_id matches token claim)
@@ -362,6 +380,13 @@ CREATE INDEX idx_messages_conversation_created ON messages(conversation_id, crea
 - **State**: Conversations currently Active only (no archived/deleted implementation in Phase 3)
 - **Validation**: All validation rules enforced at service layer (not database constraints)
 - **Relationships**: Conversation → Messages (ordered by created_at for chronological history)
+
+**SQLiteSession Storage** (ChatKit endpoint):
+- **Location**: `chat_sessions.db` (SQLite database)
+- **Schema**: Managed automatically by OpenAI Agents SDK
+- **Session ID**: `user_{user_id}_thread_{thread.id}` for user+thread isolation
+- **Automatic**: History retrieval and storage handled by SDK
+- **Persistence**: Survives server restarts (SQLite file-based)
 
 ---
 
@@ -695,15 +720,15 @@ async def create_task_endpoint(
 
 ## Research Summary
 
-| Topic                          | Decision                                      | Confidence |
-|--------------------------------|-----------------------------------------------|------------|
-| OpenAI Agents SDK Integration  | Use Agents SDK with function_tool pattern     | High       |
-| MCP Tools Design               | In-process tools, no subprocess               | High       |
-| Streaming Architecture         | Server-Sent Events (SSE)                      | High       |
-| Conversation Persistence       | Database-first stateless architecture         | High       |
-| Model Factory Pattern          | Centralized factory with env-based selection  | High       |
-| ChatKit Frontend Integration   | Custom backend mode with JWT auth             | High       |
-| Service Layer Design           | Async service layer shared by MCP and REST    | High       |
+| Topic                          | Decision                                      | Confidence | Implementation Status |
+|--------------------------------|-----------------------------------------------|------------|----------------------|
+| OpenAI Agents SDK Integration  | Use Agents SDK with function_tool pattern     | High       | ✅ Implemented       |
+| MCP Tools Design               | In-process tools, no subprocess               | High       | ✅ Implemented       |
+| Streaming Architecture         | Server-Sent Events (SSE)                      | High       | ✅ Implemented       |
+| Conversation Persistence       | Dual: SQLiteSession + Database persistence    | High       | ✅ Implemented       |
+| Model Factory Pattern          | Centralized factory with env-based selection  | High       | ✅ Implemented       |
+| ChatKit Frontend Integration   | Custom backend mode with JWT auth             | High       | ✅ Implemented       |
+| Service Layer Design           | Async service layer shared by MCP and REST    | High       | ✅ Implemented       |
 
 **Confidence Justification**:
 - All decisions align with constitution principles (especially Principle XII)
@@ -716,13 +741,20 @@ async def create_task_endpoint(
 
 ## Status
 
-**Status**: ✅ **Complete** - Ready for implementation
+**Status**: ✅ **Complete** - Implementation finished, documentation updated
+
+**Implementation Status**:
+- ✅ All 42 tasks completed (see `tasks.md`)
+- ✅ All 5 MCP tools implemented
+- ✅ ChatKit widget integrated
+- ✅ Dual conversation memory (SQLiteSession + database)
+- ✅ Both endpoints working (`/api/chatkit` and `/api/{user_id}/chat`)
 
 **Next Steps**:
-1. Proceed with Phase 1: Design & Contracts (create database models, schemas)
-2. Follow implementation order from tasks.md (when generated)
-3. Validate each implementation pattern against this research document
-4. Update this document if new research findings emerge during implementation
+1. ✅ Implementation complete
+2. ⚠️ Load testing for 50 concurrent sessions
+3. ⚠️ User acceptance testing
+4. ✅ Documentation updated
 
 **Validation Checklist**:
 - [x] All 7 research topics documented
@@ -731,4 +763,10 @@ async def create_task_endpoint(
 - [x] Implementation patterns provided with code examples
 - [x] All decisions align with constitution principles
 - [x] High confidence in all technical choices
+- [x] Actual implementation documented (SQLiteSession approach)
+- [x] Differences from plan documented
+
+**See Also**:
+- `IMPLEMENTATION_STATUS.md` - Detailed implementation status
+- `backend/CONVERSATION_MEMORY.md` - SQLiteSession implementation details
 

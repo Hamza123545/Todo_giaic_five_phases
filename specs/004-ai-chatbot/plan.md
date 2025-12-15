@@ -532,35 +532,50 @@ def create_model(provider: str = None) -> Any:
 
 ---
 
-### 4. Stateless Chat Architecture
+### 4. Stateless Chat Architecture (Updated Implementation)
 
-**Decision**: All conversation state persisted to database; server holds no in-memory state between requests.
+**Decision**: **Dual Architecture** - SQLiteSession for ChatKit endpoint, database persistence for direct endpoint.
 
 **Rationale**:
-- **Horizontal scalability**: Any server instance can handle any request (no sticky sessions)
-- **Resilience**: Server restarts don't lose conversation state
-- **Cloud-native**: Aligns with serverless and containerized deployment patterns
-- **Multi-device support**: User can continue conversation from different devices
-- **Testability**: Each request is independent and reproducible
+- **ChatKit Integration**: OpenAI Agents SDK's `SQLiteSession` provides automatic conversation memory management
+- **Horizontal scalability**: Stateless server design still maintained
+- **Resilience**: SQLiteSession persists across server restarts (SQLite database)
+- **Simplicity**: Automatic history management reduces manual conversation loading code
+- **Dual Support**: Both ChatKit protocol and direct REST endpoints supported
 
 **Alternatives Considered**:
+- **Database-only persistence**: Rejected - More complex manual history management, ChatKit SDK provides SQLiteSession
 - **In-memory conversation state**: Rejected - doesn't scale horizontally, lost on restart
-- **Redis session store**: Rejected - adds infrastructure complexity, still requires persistence to DB
-- **Stateful WebSocket connections**: Rejected - harder to scale, requires sticky sessions
+- **Redis session store**: Rejected - adds infrastructure complexity
 
-**Implementation**:
+**Actual Implementation**:
+
+**ChatKit Endpoint** (`/api/chatkit`):
 ```
 For each chat request:
-1. Fetch conversation history from DB (Conversation + Messages)
-2. Store new user message to DB
+1. Create/load SQLiteSession for user+thread combination
+2. SQLiteSession automatically retrieves conversation history
+3. Run agent with session (automatic memory)
+4. SQLiteSession stores conversation for future turns
+5. Return response (server forgets everything, session persists in SQLite)
+```
+
+**Direct Chat Endpoint** (`/api/{user_id}/chat`):
+```
+For each chat request:
+1. Fetch conversation history from PostgreSQL (Conversation + Messages)
+2. Store new user message to PostgreSQL
 3. Run agent with full message history
-4. Store assistant response to DB
+4. Store assistant response to PostgreSQL
 5. Return response (server forgets everything)
 ```
 
-**Database Schema**:
-- Conversation table: id, user_id, created_at, updated_at
-- Message table: id, user_id, conversation_id, role, content, tool_calls, created_at
+**Storage**:
+- **ChatKit**: SQLiteSession (SQLite database: `chat_sessions.db`)
+- **Direct Endpoint**: PostgreSQL (Conversation and Message tables)
+- **Both**: Stateless server, state persisted externally
+
+**Note**: See `backend/CONVERSATION_MEMORY.md` for detailed SQLiteSession implementation.
 
 ---
 
