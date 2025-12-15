@@ -27,6 +27,9 @@ dependencies = [
     "openai-agents>=0.2.9",
     "mcp>=1.0.0",
     "openai-agents[litellm]>=0.2.9",
+    "sse-starlette>=2.0.0",
+    "nest-asyncio>=1.6.0",
+    "openai-chatkit>=0.1.0",
 ]
 
 [project.optional-dependencies]

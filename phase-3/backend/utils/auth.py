@@ -4,8 +4,8 @@ JWT verification for Better Auth tokens.
 This module provides JWT verification using the JWKS endpoint from Better Auth
 and extracts the user ID from the token's 'sub' claim.
 
-Note: This replaces the previous HS256 shared secret approach with JWKS
-to match Better Auth's JWT plugin token generation.
+Note: This uses JWKS to verify Better Auth's JWT tokens which are signed
+with EdDSA or RS256 and include a 'kid' (key ID) in the header.
 """
 
 import jwt
@@ -49,7 +49,8 @@ def generate_jwt_token(user_id: str, email: str) -> str:
         "iat": datetime.utcnow(),
     }
     
-    # Note: This uses HS256 for test compatibility, but Better Auth uses EdDSA/RS256
+    # Note: This uses HS256 for test compatibility
+    # In production, Better Auth generates tokens with EdDSA/RS256
     return jwt.encode(payload, BETTER_AUTH_SECRET, algorithm="HS256")
 
 
@@ -105,7 +106,7 @@ def verify_jwt_token(token: str) -> Dict[str, str]:
     """
     import logging
     logger = logging.getLogger("todo_api")
-    
+
     try:
         # Get JWKS client and signing key
         # Clear cache if connection fails to force refresh

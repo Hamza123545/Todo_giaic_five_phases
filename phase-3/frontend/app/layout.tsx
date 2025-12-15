@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ui/toast";
@@ -60,6 +61,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* CRITICAL: Load ChatKit CDN script for widget styling */}
+        <Script
+          src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js"
+          strategy="afterInteractive"
+        />
         <ThemeProvider>
           <ToastProvider>
             {children}

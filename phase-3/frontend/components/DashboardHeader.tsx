@@ -15,6 +15,7 @@ import {
   LogOut,
   User as UserIcon,
   Home,
+  MessageSquare,
 } from "lucide-react";
 import DarkModeToggle from "./DarkModeToggle";
 
@@ -51,6 +52,7 @@ export default function DashboardHeader({ user, onSignOut }: DashboardHeaderProp
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Tasks", href: "/dashboard", icon: CheckSquare },
+    { name: "AI Chat", href: "/chat", icon: MessageSquare },
   ];
 
   return (

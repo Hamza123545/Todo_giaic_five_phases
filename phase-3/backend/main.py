@@ -27,7 +27,7 @@ else:
 
 # Import routes (must be after load_dotenv to ensure env vars are loaded)
 from routes import auth, tasks  # noqa: E402
-from routers import chat  # noqa: E402
+from routers import chat, chatkit  # noqa: E402
 
 # Import middleware
 from middleware.rate_limiting import limiter, get_rate_limit_exceeded_handler  # noqa: E402
@@ -47,25 +47,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     This handles database initialization and cleanup.
     """
     # Startup: Initialize database connection
-    print("🚀 Starting up Todo backend...")
-    
+    print("[STARTUP] Starting up Todo backend...")
+
     # Create database tables if they don't exist
     from db import create_db_and_tables
     try:
         create_db_and_tables()
-        print("✅ Database tables initialized")
+        print("[STARTUP] Database tables initialized")
     except Exception as e:
-        print(f"⚠️  Database initialization warning: {e}")
-        print("💡 Run 'uv run alembic upgrade head' to apply migrations")
-    
-    print("✅ Security middleware enabled")
-    print("✅ Rate limiting enabled")
-    print("✅ Performance monitoring enabled")
+        print(f"[WARNING] Database initialization warning: {e}")
+        print("[INFO] Run 'uv run alembic upgrade head' to apply migrations")
+
+    print("[STARTUP] Security middleware enabled")
+    print("[STARTUP] Rate limiting enabled")
+    print("[STARTUP] Performance monitoring enabled")
 
     yield
 
     # Shutdown: Clean up resources
-    print("🛑 Shutting down Todo backend...")
+    print("[SHUTDOWN] Shutting down Todo backend...")
 
 
 # Initialize FastAPI application
@@ -146,6 +146,7 @@ app.add_middleware(ErrorHandlingMiddleware)
 app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(chat.router)
+app.include_router(chatkit.router)  # ChatKit router has its own prefix
 
 
 @app.get("/", tags=["health"])

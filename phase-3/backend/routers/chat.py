@@ -7,15 +7,24 @@ with conversation persistence and SSE streaming.
 Endpoint: POST /api/{user_id}/chat
 """
 
+import asyncio
 import json
+import logging
 from typing import AsyncIterator
 
 from agents import Runner
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from openai import (
+    APIError,
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitError,
+    InternalServerError,
+)
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from agents.todo_agent import create_todo_agent
+from agent_config.todo_agent import create_todo_agent
 from db import get_async_session
 from middleware.jwt import verify_jwt_token
 from schemas.chat import ChatRequest, ChatResponse
@@ -25,9 +34,156 @@ from services.conversation_service import (
     get_or_create_conversation,
 )
 
+# Configure logger
+logger = logging.getLogger(__name__)
+
+# Retry configuration
+MAX_RETRIES = 3
+INITIAL_RETRY_DELAY = 1.0  # seconds
+MAX_RETRY_DELAY = 10.0  # seconds
+
 
 # Create router
 router = APIRouter(prefix="/api", tags=["chat"])
+
+
+async def run_agent_with_retry(agent, agent_messages: list, max_retries: int = MAX_RETRIES):
+    """
+    Run agent with exponential backoff retry logic for transient errors.
+
+    This function handles:
+    - Rate limit errors (429) - Retry with exponential backoff
+    - API connection errors - Retry with exponential backoff
+    - API timeout errors - Retry with exponential backoff
+    - Internal server errors (500, 503) - Retry with exponential backoff
+
+    Args:
+        agent: Configured Agent instance
+        agent_messages: List of message dictionaries for agent
+        max_retries: Maximum number of retry attempts (default 3)
+
+    Returns:
+        AsyncIterator: Agent streaming result
+
+    Raises:
+        HTTPException: User-friendly error after all retries exhausted
+    """
+    for attempt in range(max_retries):
+        try:
+            # Run agent with streaming
+            result = Runner.run_streamed(agent, agent_messages)
+            return result
+
+        except RateLimitError as e:
+            # Rate limit error - retry with exponential backoff
+            if attempt < max_retries - 1:
+                retry_delay = min(INITIAL_RETRY_DELAY * (2 ** attempt), MAX_RETRY_DELAY)
+                logger.warning(
+                    f"Rate limit error on attempt {attempt + 1}/{max_retries}. "
+                    f"Retrying in {retry_delay}s. Error: {str(e)}"
+                )
+                await asyncio.sleep(retry_delay)
+                continue
+            else:
+                logger.error(f"Rate limit error after {max_retries} attempts: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "RATE_LIMIT_EXCEEDED",
+                            "message": "The AI service is currently experiencing high demand. Please try again in a moment.",
+                        }
+                    }
+                )
+
+        except (APIConnectionError, APITimeoutError) as e:
+            # Network/timeout error - retry with exponential backoff
+            if attempt < max_retries - 1:
+                retry_delay = min(INITIAL_RETRY_DELAY * (2 ** attempt), MAX_RETRY_DELAY)
+                logger.warning(
+                    f"Network/timeout error on attempt {attempt + 1}/{max_retries}. "
+                    f"Retrying in {retry_delay}s. Error: {str(e)}"
+                )
+                await asyncio.sleep(retry_delay)
+                continue
+            else:
+                logger.error(f"Network/timeout error after {max_retries} attempts: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "NETWORK_ERROR",
+                            "message": "Unable to connect to the AI service. Please check your internet connection and try again.",
+                        }
+                    }
+                )
+
+        except InternalServerError as e:
+            # API internal server error - retry with exponential backoff
+            if attempt < max_retries - 1:
+                retry_delay = min(INITIAL_RETRY_DELAY * (2 ** attempt), MAX_RETRY_DELAY)
+                logger.warning(
+                    f"API server error on attempt {attempt + 1}/{max_retries}. "
+                    f"Retrying in {retry_delay}s. Error: {str(e)}"
+                )
+                await asyncio.sleep(retry_delay)
+                continue
+            else:
+                logger.error(f"API server error after {max_retries} attempts: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "AI_SERVICE_UNAVAILABLE",
+                            "message": "The AI service is temporarily unavailable. Please try again later.",
+                        }
+                    }
+                )
+
+        except APIError as e:
+            # Generic API error (includes 401, 403, invalid API key, etc.)
+            logger.error(f"API error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "AI_SERVICE_ERROR",
+                        "message": "An error occurred while processing your request. Please try again.",
+                    }
+                }
+            )
+
+        except ValueError as e:
+            # Configuration error (missing API keys, invalid provider)
+            logger.error(f"Configuration error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "CONFIGURATION_ERROR",
+                        "message": "The AI service is not properly configured. Please contact support.",
+                    }
+                }
+            )
+
+        except Exception as e:
+            # Unexpected error
+            logger.error(f"Unexpected error running agent: {str(e)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "An unexpected error occurred. Please try again.",
+                    }
+                }
+            )
 
 
 async def stream_chat_response(
@@ -94,7 +250,7 @@ async def stream_chat_response(
             content=user_message,
         )
 
-        # 4. Create TodoAgent and run with streaming
+        # 4. Create TodoAgent
         todo_agent = create_todo_agent()
         agent = todo_agent.get_agent()
 
@@ -102,8 +258,20 @@ async def stream_chat_response(
         assistant_response = ""
         tool_calls_log = []
 
-        # 5. Run agent with streaming
-        result = Runner.run_streamed(agent, agent_messages)
+        # 5. Run agent with streaming and retry logic
+        try:
+            result = await run_agent_with_retry(agent, agent_messages)
+        except HTTPException as e:
+            # Handle errors from retry wrapper - send as SSE error event
+            error_detail = e.detail if isinstance(e.detail, dict) else {"success": False, "error": {"code": "UNKNOWN_ERROR", "message": str(e.detail)}}
+            error_response = {
+                "type": "error",
+                "code": error_detail.get("error", {}).get("code", "UNKNOWN_ERROR"),
+                "message": error_detail.get("error", {}).get("message", "An error occurred")
+            }
+            logger.error(f"Agent error for user {user_id}: {error_response}")
+            yield f"data: {json.dumps(error_response)}\n\n"
+            return
 
         # 6. Stream agent output as SSE events
         async for event in result:
@@ -150,11 +318,24 @@ async def stream_chat_response(
         # 8. Send final "done" event with conversation_id
         yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
 
-    except Exception as e:
-        # Handle unexpected errors
+    except HTTPException as e:
+        # Handle HTTPException from agent retry wrapper
+        error_detail = e.detail if isinstance(e.detail, dict) else {"success": False, "error": {"code": "UNKNOWN_ERROR", "message": str(e.detail)}}
         error_response = {
             "type": "error",
-            "message": f"Chat processing error: {str(e)}"
+            "code": error_detail.get("error", {}).get("code", "UNKNOWN_ERROR"),
+            "message": error_detail.get("error", {}).get("message", "An error occurred")
+        }
+        logger.error(f"HTTP error in stream_chat_response: {error_response}")
+        yield f"data: {json.dumps(error_response)}\n\n"
+
+    except Exception as e:
+        # Handle unexpected errors with user-friendly message
+        logger.error(f"Unexpected error in stream_chat_response: {str(e)}", exc_info=True)
+        error_response = {
+            "type": "error",
+            "code": "INTERNAL_ERROR",
+            "message": "An unexpected error occurred while processing your message. Please try again."
         }
         yield f"data: {json.dumps(error_response)}\n\n"
 

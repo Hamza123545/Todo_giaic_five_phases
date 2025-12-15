@@ -15,6 +15,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+# Import all models to ensure they're registered with SQLModel.metadata
+from models.conversation import Conversation  # noqa: F401
+from models.message import Message  # noqa: F401
+
 # Load environment variables from .env file
 # Look for .env file in the backend directory
 env_path = Path(__file__).parent / ".env"

@@ -8,7 +8,7 @@ conversational task management capabilities.
 
 from agents import Agent
 
-from agents.factory import create_model
+from agent_config.factory import create_model
 from mcp.tools import add_task, complete_task, delete_task, list_tasks, update_task
 
 

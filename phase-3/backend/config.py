@@ -39,8 +39,8 @@ class Settings:
         
         # Log configuration for debugging
         if self.environment != "production":
-            print(f"🔧 Better Auth URL: {self.better_auth_url}")
-            print(f"🔧 Frontend URL: {self.frontend_url}")
+            print(f"[CONFIG] Better Auth URL: {self.better_auth_url}")
+            print(f"[CONFIG] Frontend URL: {self.frontend_url}")
 
 
 settings = Settings()

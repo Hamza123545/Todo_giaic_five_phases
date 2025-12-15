@@ -256,9 +256,9 @@ AND task no longer exists in database
 
 **Tasks**:
 
-- [ ] T026 [US4] Add delete_task(user_id, task_id) MCP tool to backend/src/mcp/tools.py calling task_service.delete_task
-- [ ] T027 [US4] Register delete_task tool with TodoAgent in backend/src/agents/todo_agent.py
-- [ ] T028 [US4] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to handle delete commands ("delete task", "remove task", "cancel task")
+- [X] T026 [US4] Add delete_task(user_id, task_id) MCP tool to backend/src/mcp/tools.py calling task_service.delete_task
+- [X] T027 [US4] Register delete_task tool with TodoAgent in backend/src/agents/todo_agent.py
+- [X] T028 [US4] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to handle delete commands ("delete task", "remove task", "cancel task")
 
 **Parallel Execution**: All tasks in Phase 6 are sequential (must complete in order T026 → T027 → T028).
 
@@ -286,9 +286,9 @@ AND task.title = "Call mom tonight" in database
 
 **Tasks**:
 
-- [ ] T029 [US5] Add update_task(user_id, task_id, title, description) MCP tool to backend/src/mcp/tools.py calling task_service.update_task_details
-- [ ] T030 [US5] Register update_task tool with TodoAgent in backend/src/agents/todo_agent.py
-- [ ] T031 [US5] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to handle update commands ("change task", "update task", "rename task")
+- [X] T029 [US5] Add update_task(user_id, task_id, title, description) MCP tool to backend/src/mcp/tools.py calling task_service.update_task_details
+- [X] T030 [US5] Register update_task tool with TodoAgent in backend/src/agents/todo_agent.py
+- [X] T031 [US5] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to handle update commands ("change task", "update task", "rename task")
 
 **Parallel Execution**: All tasks in Phase 7 are sequential (must complete in order T029 → T030 → T031).
 
@@ -316,9 +316,9 @@ AND does not ask for clarification
 
 **Tasks**:
 
-- [ ] T032 [US6] Add conversation history loading to backend/src/routers/chat.py endpoint using conversation_service.get_conversation_history
-- [ ] T033 [US6] Build message array from database history + new user message in backend/src/routers/chat.py before calling TodoAgent
-- [ ] T034 [US6] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to use conversation context for follow-up commands
+- [X] T032 [US6] Add conversation history loading to backend/src/routers/chat.py endpoint using conversation_service.get_conversation_history
+- [X] T033 [US6] Build message array from database history + new user message in backend/src/routers/chat.py before calling TodoAgent
+- [X] T034 [US6] Update TodoAgent system instructions in backend/src/agents/todo_agent.py to use conversation context for follow-up commands
 
 **Parallel Execution**: All tasks in Phase 8 are sequential (must complete in order T032 → T033 → T034).
 
@@ -335,10 +335,10 @@ AND does not ask for clarification
 
 **Tasks**:
 
-- [ ] T035 [P] Install @openai/chatkit-react package and create frontend/src/components/chatkit/ChatKitWidget.tsx as 'use client' component using ChatKit and useChatKit from @openai/chatkit-react
-- [ ] T036 [P] Create frontend/src/components/chatkit/ChatKitProvider.tsx with useChatKit configuration (api.url, api.domainKey, custom fetch with Better Auth JWT)
-- [ ] T037 Create frontend/src/app/chat/page.tsx with ChatKitWidget component and "AI Todo Assistant" heading
-- [ ] T038 [P] Add navigation link to chat page in frontend/src/app/layout.tsx or navigation component
+- [X] T035 [P] Install @openai/chatkit-react package and create frontend/src/components/chatkit/ChatKitWidget.tsx as 'use client' component using ChatKit and useChatKit from @openai/chatkit-react
+- [X] T036 [P] Create frontend/src/components/chatkit/ChatKitProvider.tsx with useChatKit configuration (api.url, api.domainKey, custom fetch with Better Auth JWT)
+- [X] T037 Create frontend/src/app/chat/page.tsx with ChatKitWidget component and "AI Todo Assistant" heading
+- [X] T038 [P] Add navigation link to chat page in frontend/src/app/layout.tsx or navigation component
 
 **Parallel Execution**: T035 and T036 can run in parallel → T037 depends on both → T038 can run in parallel with T037.
 
@@ -357,10 +357,10 @@ AND does not ask for clarification
 
 **Tasks**:
 
-- [ ] T039 Register chat router with FastAPI app in backend/src/main.py (app.include_router)
-- [ ] T040 [P] Add error handling for AI model unavailability (OpenAI/Gemini down) in backend/src/routers/chat.py with retry logic and user-friendly error messages
-- [ ] T041 [P] Create GET /api/{user_id}/conversations endpoint in backend/src/routers/chat.py to list user conversations using conversation_service.get_user_conversations
-- [ ] T042 [P] Update README.md with Phase 3 chat feature documentation (environment variables, setup instructions, usage examples)
+- [X] T039 Register chat router with FastAPI app in backend/src/main.py (app.include_router)
+- [X] T040 [P] Add error handling for AI model unavailability (OpenAI/Gemini down) in backend/src/routers/chat.py with retry logic and user-friendly error messages
+- [X] T041 [P] Create GET /api/{user_id}/conversations endpoint in backend/src/routers/chat.py to list user conversations using conversation_service.get_user_conversations
+- [X] T042 [P] Update README.md with Phase 3 chat feature documentation (environment variables, setup instructions, usage examples)
 
 **Parallel Execution**: T040, T041, T042 can run in parallel after T039 completes.
 
