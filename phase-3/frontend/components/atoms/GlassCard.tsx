@@ -5,7 +5,7 @@ export interface GlassCardProps {
   className?: string;
   variant?: 'default' | 'elevated' | 'flat';
   hover?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export function GlassCard({

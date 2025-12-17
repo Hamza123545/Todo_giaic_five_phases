@@ -8,7 +8,7 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   icon?: LucideIcon;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
 }
