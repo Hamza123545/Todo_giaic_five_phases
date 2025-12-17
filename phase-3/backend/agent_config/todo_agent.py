@@ -181,15 +181,19 @@ class TodoAgent:
 
         # Create MCP server connection via stdio
         # This launches the MCP server as a separate process
-        # Timeout set to 30s to prevent "Timed out waiting" errors
+        # Timeout parameters:
+        # - timeout: Process startup timeout (30s)
+        # - request_timeout: Individual MCP protocol request timeout (30s)
+        # Both are needed to handle database operations without timeouts
         self.mcp_server = MCPServerStdio(
             name="task-management-server",
             params={
                 "command": "python",
                 "args": ["-m", "mcp_server"],
                 "env": os.environ.copy(),  # Pass environment variables
-                "timeout": 30.0,  # Increase timeout from default 5s to 30s
             },
+            timeout=30.0,  # Server startup timeout (increased from default 5s)
+            request_timeout=30.0,  # MCP protocol request timeout (increased from default 5s)
         )
 
         # Create agent with MCP server
