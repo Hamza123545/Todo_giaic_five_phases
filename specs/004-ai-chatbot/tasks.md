@@ -96,7 +96,7 @@ Legend:
 **Tasks**:
 
 - [X] T001 [P] Add openai-agents>=0.2.9, mcp>=1.0.0, and "openai-agents[litellm]" to backend/pyproject.toml dependencies
-- [X] T002 [P] Add LLM_PROVIDER, OPENAI_API_KEY (default: gpt-4o), GEMINI_API_KEY, GEMINI_DEFAULT_MODEL (default: gemini-1.5-flash) to backend/.env.example
+- [X] T002 [P] Add LLM_PROVIDER, OPENAI_API_KEY (default: gpt-4o), GEMINI_API_KEY, GEMINI_DEFAULT_MODEL (default: gemini-1.5-flash), GROQ_API_KEY, GROQ_DEFAULT_MODEL (default: llama-3.3-70b-versatile), OPENROUTER_API_KEY, OPENROUTER_DEFAULT_MODEL (default: openai/gpt-oss-20b:free) to backend/.env.example
 - [X] T003 [P] Add NEXT_PUBLIC_CHATKIT_API_URL=http://localhost:8000/api/chat (full URL) and optional NEXT_PUBLIC_OPENAI_DOMAIN_KEY (for production) to frontend/.env.local.example
 - [X] T004 [P] Create backend/services/__init__.py (already exists from Phase 2)
 - [X] T005 [P] Create backend/agents/__init__.py with module documentation
@@ -131,7 +131,7 @@ Legend:
 
 ### Agent Infrastructure (T015-T016)
 
-- [X] T015 [P] Create backend/agents/factory.py with create_model(provider) supporting OpenAI and Gemini via AsyncOpenAI and LitellmModel
+- [X] T015 [P] Create backend/agents/factory.py with create_model(provider) supporting OpenAI, Gemini, Groq, and OpenRouter via AsyncOpenAI and LitellmModel
 - [X] T016 [P] Create backend/schemas/chat.py with ChatRequest(conversation_id, message), ChatResponse(conversation_id, response, tool_calls), and MessageSchema
 
 **Parallel Execution Groups**:
@@ -143,7 +143,7 @@ Legend:
 - ✅ Task service methods enforce user isolation (user_id required parameter)
 - ✅ All Phase 2 REST endpoints still work (no breaking changes)
 - ✅ Conversation and Message models include database indexes on user_id and conversation_id
-- ✅ Model factory supports both OpenAI and Gemini providers via LLM_PROVIDER environment variable
+- ✅ Model factory supports OpenAI, Gemini, Groq, and OpenRouter providers via LLM_PROVIDER environment variable
 
 ---
 
@@ -360,7 +360,7 @@ AND does not ask for clarification
 **Tasks**:
 
 - [X] T039 Register chat router with FastAPI app in backend/src/main.py (app.include_router)
-- [X] T040 [P] Add error handling for AI model unavailability (OpenAI/Gemini down) in backend/src/routers/chat.py with retry logic and user-friendly error messages
+- [X] T040 [P] Add error handling for AI model unavailability (OpenAI/Gemini/Groq/OpenRouter down) in backend/src/routers/chat.py with retry logic and user-friendly error messages
 - [X] T041 [P] Create GET /api/{user_id}/conversations endpoint in backend/src/routers/chat.py to list user conversations using conversation_service.get_user_conversations
 - [X] T042 [P] Update README.md with Phase 3 chat feature documentation (environment variables, setup instructions, usage examples)
 
