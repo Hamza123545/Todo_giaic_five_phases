@@ -1,0 +1,12 @@
+apiVersion: v2
+name: todo-app
+description: Todo Chatbot application deployment for Minikube with AI agents
+version: 1.0.0
+appVersion: "3.0.0"
+keywords:
+  - todo
+  - chatbot
+  - kubernetes
+  - minikube
+maintainers:
+  - name: Todo App Team
