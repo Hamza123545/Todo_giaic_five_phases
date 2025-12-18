@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-app.fullname" . }}-config
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+data:
+  # Backend service URL (internal cluster DNS)
+  BACKEND_URL: {{ .Values.config.backendUrl | quote }}
+
+  # Frontend URL (external access)
+  FRONTEND_URL: {{ .Values.config.frontendUrl | quote }}
+
+  # Logging level
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+
+  # Node.js environment
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+
+  # Next.js public API URL (same as backend URL for frontend to call backend)
+  NEXT_PUBLIC_API_URL: {{ .Values.config.backendUrl | quote }}

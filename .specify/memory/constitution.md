@@ -1,72 +1,36 @@
 <!--
 Sync Impact Report:
-Version change: 2.3.0 → 3.0.0 (MAJOR)
-Modified principles:
-  - Added XII. AI-Powered Conversational Interface (new principle)
+Version change: 3.0.0 → 4.0.0 (MAJOR)
 Added sections:
-  - Phase III Mandatory Requirements (complete new phase)
-  - AI Chatbot Functionality subsection
-  - Technology Stack for Phase III subsection
-  - Database Models (Conversation, Message) subsection
-  - Chat API Endpoint subsection
-  - MCP Tools (5 required tools) subsection
-  - Agent Behavior subsection
-  - Conversation Flow subsection
-  - Natural Language Commands subsection
-  - OpenAI ChatKit Setup subsection
-  - Architecture Requirements subsection
-  - Service Layer subsection
-  - Agent Integration subsection
-  - Environment Variables (Phase III) subsection
-  - Dependencies (Phase III) subsection
-  - Project Structure Updates (Phase III) subsection
-  - Success Criteria (Phase III) subsection
+  - Phase IV Mandatory Requirements (complete new phase)
+  - Kubernetes Deployment Infrastructure subsection
+  - Technology Stack for Phase IV subsection
+  - Deployment Architecture subsection
+  - Success Criteria (Phase IV) subsection
 Modified Technical Standards:
-  - Added AI Framework (OpenAI Agents SDK) requirement
-  - Added MCP Server (Official MCP SDK) requirement
-  - Added Chat Frontend (OpenAI ChatKit) requirement
-  - Added Streaming (Server-Sent Events) requirement
-  - Added Stateless Architecture requirement
-Modified Development Workflow:
-  - Added Phase 3 development steps
-  - Added MCP tools implementation requirement
-  - Added Agent development requirement
-  - Added Chat endpoint implementation requirement
-  - Added Service layer extraction requirement
-Modified Repository Structure:
-  - Added /backend/src/agents/ directory
-  - Added /backend/src/mcp/ directory
-  - Added /backend/src/services/ directory
-  - Added /backend/src/models/conversation.py
-  - Added /backend/src/models/message.py
-  - Added /backend/src/routers/chat.py
-  - Added /backend/src/schemas/chat.py
-  - Added /frontend/src/components/chatkit/ directory
-  - Added /frontend/src/app/chat/ directory
-  - Added /specs/features/chatbot.md
-  - Added /specs/api/chat-endpoint.md
-  - Updated /specs/api/mcp-tools.md (enhanced)
+  - Added Kubernetes Platform (Minikube) requirement
+  - Added Package Manager (Helm) requirement
+  - Added Container Orchestration requirement
+  - Added Health Monitoring requirement
+  - Added Configuration Management requirement
 Modified Spec-Kit Plus Configuration:
-  - Added phase3-chatbot: features: [task-crud, authentication, chatbot]
+  - Added phase4-kubernetes: features: [task-crud, authentication, chatbot, kubernetes-deployment]
 Modified Governance:
-  - Added Phase III Mandatory Requirements section
-  - Added Stateless Architecture Requirement
-  - Added MCP Server Requirement (for task operations)
+  - Added Phase IV Mandatory Requirements section
+  - Added Kubernetes Deployment Requirement section
 Modified Version:
-  - Version: 2.3.0 → 3.0.0 (MAJOR bump for new phase)
-  - Last Amended: 2025-12-08 → 2025-12-14
+  - Version: 3.0.0 → 4.0.0 (MAJOR bump for new phase)
+  - Last Amended: 2025-12-14 → 2025-12-18
 Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md: ⚠ pending
   - .specify/templates/spec-template.md: ⚠ pending
   - .specify/templates/tasks-template.md: ⚠ pending
-  - .specify/templates/commands/sp.constitution.md: ⚠ pending
-  - .specify/templates/commands/sp.phr.md: ⚠ pending
 Follow-up TODOs:
-  - Create chatbot.md specification in /specs/features/
-  - Create chat-endpoint.md specification in /specs/api/
-  - Update or create mcp-tools.md specification in /specs/api/
-  - Review and update templates to align with Phase III requirements
+  - Create kubernetes-deployment specification in /specs/features/
+  - Create helm charts in /k8s/ directory
+  - Create deployment automation scripts
+  - Document AI DevOps tools integration (kubectl-ai, kagent, Docker AI)
 -->
 # Full-Stack Web Todo Application Constitution
 
@@ -326,6 +290,43 @@ Add to repository structure:
 - Users report the chat interface as "intuitive" or "easy to use" in 80% of feedback
 - Error messages guide users toward successful task completion 90% of the time
 
+## Phase IV Mandatory Requirements
+
+**All Phase IV requirements are MANDATORY - nothing is optional.**
+
+### Kubernetes Deployment Infrastructure (All Required)
+All Kubernetes deployment features MUST be implemented:
+1. **Local Kubernetes Cluster** - Application MUST be deployable to Minikube cluster
+2. **Helm Charts** - Application MUST be packaged and deployed using Helm 3.x charts
+3. **Health Checks** - Liveness and readiness probes MUST be configured for all pods
+4. **Configuration Management** - ConfigMaps and Secrets MUST be used for environment variables
+5. **Service Configuration** - Frontend (NodePort) and Backend (ClusterIP) services MUST be configured
+6. **Deployment Automation** - One-command deployment script MUST deploy entire application
+7. **AI DevOps Tools** - kubectl-ai, kagent, and Docker AI integration MUST be documented
+
+### Technology Stack (All Required)
+- **Kubernetes Platform**: Minikube 1.32+ MUST be used for local deployment
+- **Package Manager**: Helm 3.x MUST be used for application packaging
+- **Container Runtime**: Docker 24+ MUST be used (via Minikube Docker daemon)
+- **Image Building**: Images MUST be built in Minikube context (not external registries)
+- **External Dependencies**: Database (Neon PostgreSQL) and storage (Cloudflare R2) MUST remain external
+
+### Deployment Architecture (All Required)
+- **Stateless Design**: All pods MUST be stateless (no persistent volumes)
+- **Horizontal Scaling**: Architecture MUST support scaling replicas
+- **Health Monitoring**: Health probes MUST detect failures and restart pods automatically
+- **Configuration Separation**: Sensitive data (secrets) MUST be separated from non-sensitive (configmaps)
+- **No Hardcoded Credentials**: All credentials MUST be injected via Secrets
+
+### Success Criteria (All Required)
+- Both frontend and backend pods reach Ready state within 2 minutes of deployment
+- Frontend is accessible via NodePort and loads within 5 seconds
+- End-to-end functionality works (login, chat, create todos) without errors
+- Health probes successfully detect failures and restart pods within 30 seconds
+- No secrets or API keys are visible in plaintext in pods or logs
+- One-command deployment script completes successfully in under 10 minutes
+- AI DevOps tools (kubectl-ai, kagent, Docker AI) are documented with working examples
+
 ## Core Principles
 
 ### I. Persistent Database Storage
@@ -482,6 +483,12 @@ The application MUST provide an AI-powered conversational interface for task man
 *   **Streaming**: Server-Sent Events (SSE) MUST be used for streaming chat responses.
 *   **Stateless Architecture**: Chat endpoint MUST be stateless - all conversation state persisted to database.
 
+*   **Kubernetes Platform**: Minikube 1.32+ MUST be used for local Kubernetes deployment
+*   **Package Manager**: Helm 3.x MUST be used for Kubernetes application packaging
+*   **Container Orchestration**: Kubernetes 1.28+ MUST be supported
+*   **Health Monitoring**: Liveness and readiness probes MUST be configured for all pods
+*   **Configuration Management**: ConfigMaps and Secrets MUST be used for environment variables
+
 *   **Version Control**: Git MUST be used for version control with GitHub as remote repository. All version control operations MUST be performed through MCP GitHub server.
 
 *   **MCP Servers**: MCP (Model Context Protocol) servers MUST be used for GitHub operations, context management, and authentication patterns:
@@ -631,6 +638,7 @@ The application MUST provide an AI-powered conversational interface for task man
     - phase1-console: features: [task-crud]
     - phase2-web: features: [task-crud, authentication]
     - phase3-chatbot: features: [task-crud, authentication, chatbot]
+    - phase4-kubernetes: features: [task-crud, authentication, chatbot, kubernetes-deployment]
 
 **Development Workflow with Spec-Kit:**
 1. Read relevant specification: `@specs/features/[feature].md`
@@ -894,5 +902,7 @@ The application MUST provide an AI-powered conversational interface for task man
 *   **Phase III Mandatory Requirements**: All Phase III requirements are MANDATORY. No features, endpoints, or configurations are optional. All AI chatbot functionality, MCP tools, conversation persistence, streaming responses, and agent behaviors are required.
 *   **Stateless Architecture Requirement**: Chat endpoint MUST be stateless. All conversation state MUST be persisted to database. Server MUST hold NO state between requests.
 *   **MCP Server Requirement (Task Operations)**: MCP server MUST be built using Official MCP SDK. All task operations MUST be exposed as MCP tools. MCP tools MUST be stateless and store state in database.
+*   **Phase IV Mandatory Requirements**: All Phase IV requirements are MANDATORY. No features, configurations, or deployment steps are optional. All Kubernetes deployment infrastructure, Helm charts, health checks, configuration management, and AI DevOps tools integration are required.
+*   **Kubernetes Deployment Requirement**: Application MUST be deployable to Minikube using Helm charts. All deployment automation and verification scripts are required.
 
-**Version**: 3.0.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-14
+**Version**: 4.0.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-18
