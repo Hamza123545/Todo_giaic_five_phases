@@ -165,8 +165,8 @@ class TodoAgent:
         Initialize TodoAgent with AI model and MCP server connection.
 
         Args:
-            provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq")
-            model: Override model name (e.g., "gpt-4o", "gemini-2.5-flash", "llama-3.3-70b-versatile")
+            provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq" | "openrouter")
+            model: Override model name (e.g., "gpt-4o", "gemini-2.5-flash", "llama-3.3-70b-versatile", "openai/gpt-oss-20b:free")
 
         Raises:
             ValueError: If provider not supported or API key missing
@@ -178,6 +178,8 @@ class TodoAgent:
             >>> agent = TodoAgent(provider="gemini")
             >>> # Groq agent
             >>> agent = TodoAgent(provider="groq")
+            >>> # OpenRouter agent
+            >>> agent = TodoAgent(provider="openrouter", model="openai/gpt-oss-20b:free")
 
         Note:
             The agent connects to MCP server via stdio transport.
@@ -253,7 +255,7 @@ def create_todo_agent(provider: str | None = None, model: str | None = None) -> 
     explicitly instantiating the class.
 
     Args:
-        provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq")
+        provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq" | "openrouter")
         model: Override model name
 
     Returns:
@@ -265,5 +267,7 @@ def create_todo_agent(provider: str | None = None, model: str | None = None) -> 
         >>> agent = create_todo_agent(provider="gemini", model="gemini-2.5-flash")
         >>> # Or with Groq
         >>> agent = create_todo_agent(provider="groq", model="llama-3.3-70b-versatile")
+        >>> # Or with OpenRouter
+        >>> agent = create_todo_agent(provider="openrouter", model="openai/gpt-oss-20b:free")
     """
     return TodoAgent(provider=provider, model=model)

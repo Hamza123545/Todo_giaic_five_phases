@@ -8,15 +8,18 @@ Supports:
 - OpenAI (default)
 - Gemini via OpenAI-compatible API
 - Groq via OpenAI-compatible API
+- OpenRouter via OpenAI-compatible API
 
 Environment variables:
-- LLM_PROVIDER: "openai", "gemini", or "groq" (default: "openai")
+- LLM_PROVIDER: "openai", "gemini", "groq", or "openrouter" (default: "openai")
 - OPENAI_API_KEY: OpenAI API key
 - GEMINI_API_KEY: Gemini API key
 - GROQ_API_KEY: Groq API key
+- OPENROUTER_API_KEY: OpenRouter API key
 - OPENAI_DEFAULT_MODEL: Model name for OpenAI (default: "gpt-4o-mini")
 - GEMINI_DEFAULT_MODEL: Model name for Gemini (default: "gemini-2.5-flash")
 - GROQ_DEFAULT_MODEL: Model name for Groq (default: "llama-3.3-70b-versatile")
+- OPENROUTER_DEFAULT_MODEL: Model name for OpenRouter (default: "openai/gpt-4o-mini")
 """
 
 import os
@@ -47,7 +50,7 @@ def create_model(provider: str | None = None, model: str | None = None) -> OpenA
     Create an LLM model instance based on environment configuration.
 
     Args:
-        provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq")
+        provider: Override LLM_PROVIDER env var ("openai" | "gemini" | "groq" | "openrouter")
         model: Override model name
 
     Returns:
@@ -67,6 +70,10 @@ def create_model(provider: str | None = None, model: str | None = None) -> OpenA
 
         >>> # Groq usage
         >>> model = create_model(provider="groq")
+        >>> agent = Agent(name="MyAgent", model=model, tools=[...])
+
+        >>> # OpenRouter usage
+        >>> model = create_model(provider="openrouter")
         >>> agent = Agent(name="MyAgent", model=model, tools=[...])
     """
     provider = provider or os.getenv("LLM_PROVIDER", "openai").lower()
@@ -124,6 +131,32 @@ def create_model(provider: str | None = None, model: str | None = None) -> OpenA
 
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
 
+    elif provider == "openrouter":
+        # Try loading from .env again to ensure we have the latest
+        env_path = Path(__file__).parent.parent / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
+
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "OPENROUTER_API_KEY environment variable is required when LLM_PROVIDER=openrouter"
+            )
+
+        # Debug: Verify API key is loaded
+        if api_key:
+            api_key_preview = api_key[:15] + "..." if len(api_key) > 15 else api_key
+            print(f"[DEBUG] OpenRouter API key loaded: {api_key_preview} (length: {len(api_key)})")
+
+        client = AsyncOpenAI(
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+
+        model_name = model or os.getenv("OPENROUTER_DEFAULT_MODEL", "openai/gpt-4o-mini")
+
+        return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
+
     elif provider == "openai":
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -139,5 +172,5 @@ def create_model(provider: str | None = None, model: str | None = None) -> OpenA
     else:
         raise ValueError(
             f"Unsupported LLM provider: {provider}. "
-            f"Supported providers: openai, gemini, groq"
+            f"Supported providers: openai, gemini, groq, openrouter"
         )
