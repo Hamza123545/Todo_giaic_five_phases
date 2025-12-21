@@ -209,24 +209,24 @@ This is a web application deployment project:
 
 **Purpose**: Improvements that affect multiple user stories and final validation
 
-- [ ] T057 [P] Update main README.md with Kubernetes deployment section:
+- [X] T057 [P] Update main README.md with Kubernetes deployment section:
   - Prerequisites (Minikube 1.32+, Helm 3.x, Docker 24+, kubectl)
   - Quick start: ./scripts/deploy.sh
   - Manual deployment steps
   - Configuration customization via Helm values
   - Link to docs/ai-devops-tools.md
-- [ ] T058 [P] Add .gitignore entry for Helm chart values-local.yaml (local secret overrides should not be committed)
-- [ ] T059 [P] Create example values file k8s/todo-app/values-example.yaml showing how to override secrets and configuration
-- [ ] T060 Add horizontal scaling documentation to README.md: kubectl scale deployment todo-frontend --replicas=3 -n todo
-- [ ] T061 Add cleanup instructions to README.md: helm uninstall todo-app -n todo && kubectl delete namespace todo && minikube stop
-- [ ] T062 Run quickstart.md Scenario 1 (Initial Deployment) and verify all acceptance criteria pass
-- [ ] T063 Run quickstart.md Scenario 2 (Health Monitoring) and verify auto-recovery works
-- [ ] T064 Run quickstart.md Scenario 3 (Configuration Management) and verify secrets are secure
-- [ ] T065 Run quickstart.md Scenario 5 (Horizontal Scaling) and verify application scales correctly
-- [ ] T066 Run quickstart.md Scenario 6 (One-Command Deployment) and verify deployment script completes successfully
-- [ ] T067 Verify all Phase 3 features work in Kubernetes deployment (login, task CRUD, AI chat, data persistence)
-- [ ] T068 Verify all existing Phase 3 automated tests pass (pytest backend, Jest frontend)
-- [ ] T069 Document known limitations and troubleshooting tips in README.md
+- [X] T058 [P] Add .gitignore entry for Helm chart values-local.yaml (local secret overrides should not be committed)
+- [X] T059 [P] Create example values file k8s/todo-app/values-example.yaml showing how to override secrets and configuration
+- [X] T060 Add horizontal scaling documentation to README.md: kubectl scale deployment todo-frontend --replicas=3 -n todo
+- [X] T061 Add cleanup instructions to README.md: helm uninstall todo-app -n todo && kubectl delete namespace todo && minikube stop
+- [X] T062 Run quickstart.md Scenario 1 (Initial Deployment) and verify all acceptance criteria pass
+- [X] T063 Run quickstart.md Scenario 2 (Health Monitoring) and verify auto-recovery works
+- [X] T064 Run quickstart.md Scenario 3 (Configuration Management) and verify secrets are secure
+- [X] T065 Run quickstart.md Scenario 5 (Horizontal Scaling) and verify application scales correctly
+- [X] T066 Run quickstart.md Scenario 6 (One-Command Deployment) and verify deployment script completes successfully
+- [X] T067 Verify all Phase 3 features work in Kubernetes deployment (login, task CRUD, AI chat, data persistence)
+- [X] T068 Verify all existing Phase 3 automated tests pass (pytest backend, Jest frontend)
+- [X] T069 Document known limitations and troubleshooting tips in README.md
 
 ---
 
