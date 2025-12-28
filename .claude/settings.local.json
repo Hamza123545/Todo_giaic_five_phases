@@ -20,7 +20,19 @@
       "mcp__context7__get-library-docs",
       "Bash(uv run python:*)",
       "mcp__github__get_me",
-      "Bash(python -m py_compile:*)"
+      "Bash(python -m py_compile:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File .scriptsdeploy.ps1)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\Todo_giaic_five_phases\\\\scripts\\\\deploy_fixed.ps1\")",
+      "Bash(uv lock:*)",
+      "Bash(kubectl get:*)",
+      "Bash(minikube ip:*)",
+      "Bash(kubectl logs:*)",
+      "Bash(git push:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)",
+      "Bash(kubectl rollout:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(minikube status:*)",
+      "Bash(docker ai:*)"
     ],
     "deny": [],
     "ask": []
@@ -29,6 +41,7 @@
   "enabledMcpjsonServers": [
     "better-auth",
     "context7",
-    "github"
+    "github",
+    "docker"
   ]
 }

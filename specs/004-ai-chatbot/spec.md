@@ -189,7 +189,7 @@ As a user, I want the chatbot to remember our conversation across messages, so t
 6. **Network Connectivity**: Users have stable internet connection for real-time streaming responses
 7. **User Authentication**: Users are authenticated through Better Auth before accessing chat interface
 8. **Existing Task CRUD**: Phase 2 task CRUD operations are fully functional and can be reused via service layer
-9. **AI Provider Flexibility**: System design supports multiple AI providers (OpenAI, Gemini) through environment configuration
+9. **AI Provider Flexibility**: System design supports multiple AI providers (OpenAI, Gemini, Groq, OpenRouter) through environment configuration
 10. **Development Environment**: Local development can work without domain allowlist (ChatKit supports localhost)
 
 ## Scope Boundaries

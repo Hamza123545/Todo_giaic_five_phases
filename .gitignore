@@ -98,3 +98,6 @@ coverage/
 # Environment
 .env.local
 .env.*.local
+
+# Kubernetes local values (contains secrets)
+k8s/todo-app/values-local.yaml

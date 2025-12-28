@@ -27,7 +27,7 @@ else:
 
 # Import routes (must be after load_dotenv to ensure env vars are loaded)
 from routes import auth, tasks  # noqa: E402
-from routers import chat, chatkit  # noqa: E402
+from routers import chat, chatkit, health  # noqa: E402
 
 # Import middleware
 from middleware.rate_limiting import limiter, get_rate_limit_exceeded_handler  # noqa: E402
@@ -147,6 +147,7 @@ app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(chat.router)
 app.include_router(chatkit.router)  # ChatKit router has its own prefix
+app.include_router(health.router)  # Health check endpoints for Kubernetes
 
 
 @app.get("/", tags=["health"])

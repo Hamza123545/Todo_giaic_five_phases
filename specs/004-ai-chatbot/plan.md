@@ -41,7 +41,7 @@ Add AI-powered conversational interface to the existing Phase 2 Todo application
 **Scale/Scope**:
 - Single-user conversations (one-on-one user-to-chatbot)
 - 5 MCP tools (add_task, list_tasks, complete_task, delete_task, update_task)
-- Support for multiple AI providers (OpenAI, Gemini) via environment configuration
+- Support for multiple AI providers (OpenAI, Gemini, Groq, OpenRouter) via environment configuration
 - Text-based conversations only (no voice, images, or rich media)
 
 ## Constitution Check
@@ -492,7 +492,7 @@ ChatKit Widget displays streamed response in conversation UI
 **Decision**: Centralized create_model() function in agents/factory.py for AI provider abstraction.
 
 **Rationale**:
-- **Multi-provider support**: Supports both OpenAI and Gemini via environment variables (LLM_PROVIDER)
+- **Multi-provider support**: Supports OpenAI, Gemini, Groq, and OpenRouter via environment variables (LLM_PROVIDER)
 - **Configuration centralization**: API keys, model names, and settings in one place
 - **Easy testing**: Mock factory in tests to avoid real API calls
 - **Future extensibility**: New providers (Anthropic, Cohere) can be added without changing agent code
@@ -511,6 +511,10 @@ def create_model(provider: str = None) -> Any:
         return OpenAI(api_key=os.getenv("OPENAI_API_KEY"), model=os.getenv("OPENAI_DEFAULT_MODEL"))
     elif provider == "gemini":
         return Gemini(api_key=os.getenv("GEMINI_API_KEY"), model=os.getenv("GEMINI_DEFAULT_MODEL"))
+    elif provider == "groq":
+        return Groq(api_key=os.getenv("GROQ_API_KEY"), model=os.getenv("GROQ_DEFAULT_MODEL"))
+    elif provider == "openrouter":
+        return OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY"), model=os.getenv("OPENROUTER_DEFAULT_MODEL"))
     else:
         raise ValueError(f"Unsupported provider: {provider}")
 ```
@@ -956,7 +960,7 @@ DATABASE_URL=postgresql://user:pass@db.neon.tech/todo_db
 BETTER_AUTH_SECRET=your-secret-key-here
 
 # New Phase 3 variables
-LLM_PROVIDER=openai  # "openai" or "gemini"
+LLM_PROVIDER=openai  # "openai", "gemini", "groq", or "openrouter"
 
 # OpenAI configuration (required if LLM_PROVIDER=openai)
 OPENAI_API_KEY=sk-...
@@ -965,6 +969,14 @@ OPENAI_DEFAULT_MODEL=gpt-4o-mini  # or gpt-4o, gpt-4-turbo
 # Gemini configuration (required if LLM_PROVIDER=gemini)
 GEMINI_API_KEY=AIza...
 GEMINI_DEFAULT_MODEL=gemini-2.0-flash-exp  # or gemini-1.5-pro
+
+# Groq configuration (required if LLM_PROVIDER=groq)
+GROQ_API_KEY=gsk_...
+GROQ_DEFAULT_MODEL=llama-3.3-70b-versatile  # or mixtral-8x7b-32768
+
+# OpenRouter configuration (required if LLM_PROVIDER=openrouter)
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_DEFAULT_MODEL=openai/gpt-oss-20b:free  # or other OpenRouter models
 ```
 
 ### Frontend (.env.local)

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-backend
+  labels:
+    {{- include "todo-app.backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: backend
+        image: {{ .Values.backend.image }}
+        imagePullPolicy: {{ .Values.backend.imagePullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        # Environment variables from ConfigMap
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-app.fullname" . }}-config
+              key: LOG_LEVEL
+        # Environment variables from Secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: DATABASE_URL
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: BETTER_AUTH_SECRET
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: OPENAI_API_KEY
+        - name: LLM_PROVIDER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: LLM_PROVIDER
+        {{- if .Values.secrets.geminiApiKey }}
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: GEMINI_API_KEY
+        {{- end }}
+        {{- if .Values.secrets.groqApiKey }}
+        - name: GROQ_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: GROQ_API_KEY
+        {{- end }}
+        {{- if .Values.secrets.openrouterApiKey }}
+        - name: OPENROUTER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: OPENROUTER_API_KEY
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.backend.livenessProbe.httpGet.path }}
+            port: {{ .Values.backend.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.backend.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.backend.livenessProbe.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.backend.readinessProbe.httpGet.path }}
+            port: {{ .Values.backend.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.backend.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.backend.readinessProbe.failureThreshold }}
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}

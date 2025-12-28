@@ -1,0 +1,142 @@
+# Default values for todo-app Helm chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# nameOverride partially overrides the chart name
+nameOverride: ""
+# fullnameOverride fully overrides the generated name
+fullnameOverride: ""
+
+# frontend configuration for the Next.js frontend application
+frontend:
+  # replicaCount is the number of frontend pod replicas
+  replicaCount: 2
+
+  # image is the Docker image for the frontend
+  image: "todo-frontend:latest"
+  # imagePullPolicy determines when to pull the image
+  imagePullPolicy: "IfNotPresent"
+
+  # resources define CPU and memory allocation
+  resources:
+    # requests are the guaranteed resources
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    # limits are the maximum resources allowed
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  # livenessProbe checks if the container is alive
+  livenessProbe:
+    httpGet:
+      path: "/api/health"
+      port: 3000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # readinessProbe checks if the container is ready to serve traffic
+  readinessProbe:
+    httpGet:
+      path: "/api/ready"
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 2
+
+# backend configuration for the FastAPI backend application
+backend:
+  # replicaCount is the number of backend pod replicas
+  replicaCount: 2
+
+  # image is the Docker image for the backend
+  image: "todo-backend:latest"
+  # imagePullPolicy determines when to pull the image
+  imagePullPolicy: "IfNotPresent"
+
+  # resources define CPU and memory allocation
+  resources:
+    # requests are the guaranteed resources
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    # limits are the maximum resources allowed
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  # livenessProbe checks if the container is alive
+  livenessProbe:
+    httpGet:
+      path: "/health"
+      port: 8000
+    initialDelaySeconds: 45
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # readinessProbe checks if the container is ready to serve traffic
+  readinessProbe:
+    httpGet:
+      path: "/ready"
+      port: 8000
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 2
+
+# service configuration for Kubernetes services
+service:
+  # frontend service configuration
+  frontend:
+    # type is the service type (NodePort for external access)
+    type: "NodePort"
+    # port is the service port
+    port: 3000
+    # targetPort is the container port
+    targetPort: 3000
+    # nodePort is the port exposed on the node (30000-32767)
+    nodePort: 30300
+
+  # backend service configuration
+  backend:
+    # type is the service type (ClusterIP for internal access only)
+    type: "ClusterIP"
+    # port is the service port
+    port: 8000
+    # targetPort is the container port
+    targetPort: 8000
+
+# config contains non-sensitive configuration values
+config:
+  # backendUrl is the internal URL to reach the backend service
+  backendUrl: "http://todo-backend:8000"
+  # frontendUrl is the external URL to reach the frontend
+  frontendUrl: "http://localhost:30300"
+  # logLevel is the logging level (debug, info, warning, error)
+  logLevel: "info"
+  # nodeEnv is the Node.js environment (development, production)
+  nodeEnv: "production"
+
+# secrets contains sensitive configuration values
+# IMPORTANT: Override these values during installation with --set or a separate values file
+# Never commit actual secrets to version control
+secrets:
+  # databaseUrl is the PostgreSQL connection string
+  databaseUrl: "PLACEHOLDER_DATABASE_URL"
+  # betterAuthSecret is the shared secret for JWT token verification
+  betterAuthSecret: "PLACEHOLDER_BETTER_AUTH_SECRET"
+  # openaiApiKey is the OpenAI API key for AI chatbot
+  openaiApiKey: "PLACEHOLDER_OPENAI_API_KEY"
+  # llmProvider is the LLM provider (openai, openrouter, gemini, groq)
+  llmProvider: "openai"
+  # geminiApiKey is the Google Gemini API key (optional, only if using Gemini)
+  geminiApiKey: ""
+  # groqApiKey is the Groq API key (optional, only if using Groq)
+  groqApiKey: ""
+  # openrouterApiKey is the OpenRouter API key (optional, only if using OpenRouter)
+  openrouterApiKey: ""
