@@ -1,0 +1,373 @@
+# Dapr Jobs API Component: Reminder Scheduling
+# Purpose: Schedule exact-time reminder notifications (not polling-based)
+# Use Case: When task with due_date is created, schedule reminder at reminder_at timestamp
+# Accuracy: ±30s from scheduled time (per Success Criterion SC-005)
+# Date: 2025-12-29
+
+---
+# IMPORTANT: Jobs API vs Cron Bindings
+# ✅ SELECTED: Dapr Jobs API (exact-time scheduling, one-time jobs, HTTP webhook)
+# ❌ REJECTED: Dapr Cron Bindings (fixed intervals only, no one-time jobs, requires polling)
+# Rationale: Jobs API supports scheduling reminder at specific UTC timestamp (e.g., 2025-12-31 16:00:00)
+
+---
+# Dapr Jobs Configuration (Global)
+
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: dapr-config
+  namespace: default
+spec:
+  # Enable Jobs API
+  features:
+    - name: SchedulerReminders
+      enabled: true
+
+  # Jobs storage backend (uses State Store for persistence)
+  # Reminders are stored in Dapr State Store (PostgreSQL)
+  # This ensures reminders survive pod restarts
+  jobsStateStore: statestore
+
+---
+# Application Usage: Scheduling Reminders
+
+scheduling_reminders:
+  description: Notification Service schedules reminder using Dapr Jobs API
+  workflow: |
+    1. Notification Service consumes reminder.scheduled event from Kafka
+    2. Extract reminder_at timestamp from event payload
+    3. Schedule Dapr Job at reminder_at time
+    4. At scheduled time, Dapr invokes Notification Service webhook
+    5. Notification Service sends email notification
+    6. Notification Service updates task.reminder_sent = TRUE in database
+
+  python_example: |
+    import httpx
+    from datetime import datetime, timezone
+
+    async def schedule_reminder(task_id: int, reminder_at: datetime, user_email: str, task_title: str):
+        """
+        Schedule reminder using Dapr Jobs API.
+
+        Args:
+            task_id: Task database ID
+            reminder_at: UTC timestamp when reminder should be sent
+            user_email: User's email address
+            task_title: Task title for notification
+        """
+        job_name = f"reminder-{task_id}"  # Idempotent job name (overwrites if exists)
+
+        # Calculate schedule (one-time job at specific UTC timestamp)
+        # Dapr Jobs API uses ISO 8601 duration format or specific timestamp
+        job_schedule = f"@every {reminder_at.isoformat()}Z"  # One-time at specific time
+
+        # Prepare job data (passed to webhook when job triggers)
+        job_data = {
+            "task_id": task_id,
+            "user_email": user_email,
+            "task_title": task_title,
+            "reminder_at": reminder_at.isoformat() + "Z"
+        }
+
+        # Schedule job via Dapr Jobs API
+        response = await httpx.post(
+            "http://localhost:3500/v1.0-alpha1/jobs/reminders",  # Dapr sidecar
+            json={
+                "name": job_name,
+                "schedule": job_schedule,
+                "repeats": 1,  # One-time job (no repeats)
+                "dueTime": reminder_at.isoformat() + "Z",  # Explicit due time
+                "data": job_data
+            }
+        )
+
+        if response.status_code == 204:
+            print(f"Reminder scheduled: job={job_name}, time={reminder_at}")
+        else:
+            raise Exception(f"Failed to schedule reminder: {response.text}")
+
+  webhook_endpoint:
+    description: Notification Service exposes webhook endpoint for Dapr to invoke
+    fastapi_example: |
+      from fastapi import FastAPI, Request
+      from datetime import datetime
+
+      app = FastAPI()
+
+      @app.post("/dapr/jobs/reminders")
+      async def handle_reminder_job(request: Request):
+          """
+          Dapr invokes this endpoint when reminder job triggers.
+
+          Request body from Dapr:
+          {
+            "name": "reminder-123",
+            "data": {
+              "task_id": 123,
+              "user_email": "user@example.com",
+              "task_title": "Submit Q4 report",
+              "reminder_at": "2025-12-31T16:00:00Z"
+            }
+          }
+          """
+          job_data = await request.json()
+          reminder_data = job_data["data"]
+
+          task_id = reminder_data["task_id"]
+          user_email = reminder_data["user_email"]
+          task_title = reminder_data["task_title"]
+
+          # Send email notification
+          await send_email_notification(user_email, task_title)
+
+          # Update task.reminder_sent = TRUE in database
+          await mark_reminder_sent(task_id)
+
+          return {"status": "SUCCESS"}
+
+---
+# Job Persistence and Restart Recovery
+
+job_persistence:
+  description: Jobs are persisted in Dapr State Store (PostgreSQL) and survive pod restarts
+  storage: |
+    - Jobs stored in Dapr State Store (statestore component)
+    - Table: dapr_state (key format: "job:reminder-123")
+    - When pod restarts, Dapr reloads jobs from State Store
+    - Scheduled jobs continue even if pod crashes and restarts
+
+  recovery_example: |
+    # Scenario: Notification Service pod crashes after scheduling reminder
+    # 1. Job "reminder-123" scheduled for 2025-12-31 16:00:00 UTC
+    # 2. Pod crashes at 2025-12-31 15:30:00 UTC
+    # 3. Kubernetes restarts pod at 2025-12-31 15:35:00 UTC
+    # 4. Dapr reloads job from State Store
+    # 5. Job still triggers at 2025-12-31 16:00:00 UTC (as originally scheduled)
+
+---
+# Idempotency
+
+idempotency:
+  strategy: Use task_id in job name (job_name = "reminder-{task_id}")
+  behavior: |
+    - If job with same name already exists, Dapr OVERWRITES it with new schedule
+    - This prevents duplicate reminders if reminder.scheduled event is re-consumed
+    - Example: Event processed twice → Job scheduled twice → Only 1 reminder sent (last scheduled)
+
+  edge_case_handling: |
+    # Edge case: User updates due_date after reminder scheduled
+    # 1. Original reminder scheduled for 2025-12-31 16:00:00 (task_id=123)
+    # 2. User updates due_date to 2026-01-01 10:00:00
+    # 3. New reminder.scheduled event published
+    # 4. Job "reminder-123" overwritten with new schedule (2026-01-01 09:00:00)
+    # 5. Only 1 reminder sent (at new time, old reminder canceled)
+
+---
+# Accuracy and Latency
+
+accuracy:
+  target: ±30s from scheduled time (per Success Criterion SC-005)
+  factors_affecting_accuracy:
+    - Dapr scheduler polling interval (default 1s)
+    - Network latency (Dapr sidecar → Notification Service webhook)
+    - Webhook processing time (send email via SMTP)
+
+  tuning_for_accuracy: |
+    # Dapr scheduler runs every 1 second (checks for jobs due)
+    # This gives ±1s accuracy under normal conditions
+    # To achieve ±30s accuracy, ensure:
+    # 1. Webhook responds within 5s (send email async if needed)
+    # 2. No excessive load on Dapr sidecar
+    # 3. Stable network connectivity
+
+latency_breakdown:
+  - Dapr scheduler check: ~1s (runs every 1 second)
+  - HTTP request to webhook: ~50ms (local network)
+  - Webhook processing: ~100ms (database update)
+  - SMTP email send: ~2s (async, doesn't block webhook response)
+  - Total latency: ~3s (well within ±30s target)
+
+---
+# Retry Strategy
+
+retry_strategy:
+  dapr_automatic_retries:
+    description: Dapr automatically retries failed webhook invocations
+    retry_policy: |
+      # Dapr Jobs API retry configuration
+      {
+        "retryPolicy": {
+          "pattern": "exponential",  # Exponential backoff
+          "interval": "1s",          # Initial retry after 1s
+          "threshold": 3             # Max 3 retries (total 4 attempts)
+        }
+      }
+
+    retry_intervals: [1s, 2s, 4s]  # 1s → 2s → 4s (exponential)
+
+  application_retry_strategy:
+    description: Additional retry logic in Notification Service for email delivery failures
+    python_example: |
+      import httpx
+      from tenacity import retry, stop_after_attempt, wait_exponential
+
+      @retry(
+          stop=stop_after_attempt(10),  # 10 retries (per Clarification #1 from PHR-0002)
+          wait=wait_exponential(multiplier=1, min=1, max=512),  # 1s, 2s, 4s, ..., 512s
+          reraise=True
+      )
+      async def send_email_with_retry(user_email: str, task_title: str):
+          """Send email with exponential backoff retry"""
+          async with httpx.AsyncClient() as client:
+              response = await client.post(
+                  "https://smtp.gmail.com:587/send",
+                  json={
+                      "to": user_email,
+                      "subject": f"Reminder: {task_title}",
+                      "body": "Your task is due soon."
+                  }
+              )
+              response.raise_for_status()
+
+  dead_letter_queue:
+    description: After 10 failed email delivery attempts, send to dead letter queue
+    dlq_topic: reminders-dlq (Kafka topic)
+    dlq_retention: 7 days
+    manual_recovery: |
+      # Retry failed reminder from DLQ
+      POST /admin/retry-dlq/{event_id}
+
+      # Alert user about failed reminder
+      UPDATE tasks SET reminder_sent = FALSE WHERE id = :task_id
+
+---
+# Monitoring
+
+monitoring:
+  dapr_metrics:
+    description: Dapr Jobs API metrics exposed at :9090/metrics
+    key_metrics:
+      - dapr_scheduler_jobs_total: Total jobs scheduled
+      - dapr_scheduler_jobs_triggered: Jobs triggered successfully
+      - dapr_scheduler_jobs_failed: Jobs that failed to trigger
+      - dapr_scheduler_webhook_duration_ms: Webhook invocation latency
+
+  custom_application_metrics:
+    description: Custom metrics from Notification Service
+    prometheus_example: |
+      from prometheus_client import Counter, Histogram
+
+      reminders_scheduled = Counter('reminders_scheduled_total', 'Total reminders scheduled')
+      reminders_sent = Counter('reminders_sent_total', 'Total reminders sent successfully')
+      reminders_failed = Counter('reminders_failed_total', 'Total reminder delivery failures')
+      reminder_accuracy = Histogram('reminder_accuracy_seconds', 'Reminder delivery accuracy (scheduled time - actual time)')
+
+  alerting_rules:
+    - name: High Reminder Failure Rate
+      condition: rate(reminders_failed_total[5m]) / rate(reminders_scheduled_total[5m]) > 0.1
+      severity: warning
+      action: Investigate SMTP server connectivity
+
+    - name: Reminder Latency Exceeds 30s
+      condition: histogram_quantile(0.95, reminder_accuracy_seconds) > 30
+      severity: critical
+      action: Scale up Notification Service pods or check Dapr scheduler load
+
+---
+# Troubleshooting
+
+troubleshooting:
+  job_not_triggering:
+    problem: Reminder job scheduled but webhook never invoked
+    diagnosis: |
+      # Check Dapr logs for scheduler errors
+      kubectl logs <pod-name> -c daprd | grep "scheduler"
+
+      # Verify job exists in State Store
+      SELECT key, value FROM dapr_state WHERE key LIKE 'job:reminder-%';
+
+    solutions:
+      - Verify webhook endpoint is accessible: curl http://notification-service/dapr/jobs/reminders
+      - Check Dapr scheduler is running: kubectl logs <pod-name> -c daprd | grep "scheduler started"
+      - Ensure job dueTime is in future (not past): Job with past dueTime triggers immediately or not at all
+
+  webhook_timeout:
+    problem: Dapr reports webhook timeout after 60s
+    diagnosis: |
+      # Check webhook processing time
+      kubectl logs <pod-name> | grep "POST /dapr/jobs/reminders"
+
+    solutions:
+      - Reduce webhook processing time (send email async, don't block)
+      - Increase Dapr webhook timeout: Add to Dapr configuration
+        ```yaml
+        spec:
+          jobs:
+            webhookTimeout: "120s"  # Increase from default 60s
+        ```
+
+  duplicate_reminders:
+    problem: User receives same reminder multiple times
+    diagnosis: |
+      # Check if job was scheduled multiple times
+      SELECT * FROM dapr_state WHERE key = 'job:reminder-123';
+
+      # Check event consumption logs
+      kubectl logs <pod-name> | grep "Consumed event: reminder.scheduled"
+
+    solutions:
+      - Ensure idempotency: Use task_id in job name (overwrites existing job)
+      - Add event_id tracking to prevent duplicate event processing
+      - Check Kafka consumer offset (ensure no message replay)
+
+---
+# Comparison: Jobs API vs Cron Bindings
+
+comparison:
+  jobs_api:
+    pros:
+      - ✅ One-time jobs at specific UTC timestamp
+      - ✅ Exact-time scheduling (±1s accuracy)
+      - ✅ HTTP webhook invocation
+      - ✅ Built-in retry and persistence
+      - ✅ No polling required
+    cons:
+      - ⚠️ Alpha feature (Dapr 1.12+)
+      - ⚠️ Limited documentation
+
+  cron_bindings:
+    pros:
+      - ✅ Mature feature (Dapr 1.0+)
+      - ✅ Good documentation
+    cons:
+      - ❌ Fixed intervals only (no specific timestamps)
+      - ❌ Requires polling database for reminder_at
+      - ❌ Higher latency (polling interval = 1 minute minimum)
+      - ❌ Not suitable for ±30s accuracy requirement
+
+  decision: Use Jobs API (selected in research.md based on accuracy requirement)
+
+---
+# Related Documents
+
+related_documents:
+  - name: event-schemas.yaml
+    path: ./event-schemas.yaml
+    description: reminder.scheduled event schema consumed by Notification Service
+
+  - name: research.md
+    path: ../research.md
+    description: Technical research on Jobs API vs Cron Bindings decision
+
+  - name: plan.md
+    path: ../plan.md
+    description: Implementation plan with reminder scheduling architecture
+
+  - name: Dapr Jobs API
+    url: https://docs.dapr.io/developing-applications/building-blocks/jobs/jobs-overview/
+    description: Official Dapr Jobs API documentation (alpha feature)
+
+  - name: Dapr Cron Bindings
+    url: https://docs.dapr.io/reference/components-reference/supported-bindings/cron/
+    description: Alternative approach (rejected for Phase V)

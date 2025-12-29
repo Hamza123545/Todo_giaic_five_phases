@@ -32,7 +32,13 @@
       "Bash(kubectl rollout:*)",
       "Bash(kubectl delete:*)",
       "Bash(minikube status:*)",
-      "Bash(docker ai:*)"
+      "Bash(docker ai:*)",
+      "Bash(if [ -d \"D:\\\\Todo_giaic_five_phases\\\\history\\\\adr\" ])",
+      "Bash(then ls \"D:\\\\Todo_giaic_five_phases\\\\history\\\\adr\")",
+      "Bash(else echo \"ADR directory does not exist - will be created\")",
+      "Bash(fi)",
+      "Bash(touch:*)",
+      "Bash(git --version:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,380 @@
+# Dapr State Store Component: PostgreSQL
+# Purpose: Store chatbot conversation history ONLY (per Clarification #4 from PHR-0003)
+# Storage: Neon PostgreSQL (reuses existing database from Phase II/III)
+# Usage: Chat API stores conversation state, NOT task data
+# Date: 2025-12-29
+
+---
+# IMPORTANT: State Store Usage Scope (per Clarification #4)
+# ✅ ALLOWED: Chatbot conversation history (Phase III)
+# ❌ NOT ALLOWED: Task data caching or storage
+# Rationale: Maintain single source of truth (PostgreSQL tasks table), avoid cache consistency issues
+
+---
+# Local Deployment (Minikube) Configuration
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: default
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    # PostgreSQL Connection (Neon Database)
+    - name: connectionString
+      secretKeyRef:
+        name: database-secrets
+        key: DATABASE_URL
+        # Format: "host=neon-db.neon.tech port=5432 user=postgres password=xxx dbname=todo_db sslmode=require"
+
+    # Table Configuration
+    - name: tableName
+      value: "dapr_state"  # Separate table for Dapr state (NOT tasks table)
+
+    # Schema Management
+    - name: metadataTableName
+      value: "dapr_metadata"  # Dapr metadata for versioning
+
+    # Performance Tuning
+    - name: timeout
+      value: "30s"  # Connection timeout
+
+    - name: maxConns
+      value: "10"  # Max concurrent connections per pod
+
+    - name: connMaxIdleTime
+      value: "5m"  # Close idle connections after 5 minutes
+
+---
+# Production (OKE/AKS/GKE) Configuration
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: production
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    # PostgreSQL Connection (Neon Database - same as local)
+    - name: connectionString
+      secretKeyRef:
+        name: database-secrets
+        key: DATABASE_URL
+
+    # Table Configuration
+    - name: tableName
+      value: "dapr_state"
+
+    - name: metadataTableName
+      value: "dapr_metadata"
+
+    # Performance Tuning (Production)
+    - name: timeout
+      value: "30s"
+
+    - name: maxConns
+      value: "20"  # Higher connection pool for production
+
+    - name: connMaxIdleTime
+      value: "10m"
+
+---
+# Database Schema (Dapr creates automatically)
+
+dapr_state_table:
+  creation: Dapr automatically creates table on first use
+  schema: |
+    CREATE TABLE dapr_state (
+        key VARCHAR(255) PRIMARY KEY,
+        value JSONB NOT NULL,
+        isbinary BOOLEAN NOT NULL,
+        etag VARCHAR(36),
+        updatedate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX idx_dapr_state_updatedate ON dapr_state(updatedate);
+
+  storage_estimate:
+    - Average conversation: 5KB (10 messages × 500 bytes each)
+    - 1000 concurrent conversations: 5MB
+    - 30-day retention: 150MB total (assuming 1000 active users)
+
+dapr_metadata_table:
+  schema: |
+    CREATE TABLE dapr_metadata (
+        key VARCHAR(255) PRIMARY KEY,
+        value TEXT NOT NULL
+    );
+
+---
+# Application Usage Examples
+
+application_usage:
+  storing_conversation:
+    description: Store chatbot conversation history in Dapr State Store
+    python_example: |
+      import httpx
+      import json
+
+      async def save_conversation(user_id: str, conversation_id: str, messages: list):
+          """Save conversation history to Dapr State Store"""
+          state_key = f"conversation:{user_id}:{conversation_id}"
+
+          # Prepare state value (JSON serializable)
+          state_value = {
+              "user_id": user_id,
+              "conversation_id": conversation_id,
+              "messages": messages,
+              "created_at": "2025-12-29T12:00:00Z",
+              "updated_at": "2025-12-29T12:30:00Z"
+          }
+
+          # Save to Dapr State Store
+          await httpx.post(
+              "http://localhost:3500/v1.0/state/statestore",
+              json=[
+                  {
+                      "key": state_key,
+                      "value": state_value,
+                      "metadata": {
+                          "ttlInSeconds": "2592000"  # 30-day TTL (auto-cleanup)
+                      }
+                  }
+              ]
+          )
+
+  retrieving_conversation:
+    description: Retrieve conversation history from Dapr State Store
+    python_example: |
+      import httpx
+
+      async def get_conversation(user_id: str, conversation_id: str):
+          """Retrieve conversation history from Dapr State Store"""
+          state_key = f"conversation:{user_id}:{conversation_id}"
+
+          # Get from Dapr State Store
+          response = await httpx.get(
+              f"http://localhost:3500/v1.0/state/statestore/{state_key}"
+          )
+
+          if response.status_code == 200:
+              return response.json()
+          else:
+              return None  # Conversation not found
+
+  deleting_conversation:
+    description: Delete old conversations (cleanup)
+    python_example: |
+      import httpx
+
+      async def delete_conversation(user_id: str, conversation_id: str):
+          """Delete conversation from Dapr State Store"""
+          state_key = f"conversation:{user_id}:{conversation_id}"
+
+          # Delete from Dapr State Store
+          await httpx.delete(
+              f"http://localhost:3500/v1.0/state/statestore/{state_key}"
+          )
+
+---
+# State Key Naming Convention
+
+state_key_convention:
+  format: "conversation:{user_id}:{conversation_id}"
+  rationale: Hierarchical key structure for easy filtering and querying
+  examples:
+    - "conversation:user-123:conv-456"
+    - "conversation:user-789:conv-101112"
+
+  alternative_keys:
+    - user_profile: ❌ NOT ALLOWED (use PostgreSQL users table instead)
+    - task_cache: ❌ NOT ALLOWED (per Clarification #4, no task caching)
+    - session_data: ✅ ALLOWED (if needed for authentication sessions)
+
+---
+# Data Retention and Cleanup
+
+data_retention:
+  ttl_strategy:
+    description: Use Dapr TTL (Time-To-Live) for automatic cleanup
+    configuration: |
+      # Set TTL when saving state
+      {
+        "key": "conversation:user-123:conv-456",
+        "value": {...},
+        "metadata": {
+          "ttlInSeconds": "2592000"  # 30 days
+        }
+      }
+
+    behavior: Dapr automatically deletes state after TTL expires
+
+  manual_cleanup:
+    description: Periodic cleanup job for old conversations (backup strategy)
+    cron_job: |
+      # Kubernetes CronJob (runs daily at 2am UTC)
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: cleanup-old-conversations
+      spec:
+        schedule: "0 2 * * *"  # Daily at 2am UTC
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                - name: cleanup
+                  image: postgres:16
+                  command:
+                    - sh
+                    - -c
+                    - |
+                      psql $DATABASE_URL -c "DELETE FROM dapr_state WHERE updatedate < NOW() - INTERVAL '30 days'"
+                restartPolicy: OnFailure
+
+---
+# User Isolation
+
+user_isolation:
+  principle: All conversation keys MUST include user_id prefix (per Clarification #2)
+  enforcement: Application layer responsibility (not enforced by Dapr State Store)
+  query_pattern: |
+    # Dapr does NOT support filtering by key prefix via HTTP API
+    # To list all conversations for a user, query PostgreSQL directly:
+    SELECT key, value FROM dapr_state WHERE key LIKE 'conversation:user-123:%';
+
+  alternative_approach:
+    description: Store user_id in state value for filtering
+    example: |
+      {
+        "key": "conversation:conv-456",
+        "value": {
+          "user_id": "user-123",  # Store user_id in value for filtering
+          "messages": [...]
+        }
+      }
+
+      # Query: SELECT * FROM dapr_state WHERE value->>'user_id' = 'user-123';
+
+---
+# Monitoring and Observability
+
+monitoring:
+  dapr_metrics:
+    description: Dapr State Store metrics exposed at :9090/metrics
+    key_metrics:
+      - dapr_component_state_get_duration_ms: State retrieval latency
+      - dapr_component_state_set_duration_ms: State write latency
+      - dapr_component_state_delete_duration_ms: State delete latency
+      - dapr_component_state_error_count: State operation errors
+
+  postgresql_metrics:
+    description: PostgreSQL database metrics
+    key_metrics:
+      - pg_stat_database.tup_fetched: Rows fetched (should match Dapr GET operations)
+      - pg_stat_database.tup_inserted: Rows inserted (should match Dapr SET operations)
+      - pg_stat_database.tup_deleted: Rows deleted (should match Dapr DELETE operations)
+      - pg_database_size_bytes{database="todo_db"}: Database size (monitor growth)
+
+  alerting_rules:
+    - name: High State Store Latency
+      condition: dapr_component_state_get_duration_ms > 500
+      severity: warning
+      action: Investigate database connection pool or slow queries
+
+    - name: State Store Errors
+      condition: rate(dapr_component_state_error_count[5m]) > 0.1
+      severity: critical
+      action: Check database connectivity and Dapr logs
+
+---
+# Troubleshooting
+
+troubleshooting:
+  connection_refused:
+    problem: Dapr cannot connect to PostgreSQL
+    diagnosis: |
+      # Check DATABASE_URL secret
+      kubectl get secret database-secrets -o yaml
+
+      # Test connection from Dapr sidecar
+      kubectl exec -it <pod-name> -c daprd -- \
+        psql "$(kubectl get secret database-secrets -o jsonpath='{.data.DATABASE_URL}' | base64 -d)"
+
+    solutions:
+      - Verify DATABASE_URL format is correct (host, port, user, password, dbname, sslmode)
+      - Check network policies allow Dapr→PostgreSQL traffic
+      - Ensure Neon database allows connections from OKE/AKS/GKE IP range
+
+  table_not_found:
+    problem: "ERROR: relation 'dapr_state' does not exist"
+    diagnosis: |
+      # Check if table exists
+      psql $DATABASE_URL -c "\dt dapr_state"
+
+    solutions:
+      - Dapr creates table automatically on first use
+      - Manually create table if needed: psql $DATABASE_URL -f dapr_state_schema.sql
+      - Verify Dapr has CREATE TABLE permission on database
+
+  slow_queries:
+    problem: State operations taking >500ms
+    diagnosis: |
+      # Check slow queries in PostgreSQL
+      psql $DATABASE_URL -c "SELECT * FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10"
+
+    solutions:
+      - Add index on key column (Dapr creates PRIMARY KEY automatically)
+      - Increase maxConns in component metadata (default 10 → 20)
+      - Use connection pooling (PgBouncer) if needed
+
+---
+# Comparison: State Store vs Direct PostgreSQL
+
+comparison:
+  dapr_state_store:
+    pros:
+      - Simple HTTP API (no SQL queries)
+      - Automatic retries and error handling
+      - TTL support (auto-cleanup)
+      - Distributed tracing integration
+      - Can swap backend (PostgreSQL → Redis) without code changes
+    cons:
+      - No complex queries (filtering, sorting, joins)
+      - No transactions across multiple keys
+      - Additional Dapr overhead
+
+  direct_postgresql:
+    pros:
+      - Full SQL query capabilities
+      - Transactions and foreign keys
+      - Better for relational data (tasks, users)
+    cons:
+      - More code (SQL queries, connection management)
+      - No automatic retries
+      - Manual TTL implementation
+
+  recommendation: |
+    - Use Dapr State Store for: Simple key-value data (conversation history, session data)
+    - Use Direct PostgreSQL for: Relational data (tasks, users, audit logs)
+
+---
+# Related Documents
+
+related_documents:
+  - name: research.md
+    path: ../research.md
+    description: Technical research on State Store usage scope (Clarification #4)
+
+  - name: plan.md
+    path: ../plan.md
+    description: Implementation plan with State Store configuration
+
+  - name: Dapr PostgreSQL State Store
+    url: https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-postgresql/
+    description: Official Dapr PostgreSQL State Store documentation

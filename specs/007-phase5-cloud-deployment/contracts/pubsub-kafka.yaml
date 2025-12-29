@@ -1,0 +1,366 @@
+# Dapr Pub/Sub Component: Apache Kafka
+# Purpose: Event streaming for task operations (create, update, complete, delete)
+# Topics: task-events, reminders, task-updates
+# Partition Strategy: user_id-based partitioning (12 partitions per topic)
+# Date: 2025-12-29
+
+---
+# Local Deployment (Minikube) Configuration
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Kafka Broker Configuration
+    - name: brokers
+      value: "kafka:9092"  # Bitnami Kafka service in Minikube
+
+    - name: authType
+      value: "none"  # No authentication for local development
+
+    # Consumer Group Configuration
+    - name: consumerGroup
+      value: "{appId}"  # Automatically set by Dapr based on app-id annotation
+
+    - name: clientId
+      value: "{appId}-{podName}"  # Unique client ID per pod
+
+    # Topic Configuration
+    - name: topic
+      value: ""  # Topic set at publish/subscribe time (not component-level)
+
+    # Partition Key (for user_id partitioning)
+    # Set via Dapr-Partition-Key HTTP header when publishing events
+
+    # Consumer Configuration
+    - name: consumerID
+      value: "{appId}"  # Consumer ID for offset tracking
+
+    - name: maxMessageBytes
+      value: "1048576"  # 1MB max message size
+
+    # Performance Tuning
+    - name: consumeRetryInterval
+      value: "1s"  # Retry interval for failed consume
+
+    - name: version
+      value: "3.6.0"  # Kafka protocol version (matches Bitnami Kafka image)
+
+---
+# Production (OKE/AKS/GKE) Configuration with Redpanda Cloud
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: production
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Kafka Broker Configuration (Redpanda Cloud)
+    - name: brokers
+      value: "serverless-abcd1234.redpanda.cloud:9092"  # Replace with actual Redpanda Cloud endpoint
+
+    - name: authType
+      value: "certificate"  # mTLS authentication for production
+
+    # TLS/mTLS Configuration
+    - name: caCert
+      secretKeyRef:
+        name: redpanda-ca-cert
+        key: ca.crt
+
+    - name: clientCert
+      secretKeyRef:
+        name: redpanda-client-cert
+        key: tls.crt
+
+    - name: clientKey
+      secretKeyRef:
+        name: redpanda-client-cert
+        key: tls.key
+
+    # Consumer Group Configuration
+    - name: consumerGroup
+      value: "{appId}"
+
+    - name: clientId
+      value: "{appId}-{podName}"
+
+    # Performance Tuning (Production)
+    - name: maxMessageBytes
+      value: "1048576"  # 1MB max message size
+
+    - name: consumeRetryInterval
+      value: "1s"
+
+    - name: version
+      value: "3.6.0"
+
+---
+# Kafka Topic Configuration (apply separately using kafka-topics.sh)
+
+# Topic 1: task-events
+# Purpose: Task completion events for recurring task generation
+# Partitions: 12 (user_id partitioning for per-user ordering)
+# Retention: 7 days (local), 30 days (production) per Clarification #3 (PHR-0003)
+# Producers: Task Service
+# Consumers: Recurring Task Service
+
+task_events_topic:
+  name: task-events
+  partitions: 12
+  replication_factor: 1  # Minikube (single broker)
+  # replication_factor: 3  # Production (high availability)
+  config:
+    retention.ms: 604800000  # 7 days (Minikube)
+    # retention.ms: 2592000000  # 30 days (Production)
+    compression.type: "snappy"  # Compress messages for lower storage usage
+    min.insync.replicas: 1  # Minikube
+    # min.insync.replicas: 2  # Production (require 2 replicas for ack)
+
+# Topic 2: reminders
+# Purpose: Reminder scheduling events for notification delivery
+# Partitions: 12 (user_id partitioning)
+# Retention: 7 days (local), 30 days (production)
+# Producers: Task Service
+# Consumers: Notification Service
+
+reminders_topic:
+  name: reminders
+  partitions: 12
+  replication_factor: 1
+  config:
+    retention.ms: 604800000
+    compression.type: "snappy"
+    min.insync.replicas: 1
+
+# Topic 3: task-updates
+# Purpose: Task modification events for audit trail (optional)
+# Partitions: 12 (user_id partitioning)
+# Retention: 7 days (local), 30 days (production)
+# Producers: Task Service
+# Consumers: Audit Service (optional)
+
+task_updates_topic:
+  name: task-updates
+  partitions: 12
+  replication_factor: 1
+  config:
+    retention.ms: 604800000
+    compression.type: "snappy"
+    min.insync.replicas: 1
+
+---
+# Kafka Topic Creation Script (Minikube)
+
+kafka_topic_creation_minikube:
+  script: |
+    #!/bin/bash
+    # Create Kafka topics in Minikube
+    # Run this after deploying Bitnami Kafka Helm chart
+
+    KAFKA_POD=$(kubectl get pods -l app.kubernetes.io/name=kafka -o name | head -n 1)
+
+    # Create task-events topic (12 partitions, 7-day retention)
+    kubectl exec -it $KAFKA_POD -- kafka-topics.sh \
+      --create \
+      --topic task-events \
+      --partitions 12 \
+      --replication-factor 1 \
+      --config retention.ms=604800000 \
+      --config compression.type=snappy \
+      --bootstrap-server kafka:9092
+
+    # Create reminders topic (12 partitions, 7-day retention)
+    kubectl exec -it $KAFKA_POD -- kafka-topics.sh \
+      --create \
+      --topic reminders \
+      --partitions 12 \
+      --replication-factor 1 \
+      --config retention.ms=604800000 \
+      --config compression.type=snappy \
+      --bootstrap-server kafka:9092
+
+    # Create task-updates topic (12 partitions, 7-day retention)
+    kubectl exec -it $KAFKA_POD -- kafka-topics.sh \
+      --create \
+      --topic task-updates \
+      --partitions 12 \
+      --replication-factor 1 \
+      --config retention.ms=604800000 \
+      --config compression.type=snappy \
+      --bootstrap-server kafka:9092
+
+    # Verify topic creation
+    kubectl exec -it $KAFKA_POD -- kafka-topics.sh \
+      --list \
+      --bootstrap-server kafka:9092
+
+---
+# Application Usage Examples
+
+application_usage:
+  publishing_events:
+    description: Publish event to Kafka via Dapr Pub/Sub
+    python_example: |
+      import httpx
+      import uuid
+      from datetime import datetime, timezone
+
+      async def publish_task_completed_event(user_id: str, task_id: int, task_data: dict):
+          """Publish task.completed event to Kafka via Dapr Pub/Sub"""
+          event = {
+              "event_id": str(uuid.uuid4()),
+              "event_type": "task.completed",
+              "event_version": "1.0",
+              "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+              "user_id": user_id,
+              "task_id": task_id,
+              "payload": {
+                  "task_title": task_data["title"],
+                  "completed_at": datetime.now(timezone.utc).isoformat() + "Z",
+                  "recurring_pattern": task_data.get("recurring_pattern"),
+                  "recurring_end_date": task_data.get("recurring_end_date"),
+                  "next_occurrence_due": task_data.get("next_occurrence")
+              }
+          }
+
+          # Publish to Dapr Pub/Sub (routes to Kafka topic: task-events)
+          await httpx.post(
+              "http://localhost:3500/v1.0/publish/pubsub/task-events",
+              json=event,
+              headers={
+                  "Dapr-Partition-Key": user_id  # Route to partition based on user_id
+              }
+          )
+
+  consuming_events:
+    description: Subscribe to Kafka events via Dapr Pub/Sub
+    python_example: |
+      from fastapi import FastAPI, Request
+      from dapr.ext.fastapi import DaprApp
+
+      app = FastAPI()
+      dapr_app = DaprApp(app)
+
+      @dapr_app.subscribe(pubsub="pubsub", topic="task-events")
+      async def handle_task_completed(event: dict):
+          """Handle task.completed event from Kafka"""
+          print(f"Received event: {event['event_id']}")
+
+          # Extract event data
+          user_id = event["user_id"]
+          task_id = event["task_id"]
+          payload = event["payload"]
+
+          # Process event (create next occurrence if recurring)
+          if payload.get("recurring_pattern"):
+              next_occurrence = payload.get("next_occurrence_due")
+              # Create next task occurrence in database
+              await create_next_task_occurrence(user_id, task_id, payload)
+
+          return {"status": "SUCCESS"}
+
+---
+# Monitoring and Observability
+
+monitoring:
+  kafka_metrics:
+    description: Kafka metrics exposed via JMX (requires Kafka Exporter)
+    key_metrics:
+      - kafka_topic_partition_current_offset: Current offset per partition
+      - kafka_consumergroup_lag: Consumer lag in messages
+      - kafka_consumergroup_lag_seconds: Consumer lag in seconds (should be <60s)
+      - kafka_topic_partition_replica_count: Replication factor per partition
+
+  dapr_metrics:
+    description: Dapr Pub/Sub metrics exposed at :9090/metrics
+    key_metrics:
+      - dapr_component_pubsub_ingress_count: Events published
+      - dapr_component_pubsub_egress_count: Events consumed
+      - dapr_component_pubsub_publish_duration_ms: Publish latency
+      - dapr_component_pubsub_consume_duration_ms: Consume latency
+
+  alerting_rules:
+    - name: High Consumer Lag
+      condition: kafka_consumergroup_lag_seconds > 60
+      severity: warning
+      action: Scale up consumer instances
+
+    - name: Kafka Broker Down
+      condition: kafka_broker_up == 0
+      severity: critical
+      action: Alert on-call engineer
+
+---
+# Troubleshooting
+
+troubleshooting:
+  consumer_lag:
+    problem: Consumer lag exceeds 60 seconds
+    diagnosis: |
+      # Check consumer lag
+      kubectl exec -it kafka-0 -- kafka-consumer-groups.sh \
+        --bootstrap-server kafka:9092 \
+        --group recurring-task-service \
+        --describe
+
+    solutions:
+      - Scale up consumer instances (up to 12 matching partition count)
+      - Optimize consumer processing logic (reduce latency)
+      - Increase Kafka retention if needed (requires topic recreation)
+
+  connection_refused:
+    problem: Dapr cannot connect to Kafka brokers
+    diagnosis: |
+      # Check Kafka service endpoint
+      kubectl get svc kafka
+
+      # Test connection from Dapr sidecar
+      kubectl exec -it <pod-name> -c daprd -- nc -zv kafka 9092
+
+    solutions:
+      - Verify brokers value in pubsub-kafka.yaml matches Kafka service name
+      - Check network policies allow Dapr→Kafka traffic
+      - Ensure Kafka service is running: kubectl get pods -l app=kafka
+
+  event_not_received:
+    problem: Consumer not receiving events
+    diagnosis: |
+      # Check Dapr subscription
+      kubectl logs <pod-name> -c daprd | grep "subscribe"
+
+      # Verify topic exists
+      kubectl exec -it kafka-0 -- kafka-topics.sh --list --bootstrap-server kafka:9092
+
+    solutions:
+      - Verify @dapr_app.subscribe decorator has correct topic name
+      - Check Dapr app-id annotation matches component consumerGroup
+      - Ensure topic created with correct name (case-sensitive)
+
+---
+# Related Documents
+
+related_documents:
+  - name: event-schemas.yaml
+    path: ./event-schemas.yaml
+    description: Event schema definitions for contract testing
+
+  - name: research.md
+    path: ../research.md
+    description: Technical research on Kafka configuration decisions
+
+  - name: plan.md
+    path: ../plan.md
+    description: Implementation plan with Kafka deployment strategy
+
+  - name: Dapr Pub/Sub Kafka Component
+    url: https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-apache-kafka/
+    description: Official Dapr Kafka Pub/Sub documentation

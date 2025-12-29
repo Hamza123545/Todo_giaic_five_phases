@@ -1,36 +1,63 @@
 <!--
 Sync Impact Report:
-Version change: 3.0.0 → 4.0.0 (MAJOR)
+Version change: 4.0.0 → 5.0.0 (MAJOR)
+Rationale: MAJOR version bump for backward-incompatible architectural changes (event-driven architecture with Kafka/Dapr, cloud deployment requirements)
+
 Added sections:
-  - Phase IV Mandatory Requirements (complete new phase)
-  - Kubernetes Deployment Infrastructure subsection
-  - Technology Stack for Phase IV subsection
-  - Deployment Architecture subsection
-  - Success Criteria (Phase IV) subsection
+  - Phase V Mandatory Requirements (complete new phase with three parts)
+  - Part A: Advanced Features (Recurring Tasks, Due Dates & Reminders, Event-Driven Architecture)
+  - Part B: Local Deployment with Dapr and Kafka
+  - Part C: Cloud Deployment (AKS/GKE) with Production Features
+  - Technology Stack (Phase V - All Required)
+  - Architecture Requirements (Phase V - All Required)
+  - Success Criteria (Phase V - All Required)
+
 Modified Technical Standards:
-  - Added Kubernetes Platform (Minikube) requirement
-  - Added Package Manager (Helm) requirement
-  - Added Container Orchestration requirement
-  - Added Health Monitoring requirement
-  - Added Configuration Management requirement
+  - Added Event Streaming requirement (Apache Kafka 3.x)
+  - Added Service Mesh requirement (Dapr 1.12+)
+  - Added Cloud Orchestration requirement (AKS/GKE)
+  - Added Infrastructure-as-Code requirement (Terraform/Bicep)
+  - Added Monitoring requirement (Prometheus + Grafana)
+  - Added Distributed Tracing requirement (Zipkin/Jaeger)
+
 Modified Spec-Kit Plus Configuration:
-  - Added phase4-kubernetes: features: [task-crud, authentication, chatbot, kubernetes-deployment]
+  - Updated version: "3.0.0" → "5.0.0"
+  - Added phase5-cloud: features: [task-crud, authentication, chatbot, kubernetes-deployment, advanced-features, event-driven, dapr-kafka, cloud-deployment]
+
 Modified Governance:
-  - Added Phase IV Mandatory Requirements section
-  - Added Kubernetes Deployment Requirement section
+  - Added Phase V Mandatory Requirements compliance section
+  - Added Event-Driven Architecture Requirement section
+  - Added Cloud Deployment Requirement section
+  - Emphasizes Kafka for event streaming and Dapr for pub/sub integration
+  - Requires deployability to both AKS and GKE
+
 Modified Version:
-  - Version: 3.0.0 → 4.0.0 (MAJOR bump for new phase)
-  - Last Amended: 2025-12-14 → 2025-12-18
+  - Version: 4.0.0 → 5.0.0 (MAJOR bump for new phase with significant architectural changes)
+  - Last Amended: 2025-12-18 → 2025-12-29
+
 Removed sections: None
+
 Templates requiring updates:
-  - .specify/templates/plan-template.md: ⚠ pending
-  - .specify/templates/spec-template.md: ⚠ pending
-  - .specify/templates/tasks-template.md: ⚠ pending
+  - .specify/templates/plan-template.md: ⚠ pending (add event-driven architecture planning section)
+  - .specify/templates/spec-template.md: ⚠ pending (add event-driven and cloud deployment sections)
+  - .specify/templates/tasks-template.md: ⚠ pending (add Kafka/Dapr task categories)
+  - .specify/templates/commands/*.md: ⚠ pending (verify no outdated references)
+
 Follow-up TODOs:
-  - Create kubernetes-deployment specification in /specs/features/
-  - Create helm charts in /k8s/ directory
-  - Create deployment automation scripts
-  - Document AI DevOps tools integration (kubectl-ai, kagent, Docker AI)
+  - Create recurring-tasks specification in /specs/features/
+  - Create due-dates-reminders specification in /specs/features/
+  - Create event-driven-architecture specification in /specs/features/
+  - Create dapr-kafka-deployment specification in /specs/features/
+  - Create cloud-deployment specification in /specs/features/ (AKS and GKE)
+  - Create Kafka topic schemas documentation
+  - Create Dapr component configuration templates
+  - Create Terraform/Bicep infrastructure templates for AKS/GKE
+  - Document Prometheus/Grafana dashboard configurations
+  - Document distributed tracing setup (Zipkin/Jaeger)
+  - Create CI/CD pipeline templates for cloud deployment
+  - Document secrets management patterns (Azure Key Vault/Google Secret Manager)
+  - Create monitoring and alerting configuration guides
+  - Update README.md with Phase V deployment instructions
 -->
 # Full-Stack Web Todo Application Constitution
 
@@ -326,6 +353,165 @@ All Kubernetes deployment features MUST be implemented:
 - No secrets or API keys are visible in plaintext in pods or logs
 - One-command deployment script completes successfully in under 10 minutes
 - AI DevOps tools (kubectl-ai, kagent, Docker AI) are documented with working examples
+
+## Phase V Mandatory Requirements
+
+**All Phase V requirements are MANDATORY - nothing is optional.**
+
+### Part A: Advanced Features (All Required)
+All advanced features MUST be implemented:
+
+1. **Recurring Tasks** - Users MUST be able to create tasks that repeat on a schedule
+   - Supported frequencies: daily, weekly, monthly, yearly
+   - Custom recurrence patterns MUST be supported (e.g., "every 2 weeks on Monday")
+   - Recurring tasks MUST generate new instances automatically based on schedule
+   - Users MUST be able to edit/delete individual instances or entire series
+   - Completed recurring task instances MUST NOT prevent next occurrence from being created
+
+2. **Due Dates & Reminders** - Tasks MUST support due dates with reminder notifications
+   - Users MUST be able to set due dates and times for tasks
+   - Reminder notifications MUST be sent before due date (configurable: 1 hour, 1 day, 1 week)
+   - Multiple reminders per task MUST be supported
+   - Overdue tasks MUST be highlighted in UI
+   - Notification delivery MUST use event-driven architecture (not polling)
+
+3. **Event-Driven Architecture** - System MUST use events for asynchronous processing
+   - Task creation, updates, completion MUST publish events to message broker
+   - Event consumers MUST handle reminder scheduling, recurring task generation
+   - Events MUST be published to Kafka topics
+   - Event-driven patterns MUST enable loose coupling and scalability
+   - System MUST support at-least-once event delivery guarantee
+
+### Part B: Local Deployment with Dapr and Kafka (All Required)
+
+1. **Minikube Deployment** - Application MUST run on local Minikube cluster
+   - Dapr runtime MUST be installed and configured in Minikube
+   - Kafka MUST be deployed to Minikube cluster (via Helm chart)
+   - All services (frontend, backend, Kafka, Dapr) MUST run as Kubernetes pods
+   - One-command deployment script MUST deploy entire stack locally
+
+2. **Dapr Integration** - **Full Dapr MUST be used**: Pub/Sub, State, Bindings (via Dapr Jobs API), Secrets, Service Invocation
+   - Dapr sidecar MUST be injected into backend pods
+   - Backend MUST use Dapr pub/sub API for event publishing (no direct Kafka clients)
+   - Backend MUST use Dapr pub/sub API for event subscription
+   - Dapr State Store MUST be used exclusively for chatbot conversation history (Phase III), NOT for task caching
+   - Dapr Jobs API MUST be used for scheduled reminders (replaces Cron Bindings for exact-time scheduling)
+   - Dapr Secrets API MUST be used for secure credential management
+   - Dapr Service Invocation MUST be used for service-to-service communication with built-in retries and mTLS
+   - Dapr components MUST be configured for Kafka pub/sub, PostgreSQL state store, Kubernetes secrets, and service invocation
+
+3. **Kafka on Minikube** - Kafka MUST be deployed and operational in Minikube
+   - Kafka MUST be deployed using Bitnami Kafka Helm chart (or Redpanda/Strimzi as alternatives)
+   - Kafka topics MUST be created: `task-events`, `reminders`, `task-updates` with 12 partitions each, partitioned by `user_id`
+   - Kafka topics MUST be configured with 7-day message retention for local (Minikube) deployment
+   - Kafka MUST be accessible from backend pods via Dapr (not direct Kafka clients)
+   - Kafka persistence MUST use Kubernetes PersistentVolumes (local storage)
+   - Kafka MUST survive pod restarts (stateful deployment)
+
+4. **Local Development Experience** - Development setup MUST be streamlined
+   - Single command MUST start Minikube, deploy Kafka, install Dapr, deploy application
+   - Port forwarding MUST make frontend accessible on localhost
+   - Logs MUST be easily accessible via kubectl or Minikube dashboard
+   - Hot-reload MUST work for backend development (Dapr-compatible)
+
+### Part C: Cloud Deployment (OKE Primary, AKS/GKE Secondary) with Production Features (All Required)
+
+1. **Cloud Kubernetes Deployment** - Application MUST be deployable to Oracle Kubernetes Engine (OKE) as primary platform, with Azure Kubernetes Service (AKS) and Google Kubernetes Engine (GKE) as secondary platforms
+   - **Primary Platform**: Oracle Kubernetes Engine (OKE) - Always-free tier (2 AMD VMs, 4 Arm Ampere A1 cores) enables permanent hosting without ongoing costs
+   - **Secondary Platforms**: Azure Kubernetes Service (AKS) - $200 credits for 30 days, Google Kubernetes Engine (GKE) - $300 credits for 90 days
+   - Cloud-specific configuration MUST be documented for each platform
+   - Infrastructure-as-code MUST be provided using Terraform (primary for OKE, portable to AKS/GKE)
+   - Multi-region deployment option MUST be documented
+
+2. **Dapr on Cloud** - **Full Dapr MUST be used**: Pub/Sub, State, Bindings (via Dapr Jobs API), Secrets, Service Invocation
+   - Dapr MUST use cloud-native components (Azure Service Bus, Google Pub/Sub, or OCI Streaming as alternatives to Kafka)
+   - Dapr configuration MUST support both managed Kafka (Confluent Cloud, Redpanda Cloud) and cloud pub/sub backends
+   - Dapr State Store MUST be used exclusively for chatbot conversation history (Phase III), NOT for task caching
+   - Dapr Jobs API MUST be used for scheduled reminders (exact-time scheduling, not polling)
+   - Dapr Secrets API MUST be integrated with cloud secret manager (OCI Vault for OKE, Azure Key Vault for AKS, Google Secret Manager for GKE)
+   - Dapr Service Invocation MUST be used with mTLS enabled for secure service-to-service communication
+   - Dapr observability MUST be enabled (tracing with Zipkin/Jaeger, metrics with Prometheus)
+   - Dapr security MUST be configured (mTLS between services, network policies)
+
+3. **Managed Kafka or Cloud Pub/Sub** - Production event streaming MUST use managed services
+   - **Primary Option**: Managed Kafka (Confluent Cloud, Redpanda Cloud Serverless free tier, Azure Event Hubs Kafka, Google Kafka)
+   - **Alternative Option**: Cloud-native pub/sub (Azure Service Bus, Google Pub/Sub, OCI Streaming)
+   - Kafka topics MUST be configured with 30-day message retention for cloud deployment (vs 7 days for local)
+   - Event ordering guarantees MUST be maintained (partitioning by `user_id` ensures per-user ordering)
+   - Dead-letter queues MUST be configured for failed events with event-type-specific retention (task completion: 30 days, reminders: 7 days, updates: 14 days)
+   - Event retention MUST be configured (minimum 7 days local, 30 days cloud)
+
+4. **CI/CD Pipelines** - Production deployment MUST use automated CI/CD
+   - GitHub Actions workflows MUST deploy to cloud Kubernetes
+   - Pipeline MUST build Docker images and push to container registry (OCIR for OKE primary, ACR for AKS, GCR for GKE)
+   - Pipeline MUST apply Kubernetes manifests and Helm charts
+   - Pipeline MUST run integration tests before production deployment
+   - Pipeline MUST support staging and production environments
+   - Pipeline MUST trigger production deployment when code is merged to `main` branch
+   - Pipeline MUST trigger staging deployment when code is merged to `develop` branch
+   - Feature branches MUST NOT trigger automatic deployments
+   - Rollback mechanism MUST be automated on deployment failure
+
+5. **Monitoring & Observability** - Production system MUST be fully observable
+   - Prometheus MUST collect metrics from all services (frontend, backend, Recurring Task Service, Notification Service)
+   - Grafana MUST visualize metrics (dashboards for task operations, event processing rates, Dapr metrics, pod health)
+   - Application logs MUST be centralized (OCI Logging for OKE primary, Azure Log Analytics for AKS, Google Cloud Logging for GKE)
+   - Distributed tracing MUST be enabled (Dapr tracing with Zipkin or Jaeger showing end-to-end request flows)
+   - Alerts MUST be configured for critical failures (pod crashes, event processing delays > 5 minutes, error rate > 5%)
+   - Uptime monitoring MUST be configured (health check endpoints responding within 500ms)
+
+6. **Security & Secrets Management** - Production MUST follow security best practices
+   - Secrets MUST be stored in cloud secret manager (OCI Vault for OKE primary, Azure Key Vault for AKS, Google Secret Manager for GKE)
+   - Database credentials MUST NOT be hardcoded or in ConfigMaps
+   - Dapr Secrets API MUST be integrated with cloud secret manager (OCI Vault for OKE, Azure Key Vault for AKS, Google Secret Manager for GKE)
+   - Network policies MUST restrict pod-to-pod communication
+   - Ingress MUST use TLS/SSL certificates (cert-manager for automatic certificate management)
+   - Authentication tokens MUST use short expiration times in production
+   - All secrets MUST be retrieved securely without hardcoded credentials visible in pods or logs
+
+### Technology Stack (Phase V - All Required)
+
+- **Event Streaming**: Apache Kafka 3.x MUST be used for event-driven architecture (or Kafka-compatible alternatives: Redpanda, Strimzi)
+- **Service Mesh (Dapr)**: Dapr 1.12+ MUST be used with **Full Dapr**: Pub/Sub, State (conversation history only), Bindings (via Dapr Jobs API), Secrets, Service Invocation
+- **Local Orchestration**: Minikube 1.32+ with Dapr and Kafka deployed
+- **Cloud Orchestration**: Oracle Kubernetes Engine (OKE) as primary platform (always-free tier), Azure Kubernetes Service (AKS) and Google Kubernetes Engine (GKE) as secondary platforms
+- **Infrastructure-as-Code**: Terraform for cloud infrastructure provisioning (primary for OKE, portable to AKS/GKE)
+- **Monitoring**: Prometheus + Grafana for metrics, Zipkin/Jaeger for distributed tracing
+- **CI/CD**: GitHub Actions with cloud deployment integration (branch-based triggers: `main` → production, `develop` → staging)
+
+### Architecture Requirements (Phase V - All Required)
+
+- **Event-Driven Design**: All task operations MUST publish events to Kafka
+- **Asynchronous Processing**: Reminders and recurring tasks MUST be processed asynchronously
+- **Loose Coupling**: Services MUST communicate via events (not direct API calls where appropriate)
+- **Scalability**: Event consumers MUST be horizontally scalable
+- **Fault Tolerance**: Failed event processing MUST be retried with exponential backoff
+- **Observability**: All events MUST be traceable across service boundaries
+
+### Success Criteria (Phase V - All Required)
+
+**Part A: Advanced Features**
+- Users can create recurring tasks with all supported frequencies
+- Recurring tasks generate new instances on schedule without manual intervention
+- Due date reminders are delivered within 1 minute of scheduled time
+- Event-driven architecture processes 1000+ events per minute without lag
+- Overdue tasks are correctly highlighted in UI
+
+**Part B: Local Deployment**
+- One-command deployment to Minikube completes in under 15 minutes
+- Kafka cluster is healthy and accessible from backend pods
+- Dapr sidecar successfully publishes and subscribes to Kafka topics
+- Frontend accessible via port-forward on localhost within 2 minutes
+- Hot-reload works for backend development
+
+**Part C: Cloud Deployment**
+- Deployment to AKS or GKE completes via CI/CD pipeline in under 20 minutes
+- Managed Kafka or cloud pub/sub processes events with no message loss
+- Prometheus collects metrics from all services
+- Grafana dashboards display real-time metrics
+- Distributed tracing shows end-to-end request flows
+- All secrets retrieved from cloud secret manager (no hardcoded credentials)
+- Ingress serves traffic over HTTPS with valid certificates
 
 ## Core Principles
 
@@ -632,13 +818,14 @@ The application MUST provide an AI-powered conversational interface for task man
 *   Configuration file MUST be at `/.spec-kit/config.yaml`
 *   Configuration MUST include:
   - name: hackathon-todo (or project name)
-  - version: "3.0.0"
+  - version: "5.0.0"
   - structure: specs_dir, features_dir, api_dir, database_dir, ui_dir
   - phases:
     - phase1-console: features: [task-crud]
     - phase2-web: features: [task-crud, authentication]
     - phase3-chatbot: features: [task-crud, authentication, chatbot]
     - phase4-kubernetes: features: [task-crud, authentication, chatbot, kubernetes-deployment]
+    - phase5-cloud: features: [task-crud, authentication, chatbot, kubernetes-deployment, advanced-features, event-driven, dapr-kafka, cloud-deployment]
 
 **Development Workflow with Spec-Kit:**
 1. Read relevant specification: `@specs/features/[feature].md`
@@ -904,5 +1091,8 @@ The application MUST provide an AI-powered conversational interface for task man
 *   **MCP Server Requirement (Task Operations)**: MCP server MUST be built using Official MCP SDK. All task operations MUST be exposed as MCP tools. MCP tools MUST be stateless and store state in database.
 *   **Phase IV Mandatory Requirements**: All Phase IV requirements are MANDATORY. No features, configurations, or deployment steps are optional. All Kubernetes deployment infrastructure, Helm charts, health checks, configuration management, and AI DevOps tools integration are required.
 *   **Kubernetes Deployment Requirement**: Application MUST be deployable to Minikube using Helm charts. All deployment automation and verification scripts are required.
+*   **Phase V Mandatory Requirements**: All Phase V requirements are MANDATORY. No features, configurations, or deployment steps are optional. All advanced features (recurring tasks, due dates & reminders, event-driven architecture), local deployment (Minikube with Dapr and Kafka), and cloud deployment (AKS/GKE with production features) are required.
+*   **Event-Driven Architecture Requirement**: System MUST use Kafka for event streaming. All task operations MUST publish events. Dapr MUST be used for pub/sub integration.
+*   **Cloud Deployment Requirement**: Application MUST be deployable to both AKS and GKE. Infrastructure-as-code, CI/CD pipelines, monitoring, observability, and security configurations are required.
 
-**Version**: 4.0.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-18
+**Version**: 5.0.0 | **Ratified**: 2025-12-03 | **Last Amended**: 2025-12-29 (Updated: Added explicit "Full Dapr" requirements, fixed Kafka topic names, added OKE as primary cloud platform, clarified Dapr Jobs API usage)

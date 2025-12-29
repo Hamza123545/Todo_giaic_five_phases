@@ -1,0 +1,480 @@
+# Event Schemas: Phase V - Advanced Cloud Deployment
+# Purpose: Document all Kafka event schemas for contract testing and validation
+# Date: 2025-12-29
+
+---
+# Common Event Structure
+# All events follow this base structure with event-specific payload
+
+common_event_structure:
+  event_id:
+    type: string
+    format: uuid-v4
+    description: Unique event identifier for idempotency (prevent duplicate processing)
+    required: true
+    example: "550e8400-e29b-41d4-a716-446655440000"
+
+  event_type:
+    type: string
+    enum:
+      - task.completed
+      - reminder.scheduled
+      - task.updated
+    description: Event type identifier
+    required: true
+
+  event_version:
+    type: string
+    pattern: ^\d+\.\d+$
+    description: Schema version for evolution (major.minor format)
+    required: true
+    example: "1.0"
+
+  timestamp:
+    type: string
+    format: iso8601-utc
+    description: Event creation time in UTC (ISO 8601 format with 'Z' suffix)
+    required: true
+    example: "2025-12-29T12:00:00Z"
+
+  user_id:
+    type: string
+    description: User context for isolation and authorization (per Clarification #2 from PHR-0003)
+    required: true
+    example: "user-550e8400-e29b-41d4-a716-446655440000"
+
+  task_id:
+    type: integer
+    description: Task database primary key
+    required: true
+    example: 123
+
+  payload:
+    type: object
+    description: Event-specific payload (schema varies by event_type)
+    required: true
+
+---
+# Event Type 1: Task Completion
+# Published when: Recurring task is marked complete
+# Topic: task-events
+# Partition Key: user_id
+# Retention: 7 days (local), 30 days (cloud)
+# Consumer: Recurring Task Service
+
+task_completed_event:
+  version: "1.0"
+  topic: task-events
+  partition_key: user_id
+  producer: Task Service (backend/src/services/task_service.py)
+  consumer: Recurring Task Service (backend/src/services/recurring_task_service.py)
+
+  schema:
+    event_id:
+      $ref: "#/common_event_structure/event_id"
+
+    event_type:
+      type: string
+      const: "task.completed"
+
+    event_version:
+      $ref: "#/common_event_structure/event_version"
+
+    timestamp:
+      $ref: "#/common_event_structure/timestamp"
+
+    user_id:
+      $ref: "#/common_event_structure/user_id"
+
+    task_id:
+      $ref: "#/common_event_structure/task_id"
+
+    payload:
+      type: object
+      required:
+        - task_title
+        - completed_at
+      properties:
+        task_title:
+          type: string
+          description: Task title for logging/debugging
+          example: "Daily standup"
+
+        completed_at:
+          type: string
+          format: iso8601-utc
+          description: When task was marked complete (UTC)
+          example: "2025-12-29T12:00:00Z"
+
+        recurring_pattern:
+          type: string
+          nullable: true
+          description: RRULE string for recurring tasks (NULL for non-recurring)
+          example: "FREQ=DAILY;INTERVAL=1"
+
+        recurring_end_date:
+          type: string
+          format: iso8601-utc
+          nullable: true
+          description: When recurring should stop (NULL for infinite)
+          example: "2026-12-31T23:59:59Z"
+
+        next_occurrence_due:
+          type: string
+          format: iso8601-utc
+          nullable: true
+          description: Calculated next occurrence timestamp (UTC)
+          example: "2025-12-30T09:00:00Z"
+
+  example:
+    event_id: "550e8400-e29b-41d4-a716-446655440000"
+    event_type: "task.completed"
+    event_version: "1.0"
+    timestamp: "2025-12-29T12:00:00Z"
+    user_id: "user-123"
+    task_id: 456
+    payload:
+      task_title: "Daily standup"
+      completed_at: "2025-12-29T12:00:00Z"
+      recurring_pattern: "FREQ=DAILY;INTERVAL=1"
+      recurring_end_date: null
+      next_occurrence_due: "2025-12-30T09:00:00Z"
+
+  consumer_logic:
+    description: |
+      Recurring Task Service consumes this event and creates next occurrence if:
+      1. recurring_pattern is NOT NULL
+      2. next_occurrence_due <= recurring_end_date (or recurring_end_date is NULL)
+      3. Next occurrence does NOT already exist (idempotency check)
+
+    idempotency:
+      - Use event_id to track processed events (store in idempotency table or Dapr State Store)
+      - Before creating next occurrence, check if task with same title + user_id + due_date exists
+      - If duplicate event received, log warning and skip processing
+
+    retry_strategy:
+      - 3 retries with exponential backoff (30s, 5min, 30min)
+      - After 3 failures, send to dead letter queue (DLQ)
+      - DLQ retention: 30 days
+      - Manual recovery API: POST /admin/retry-dlq/{event_id}
+
+---
+# Event Type 2: Reminder Scheduled
+# Published when: Task with due_date is created
+# Topic: reminders
+# Partition Key: user_id
+# Retention: 7 days (local), 30 days (cloud)
+# Consumer: Notification Service
+
+reminder_scheduled_event:
+  version: "1.0"
+  topic: reminders
+  partition_key: user_id
+  producer: Task Service (backend/src/services/task_service.py)
+  consumer: Notification Service (backend/src/services/notification_service.py)
+
+  schema:
+    event_id:
+      $ref: "#/common_event_structure/event_id"
+
+    event_type:
+      type: string
+      const: "reminder.scheduled"
+
+    event_version:
+      $ref: "#/common_event_structure/event_version"
+
+    timestamp:
+      $ref: "#/common_event_structure/timestamp"
+
+    user_id:
+      $ref: "#/common_event_structure/user_id"
+
+    task_id:
+      $ref: "#/common_event_structure/task_id"
+
+    payload:
+      type: object
+      required:
+        - task_title
+        - reminder_at
+        - notification_type
+        - user_email
+      properties:
+        task_title:
+          type: string
+          description: Task title to include in reminder notification
+          example: "Submit Q4 report"
+
+        task_description:
+          type: string
+          nullable: true
+          description: Task description to include in reminder (optional)
+          example: "Include revenue, expenses, and forecasts"
+
+        reminder_at:
+          type: string
+          format: iso8601-utc
+          description: When reminder should be sent (UTC)
+          example: "2025-12-31T16:00:00Z"
+
+        notification_type:
+          type: string
+          enum:
+            - email
+            - push
+          description: Notification delivery method (Phase V supports email only)
+          example: "email"
+
+        user_email:
+          type: string
+          format: email
+          description: User's email address for notification delivery
+          example: "user@example.com"
+
+        due_date:
+          type: string
+          format: iso8601-utc
+          description: Task due date for context (displayed in reminder)
+          example: "2025-12-31T17:00:00Z"
+
+  example:
+    event_id: "660e8400-e29b-41d4-a716-446655440001"
+    event_type: "reminder.scheduled"
+    event_version: "1.0"
+    timestamp: "2025-12-29T12:00:00Z"
+    user_id: "user-123"
+    task_id: 789
+    payload:
+      task_title: "Submit Q4 report"
+      task_description: "Include revenue, expenses, and forecasts"
+      reminder_at: "2025-12-31T16:00:00Z"
+      notification_type: "email"
+      user_email: "user@example.com"
+      due_date: "2025-12-31T17:00:00Z"
+
+  consumer_logic:
+    description: |
+      Notification Service consumes this event and:
+      1. Schedules reminder job using Dapr Jobs API
+      2. At reminder_at time, Dapr invokes webhook to send notification
+      3. Sends email via SMTP
+      4. Updates task.reminder_sent = TRUE in database
+
+    scheduling:
+      - Use Dapr Jobs API (NOT Cron Bindings) for exact-time scheduling
+      - Job name: "reminder-{task_id}" (idempotent - overwrites if exists)
+      - Job schedule: "@every {reminder_at.isoformat()}" (one-time job)
+      - Job data: {task_id, user_email, task_title, due_date}
+
+    notification_delivery:
+      - SMTP server: smtp.gmail.com:587 (or configured SMTP server)
+      - Email subject: "Reminder: {task_title}"
+      - Email body: |
+          Hi,
+
+          This is a reminder about your task:
+          Title: {task_title}
+          Due: {due_date in user's local timezone}
+          Description: {task_description}
+
+          Complete this task at: https://todo.example.com/tasks/{task_id}
+
+    idempotency:
+      - Use event_id to track processed events
+      - Before scheduling job, check if reminder_sent = TRUE in database
+      - If already sent, log warning and skip processing
+
+    retry_strategy:
+      - 10 retries with exponential backoff (1s, 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s, 512s)
+      - After 10 failures, send to dead letter queue (DLQ)
+      - DLQ retention: 7 days
+      - Alert user: "Reminder delivery failed for task '{task_title}'"
+
+---
+# Event Type 3: Task Updated
+# Published when: Task fields are modified (optional - for audit trail)
+# Topic: task-updates
+# Partition Key: user_id
+# Retention: 7 days (local), 30 days (cloud)
+# Consumer: Audit Service (optional)
+
+task_updated_event:
+  version: "1.0"
+  topic: task-updates
+  partition_key: user_id
+  producer: Task Service (backend/src/services/task_service.py)
+  consumer: Audit Service (backend/src/services/audit_service.py) - OPTIONAL
+
+  schema:
+    event_id:
+      $ref: "#/common_event_structure/event_id"
+
+    event_type:
+      type: string
+      const: "task.updated"
+
+    event_version:
+      $ref: "#/common_event_structure/event_version"
+
+    timestamp:
+      $ref: "#/common_event_structure/timestamp"
+
+    user_id:
+      $ref: "#/common_event_structure/user_id"
+
+    task_id:
+      $ref: "#/common_event_structure/task_id"
+
+    payload:
+      type: object
+      required:
+        - updated_fields
+      properties:
+        updated_fields:
+          type: object
+          description: Fields that were modified (key-value pairs)
+          example:
+            title: "Updated task title"
+            description: "Updated description"
+            completed: true
+
+        previous_values:
+          type: object
+          description: Previous values before update (for audit trail)
+          example:
+            title: "Original task title"
+            description: "Original description"
+            completed: false
+
+        updated_at:
+          type: string
+          format: iso8601-utc
+          description: When task was updated (UTC)
+          example: "2025-12-29T12:30:00Z"
+
+  example:
+    event_id: "770e8400-e29b-41d4-a716-446655440002"
+    event_type: "task.updated"
+    event_version: "1.0"
+    timestamp: "2025-12-29T12:30:00Z"
+    user_id: "user-123"
+    task_id: 456
+    payload:
+      updated_fields:
+        title: "Updated daily standup"
+        description: "Changed meeting time"
+      previous_values:
+        title: "Daily standup"
+        description: "Original meeting"
+      updated_at: "2025-12-29T12:30:00Z"
+
+  consumer_logic:
+    description: |
+      Audit Service (optional) consumes this event and:
+      1. Logs task modification to audit_logs table
+      2. Stores event_id, user_id, task_id, updated_fields, previous_values, timestamp
+      3. Supports querying audit trail: "Who changed task X and when?"
+
+    storage:
+      - Separate audit_logs table or external logging service (e.g., OCI Logging)
+      - Schema: {id, event_id, user_id, task_id, updated_fields, previous_values, timestamp}
+
+    retention:
+      - Audit logs: 90 days (longer than Kafka retention for compliance)
+
+---
+# Contract Testing
+
+contract_tests:
+  tool: pytest with JSON Schema validation
+  location: backend/tests/contract/test_event_schemas.py
+
+  test_cases:
+    - name: test_task_completed_event_schema
+      description: Validate task.completed event against schema
+      example_event:
+        $ref: "#/task_completed_event/example"
+
+    - name: test_reminder_scheduled_event_schema
+      description: Validate reminder.scheduled event against schema
+      example_event:
+        $ref: "#/reminder_scheduled_event/example"
+
+    - name: test_task_updated_event_schema
+      description: Validate task.updated event against schema
+      example_event:
+        $ref: "#/task_updated_event/example"
+
+  validation_rules:
+    - All required fields must be present
+    - event_id must be valid UUID v4
+    - timestamp must be ISO 8601 UTC format with 'Z' suffix
+    - user_id must not be NULL or empty string
+    - task_id must be positive integer
+    - event_version must match pattern ^\d+\.\d+$
+
+---
+# Schema Evolution Strategy
+
+schema_evolution:
+  backward_compatibility:
+    - New fields MUST be optional (nullable or have default values)
+    - Existing fields MUST NOT be removed
+    - Field types MUST NOT change (e.g., string → integer)
+    - Enum values MUST NOT be removed (can add new values)
+
+  versioning:
+    - event_version field indicates schema version
+    - Consumers MUST check event_version before processing
+    - Consumers SHOULD reject events with unsupported event_version
+    - Example: Consumer supports v1.0 and v1.1, rejects v2.0
+
+  deprecation_process:
+    1. Announce deprecation in event schema comments
+    2. Add new field with "_v2" suffix (e.g., "recurring_pattern_v2")
+    3. Publish dual fields for 3 months (old + new)
+    4. Update consumers to use new field
+    5. Remove old field in next major version (v2.0)
+
+  example_evolution:
+    # Version 1.0 (current)
+    event_version: "1.0"
+    payload:
+      task_title: "Daily standup"
+
+    # Version 1.1 (add optional field - backward compatible)
+    event_version: "1.1"
+    payload:
+      task_title: "Daily standup"
+      task_priority: "high"  # NEW optional field
+
+    # Version 2.0 (breaking change - rename field)
+    event_version: "2.0"
+    payload:
+      title: "Daily standup"  # RENAMED from task_title
+      priority: "high"         # RENAMED from task_priority
+
+---
+# Related Documents
+
+related_documents:
+  - name: spec.md
+    path: ../spec.md
+    description: Phase V Feature Specification
+
+  - name: plan.md
+    path: ../plan.md
+    description: Implementation Plan
+
+  - name: data-model.md
+    path: ../data-model.md
+    description: Database schema changes for Phase V fields
+
+  - name: pubsub-kafka.yaml
+    path: ./pubsub-kafka.yaml
+    description: Dapr Pub/Sub component for Kafka
+
+  - name: Kafka Best Practices
+    url: https://kafka.apache.org/documentation/#design
+    description: Apache Kafka design principles and best practices
