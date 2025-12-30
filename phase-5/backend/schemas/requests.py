@@ -138,6 +138,8 @@ class CreateTaskRequest(BaseModel):
         priority: Task priority (low, medium, high)
         due_date: Due date for task completion (optional)
         tags: Tags for task categorization (optional)
+        recurring_pattern: RRULE pattern for recurring tasks (optional, Phase V)
+        recurring_end_date: End date for recurring tasks (optional, Phase V)
 
     Example:
         {
@@ -145,7 +147,9 @@ class CreateTaskRequest(BaseModel):
             "description": "Write comprehensive API documentation for the backend",
             "priority": "high",
             "due_date": "2025-12-15T23:59:59Z",
-            "tags": ["documentation", "backend", "urgent"]
+            "tags": ["documentation", "backend", "urgent"],
+            "recurring_pattern": "DAILY",
+            "recurring_end_date": "2026-01-15T23:59:59Z"
         }
     """
 
@@ -158,6 +162,15 @@ class CreateTaskRequest(BaseModel):
                     "priority": "high",
                     "due_date": "2025-12-15T23:59:59Z",
                     "tags": ["documentation", "backend", "urgent"]
+                },
+                {
+                    "title": "Daily standup",
+                    "description": "Daily standup meeting at 10 AM",
+                    "priority": "medium",
+                    "due_date": "2025-12-30T10:00:00Z",
+                    "tags": ["meeting", "daily"],
+                    "recurring_pattern": "DAILY",
+                    "recurring_end_date": None
                 }
             ]
         }
@@ -168,6 +181,13 @@ class CreateTaskRequest(BaseModel):
     priority: Optional[str] = Field("medium", description="Task priority (low, medium, high)", examples=["high"])
     due_date: Optional[datetime] = Field(None, description="Due date for task completion (ISO 8601 format)", examples=["2025-12-15T23:59:59Z"])
     tags: Optional[list[str]] = Field(None, description="Tags for task categorization", examples=[["documentation", "backend", "urgent"]])
+
+    # Phase V: Recurring task fields
+    recurring_pattern: Optional[str] = Field(None, max_length=500, description="RRULE pattern for recurring tasks (e.g., DAILY, WEEKLY, MONTHLY, YEARLY, or full RFC 5545 RRULE string)", examples=["DAILY"])
+    recurring_end_date: Optional[datetime] = Field(None, description="End date for recurring tasks (ISO 8601 format). NULL for infinite recurrence.", examples=["2026-01-15T23:59:59Z"])
+
+    # Phase V: Reminder fields
+    reminder_offset_hours: Optional[int] = Field(None, ge=1, le=168, description="Hours before due_date to send reminder (1-168 hours = 1 hour to 1 week). Only valid if due_date is set.", examples=[1, 24, 168])
 
     @field_validator("title")
     @classmethod
@@ -209,6 +229,17 @@ class CreateTaskRequest(BaseModel):
             return cleaned_tags if cleaned_tags else None
         return None
 
+    @field_validator("reminder_offset_hours")
+    @classmethod
+    def validate_reminder_offset(cls, v: Optional[int], info) -> Optional[int]:
+        """Validate reminder_offset_hours is only set if due_date is set."""
+        if v is not None:
+            # Note: due_date validation happens at service layer since we need the final value
+            # Pydantic validators run before all fields are set
+            if v < 1 or v > 168:
+                raise ValueError("Reminder offset must be between 1 and 168 hours (1 hour to 1 week)")
+        return v
+
 
 class UpdateTaskRequest(BaseModel):
     """
@@ -222,12 +253,15 @@ class UpdateTaskRequest(BaseModel):
         priority: Task priority (low, medium, high)
         due_date: Due date for task completion
         tags: Tags for task categorization
+        recurring_pattern: RRULE pattern for recurring tasks (Phase V)
+        recurring_end_date: End date for recurring tasks (Phase V)
 
     Example:
         {
             "title": "Updated task title",
             "priority": "low",
-            "tags": ["updated", "reviewed"]
+            "tags": ["updated", "reviewed"],
+            "recurring_pattern": "WEEKLY"
         }
     """
 
@@ -238,6 +272,10 @@ class UpdateTaskRequest(BaseModel):
                     "title": "Updated task title",
                     "priority": "low",
                     "tags": ["updated", "reviewed"]
+                },
+                {
+                    "recurring_pattern": "WEEKLY",
+                    "recurring_end_date": "2026-06-30T23:59:59Z"
                 }
             ]
         }
@@ -248,6 +286,10 @@ class UpdateTaskRequest(BaseModel):
     priority: Optional[str] = Field(None, description="Task priority (low, medium, high)", examples=["low"])
     due_date: Optional[datetime] = Field(None, description="Due date for task completion (ISO 8601 format)", examples=["2025-12-20T23:59:59Z"])
     tags: Optional[list[str]] = Field(None, description="Tags for task categorization", examples=[["updated", "reviewed"]])
+
+    # Phase V: Recurring task fields
+    recurring_pattern: Optional[str] = Field(None, max_length=500, description="RRULE pattern for recurring tasks (e.g., DAILY, WEEKLY, MONTHLY, YEARLY, or full RFC 5545 RRULE string)", examples=["WEEKLY"])
+    recurring_end_date: Optional[datetime] = Field(None, description="End date for recurring tasks (ISO 8601 format). NULL for infinite recurrence.", examples=["2026-06-30T23:59:59Z"])
 
     @field_validator("title")
     @classmethod

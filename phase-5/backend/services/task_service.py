@@ -7,6 +7,7 @@ This module provides the TaskService class for handling task-related operations.
 import math
 from datetime import datetime
 from typing import Optional
+import logging
 # Removed UUID import - Better Auth uses string IDs
 
 from fastapi import HTTPException, status
@@ -15,6 +16,13 @@ from sqlmodel import Session, func, or_, select
 from models import Task
 from schemas.query_params import TaskQueryParams
 from schemas.requests import CreateTaskRequest, UpdateTaskRequest
+# Phase V imports
+from src.integrations.rrule_parser import get_rrule_parser
+from src.integrations.dapr_client import get_dapr_client
+from src.events.publisher import get_event_publisher
+from src.events.schemas import ReminderScheduledEvent, ReminderScheduledEventPayload
+
+logger = logging.getLogger(__name__)
 
 
 class TaskService:
@@ -30,21 +38,69 @@ class TaskService:
     """
 
     @staticmethod
-    def create_task(db: Session, user_id: str, task_data: CreateTaskRequest) -> Task:
+    async def create_task(db: Session, user_id: str, task_data: CreateTaskRequest) -> Task:
         """
         Create a new task for a user.
+
+        Phase V: Supports recurring tasks with RRULE patterns and next_occurrence calculation.
+        Phase V: Supports reminders with reminder_offset_hours and publishes reminder.scheduled events.
 
         Args:
             db: Database session
             user_id: User ID from JWT token (enforces user isolation)
-            task_data: Task creation data
+            task_data: Task creation data (including optional recurring_pattern and recurring_end_date)
 
         Returns:
-            Task: Created task
+            Task: Created task with calculated next_occurrence if recurring, reminder_at if reminder requested
 
         Raises:
-            HTTPException: 400 if validation fails
+            HTTPException: 400 if validation fails (e.g., invalid RRULE pattern, invalid reminder_offset)
         """
+        # Phase V: Validate reminder_offset_hours requires due_date
+        if task_data.reminder_offset_hours is not None and task_data.due_date is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "reminder_offset_hours can only be set if due_date is provided"
+                    }
+                }
+            )
+
+        # Phase V: Calculate next_occurrence for recurring tasks
+        next_occurrence = None
+        if task_data.recurring_pattern:
+            try:
+                parser = get_rrule_parser()
+                # Use due_date as dtstart if provided, otherwise use current time
+                dtstart = task_data.due_date if task_data.due_date else datetime.utcnow()
+
+                # Calculate next occurrence
+                next_occurrence = parser.calculate_next(
+                    pattern=task_data.recurring_pattern,
+                    dtstart=dtstart,
+                    end_date=task_data.recurring_end_date
+                )
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "INVALID_RECURRING_PATTERN",
+                            "message": f"Invalid recurring pattern: {str(e)}"
+                        }
+                    }
+                )
+
+        # Phase V: Calculate reminder_at if due_date and reminder_offset_hours provided
+        reminder_at = None
+        if task_data.due_date and task_data.reminder_offset_hours:
+            from datetime import timedelta
+            reminder_at = task_data.due_date - timedelta(hours=task_data.reminder_offset_hours)
+
         # Create new task with user isolation
         new_task = Task(
             user_id=user_id,
@@ -54,11 +110,52 @@ class TaskService:
             due_date=task_data.due_date,
             tags=task_data.tags,
             completed=False,
+            # Phase V: Recurring task fields
+            recurring_pattern=task_data.recurring_pattern,
+            recurring_end_date=task_data.recurring_end_date,
+            next_occurrence=next_occurrence,
+            # Phase V: Reminder fields
+            reminder_at=reminder_at,
+            reminder_sent=False,
         )
 
         db.add(new_task)
         db.commit()
         db.refresh(new_task)
+
+        # Phase V: Publish reminder.scheduled event if reminder requested
+        if reminder_at:
+            try:
+                # Get user email for notification (TODO: Replace with actual user service call)
+                # For now, use a placeholder email or retrieve from User table
+                user_email = f"{user_id}@example.com"  # Placeholder
+
+                publisher = get_event_publisher()
+                reminder_event = ReminderScheduledEvent(
+                    user_id=user_id,
+                    task_id=new_task.id,
+                    payload=ReminderScheduledEventPayload(
+                        task_title=new_task.title,
+                        task_description=new_task.description,
+                        reminder_at=reminder_at.isoformat() + "Z",
+                        notification_type="email",
+                        user_email=user_email,
+                        due_date=new_task.due_date.isoformat() + "Z"
+                    )
+                )
+
+                await publisher.publish_reminder_scheduled(reminder_event)
+                logger.info(
+                    f"Published reminder.scheduled event: task_id={new_task.id}, "
+                    f"reminder_at={reminder_at.isoformat()}Z"
+                )
+
+            except Exception as e:
+                # Log error but don't fail task creation
+                logger.error(
+                    f"Failed to publish reminder.scheduled event for task {new_task.id}: {e}",
+                    exc_info=True
+                )
 
         return new_task
 
@@ -214,17 +311,19 @@ class TaskService:
         """
         Update a task's details.
 
+        Phase V: Recalculates next_occurrence if recurring_pattern or due_date is updated.
+
         Args:
             db: Database session
             user_id: User ID from JWT token (enforces user isolation)
             task_id: Task ID to update
-            task_data: Updated task data
+            task_data: Updated task data (including optional recurring_pattern and recurring_end_date)
 
         Returns:
-            Task: Updated task
+            Task: Updated task with recalculated next_occurrence if recurring
 
         Raises:
-            HTTPException: 404 if task not found or doesn't belong to user
+            HTTPException: 404 if task not found or doesn't belong to user, 400 if invalid RRULE pattern
         """
         # Get task with user isolation verification
         task = TaskService.get_task_by_id(db, user_id, task_id)
@@ -233,6 +332,31 @@ class TaskService:
         update_data = task_data.model_dump(exclude_unset=True, exclude_none=True)
         for field, value in update_data.items():
             setattr(task, field, value)
+
+        # Phase V: Recalculate next_occurrence if recurring_pattern or due_date changed
+        if task.recurring_pattern and ("recurring_pattern" in update_data or "due_date" in update_data or "recurring_end_date" in update_data):
+            try:
+                parser = get_rrule_parser()
+                # Use updated due_date if available, otherwise use current due_date or now
+                dtstart = task.due_date if task.due_date else datetime.utcnow()
+
+                # Calculate next occurrence
+                task.next_occurrence = parser.calculate_next(
+                    pattern=task.recurring_pattern,
+                    dtstart=dtstart,
+                    end_date=task.recurring_end_date
+                )
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "INVALID_RECURRING_PATTERN",
+                            "message": f"Invalid recurring pattern: {str(e)}"
+                        }
+                    }
+                )
 
         # Update timestamp
         task.updated_at = datetime.utcnow()
@@ -263,9 +387,12 @@ class TaskService:
         db.commit()
 
     @staticmethod
-    def toggle_complete(db: Session, user_id: str, task_id: int, completed: bool) -> Task:
+    async def toggle_complete(db: Session, user_id: str, task_id: int, completed: bool) -> Task:
         """
         Toggle task completion status.
+
+        Phase V: Publishes task.completed event to Kafka if task is recurring.
+        Phase V: Cancels reminder job if task completed before reminder_at time.
 
         Args:
             db: Database session
@@ -282,12 +409,65 @@ class TaskService:
         # Get task with user isolation verification
         task = TaskService.get_task_by_id(db, user_id, task_id)
 
+        # Store previous completion status
+        was_completed = task.completed
+
+        # Update completion status
         task.completed = completed
         task.updated_at = datetime.utcnow()
+
+        # Phase V: Set completed_at timestamp when marking as complete
+        if completed and not was_completed:
+            task.completed_at = datetime.utcnow()
+        elif not completed and was_completed:
+            # Clear completed_at when marking as incomplete
+            task.completed_at = None
 
         db.add(task)
         db.commit()
         db.refresh(task)
+
+        # Phase V: Cancel reminder job if task completed before reminder_at time
+        if completed and not was_completed and task.reminder_at and not task.reminder_sent:
+            current_time = datetime.utcnow()
+            if task.reminder_at > current_time:
+                try:
+                    dapr = get_dapr_client()
+                    job_name = f"reminder-task-{task.id}"
+                    await dapr.delete_job(job_name)
+                    logger.info(
+                        f"Cancelled reminder job for completed task: job_name={job_name}, "
+                        f"task_id={task.id}"
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request (job deletion is best-effort)
+                    logger.error(
+                        f"Failed to cancel reminder job for task {task.id}: {e}",
+                        exc_info=True
+                    )
+
+        # Phase V: Publish task.completed event if task is recurring and just marked as complete
+        if completed and not was_completed and task.recurring_pattern:
+            try:
+                dapr = get_dapr_client()
+                await dapr.publish_event(
+                    topic="task-events",
+                    event_data={
+                        "event_type": "task.completed",
+                        "task_id": task.id,
+                        "user_id": task.user_id,
+                        "payload": {
+                            "task_title": task.title,
+                            "completed_at": task.completed_at.isoformat() + "Z" if task.completed_at else datetime.utcnow().isoformat() + "Z",
+                            "recurring_pattern": task.recurring_pattern,
+                            "recurring_end_date": task.recurring_end_date.isoformat() + "Z" if task.recurring_end_date else None
+                        }
+                    }
+                )
+                logger.info(f"Published task.completed event for recurring task {task.id}")
+            except Exception as e:
+                # Log error but don't fail the request (event publishing is best-effort)
+                logger.error(f"Failed to publish task.completed event for task {task.id}: {str(e)}")
 
         return task
 

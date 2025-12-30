@@ -41,7 +41,11 @@
       "Bash(git --version:*)",
       "Bash(if [ -d \"D:\\\\Todo_giaic_five_phases\\\\specs\\\\007-phase5-cloud-deployment\\\\checklists\" ])",
       "Bash(then ls \"D:\\\\Todo_giaic_five_phases\\\\specs\\\\007-phase5-cloud-deployment\\\\checklists\")",
-      "Bash(else echo \"No checklists directory\")"
+      "Bash(else echo \"No checklists directory\")",
+      "Bash(git checkout:*)",
+      "mcp__context7__query-docs",
+      "Bash(python:*)",
+      "Bash(python -m pytest:*)"
     ],
     "deny": [],
     "ask": []

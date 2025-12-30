@@ -86,6 +86,8 @@ async def create_task(
     """
     Create a new task for the authenticated user.
 
+    Phase V: Supports reminder scheduling with reminder_offset_hours parameter.
+
     Args:
         user_id: User ID from URL path
         task_data: Task creation data
@@ -96,15 +98,15 @@ async def create_task(
         SingleTaskResponse: Created task data
 
     Raises:
-        HTTPException: 401 if not authenticated, 403 if user_id mismatch
+        HTTPException: 401 if not authenticated, 403 if user_id mismatch, 400 if validation fails
     """
     # Verify user_id matches JWT token
     verify_user_access(user_id, current_user)
 
     try:
-        # Create task with user isolation
+        # Create task with user isolation (async for reminder event publishing)
         user_id_str = current_user["user_id"]
-        task = TaskService.create_task(db, user_id_str, task_data)
+        task = await TaskService.create_task(db, user_id_str, task_data)
 
         # Convert to response model
         task_response = TaskResponse.model_validate(task)
@@ -441,6 +443,8 @@ async def toggle_complete(
     """
     Toggle a task's completion status.
 
+    Phase V: Publishes task.completed event to Kafka if task is recurring.
+
     Args:
         user_id: User ID from URL path
         task_id: Task ID to toggle
@@ -457,9 +461,9 @@ async def toggle_complete(
     # Verify user_id matches JWT token
     verify_user_access(user_id, current_user)
 
-    # Toggle completion with user isolation verification
+    # Toggle completion with user isolation verification (async for event publishing)
     user_id_str = current_user["user_id"]
-    task = TaskService.toggle_complete(db, user_id_str, task_id, complete_data.completed)
+    task = await TaskService.toggle_complete(db, user_id_str, task_id, complete_data.completed)
 
     # Convert to response model
     task_response = TaskResponse.model_validate(task)

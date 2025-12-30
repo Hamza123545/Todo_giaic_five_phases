@@ -53,6 +53,33 @@ spec:
     # Note: user_id will be included in event payload for partitioning
     # Kafka will hash user_id to determine partition (ensures ordering per user)
 
+    # Dead Letter Queue (DLQ) Configuration (T083)
+    # Retry and DLQ settings per spec.md FR-020a, FR-020c
+
+    # Max delivery attempts before moving to DLQ
+    - name: maxDeliveryAttempts
+      value: "10"  # Matches max retries for reminders (highest retry count)
+
+    # DLQ Topic Configuration
+    # Note: DLQ topics must be created manually with appropriate retention
+    # Topics: dlq-task-events, dlq-reminders, dlq-task-updates
+
+    # DLQ retention periods (milliseconds):
+    # - dlq-task-events: 30 days = 2,592,000,000 ms
+    # - dlq-reminders: 7 days = 604,800,000 ms
+    # - dlq-task-updates: 14 days = 1,209,600,000 ms
+
+    # Enable DLQ for this component
+    - name: deadLetterTopic
+      value: "dlq-{topic}"  # DLQ topic naming pattern: dlq-task-events, dlq-reminders, etc.
+
+    # DLQ Retention Configuration
+    # These settings apply when creating DLQ topics via create-kafka-topics.sh
+    # Topic retention.ms values:
+    # - dlq-task-events: 2592000000 (30 days)
+    # - dlq-reminders: 604800000 (7 days)
+    # - dlq-task-updates: 1209600000 (14 days)
+
 scopes:
   - backend
   - recurring-task-service

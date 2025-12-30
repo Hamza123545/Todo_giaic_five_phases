@@ -96,6 +96,8 @@ def add_task(
     title: str,
     description: Optional[str] = None,
     priority: Optional[str] = None,
+    recurring_pattern: Optional[str] = None,
+    recurring_end_date: Optional[str] = None,
 ) -> dict:
     """
     Create a new task for a user.
@@ -105,6 +107,7 @@ def add_task(
     - Stateless: All state persisted to database
     - User Isolation: Enforced via user_id parameter
     - Priority Detection: Extracts priority from title/description if not provided
+    - Phase V: Supports recurring tasks with RRULE patterns
 
     Args:
         user_id: User's unique identifier (string UUID from Better Auth)
@@ -112,6 +115,12 @@ def add_task(
         description: Task description (optional, max 1000 characters)
         priority: Task priority level (optional: "low", "medium", "high")
             - If not provided, automatically detects from title + description
+        recurring_pattern: RRULE pattern for recurring tasks (optional, Phase V)
+            - Simplified patterns: "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
+            - Full RFC 5545: "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR"
+        recurring_end_date: End date for recurring tasks (optional, ISO 8601 UTC string)
+            - Format: "2026-12-31T23:59:59Z"
+            - If null, task recurs infinitely
 
     Returns:
         dict: Task creation result
@@ -119,12 +128,19 @@ def add_task(
             - status (str): "created"
             - title (str): Task title
             - priority (str): Assigned priority level
+            - recurring_pattern (str|None): Recurring pattern (Phase V)
+            - next_occurrence (str|None): Next occurrence timestamp (Phase V)
 
     Example:
-        >>> add_task(user_id="user-123", title="Create HIGH priority task to buy milk")
-        {"task_id": 42, "status": "created", "title": "...", "priority": "high"}
-        >>> add_task(user_id="user-123", title="Buy groceries", priority="high")
-        {"task_id": 43, "status": "created", "title": "...", "priority": "high"}
+        >>> add_task(user_id="user-123", title="Daily standup", recurring_pattern="DAILY")
+        {
+            "task_id": 42,
+            "status": "created",
+            "title": "Daily standup",
+            "priority": "medium",
+            "recurring_pattern": "DAILY",
+            "next_occurrence": "2025-12-31T10:00:00Z"
+        }
     """
     # Get database session
     session = next(get_session())
@@ -141,6 +157,16 @@ def add_task(
             if priority not in ["low", "medium", "high"]:
                 priority = "medium"
 
+        # Parse recurring_end_date from string to datetime if provided
+        from datetime import datetime
+        parsed_recurring_end_date = None
+        if recurring_end_date:
+            try:
+                parsed_recurring_end_date = datetime.fromisoformat(recurring_end_date.replace("Z", "+00:00"))
+            except ValueError:
+                # Invalid date format, ignore
+                pass
+
         # Create task using task_service
         task_data = CreateTaskRequest(
             title=title,
@@ -148,6 +174,8 @@ def add_task(
             priority=priority,
             due_date=None,
             tags=None,
+            recurring_pattern=recurring_pattern,
+            recurring_end_date=parsed_recurring_end_date,
         )
 
         created_task = TaskService.create_task(
@@ -156,12 +184,14 @@ def add_task(
             task_data=task_data
         )
 
-        # Return MCP tool response
+        # Return MCP tool response (Phase V: include recurring fields)
         return {
             "task_id": created_task.id,
             "status": "created",
             "title": created_task.title,
             "priority": created_task.priority,
+            "recurring_pattern": created_task.recurring_pattern,
+            "next_occurrence": created_task.next_occurrence.isoformat() + "Z" if created_task.next_occurrence else None,
         }
 
     finally:
@@ -230,7 +260,7 @@ def list_tasks(
             query_params=query_params
         )
 
-        # Convert tasks to dict format
+        # Convert tasks to dict format (Phase V: include recurring fields)
         task_list = [
             {
                 "id": task.id,
@@ -240,6 +270,9 @@ def list_tasks(
                 "priority": task.priority,
                 "due_date": task.due_date.isoformat() if task.due_date else None,
                 "created_at": task.created_at.isoformat(),
+                # Phase V: Recurring task fields
+                "recurring_pattern": task.recurring_pattern,
+                "next_occurrence": task.next_occurrence.isoformat() + "Z" if task.next_occurrence else None,
             }
             for task in tasks
         ]

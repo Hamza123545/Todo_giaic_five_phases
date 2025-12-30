@@ -88,8 +88,14 @@ class TaskResponse(BaseModel):
         due_date: Due date for task completion
         tags: Tags for task categorization
         completed: Completion status
+        completed_at: Timestamp when task was marked complete (Phase V)
         created_at: Task creation timestamp
         updated_at: Last update timestamp
+        recurring_pattern: RRULE pattern for recurring tasks (Phase V)
+        recurring_end_date: End date for recurring tasks (Phase V)
+        next_occurrence: Calculated next occurrence for recurring tasks (Phase V)
+        reminder_at: Reminder timestamp (Phase V)
+        reminder_sent: Reminder delivery status (Phase V)
     """
 
     id: int
@@ -100,8 +106,16 @@ class TaskResponse(BaseModel):
     due_date: Optional[datetime] = None
     tags: Optional[list[str]] = None
     completed: bool
+    completed_at: Optional[datetime] = None  # Phase V
     created_at: datetime
     updated_at: datetime
+
+    # Phase V: Recurring task fields
+    recurring_pattern: Optional[str] = None
+    recurring_end_date: Optional[datetime] = None
+    next_occurrence: Optional[datetime] = None
+    reminder_at: Optional[datetime] = None
+    reminder_sent: bool = False
 
     class Config:
         from_attributes = True

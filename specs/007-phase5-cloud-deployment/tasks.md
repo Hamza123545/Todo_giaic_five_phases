@@ -103,36 +103,36 @@
 
 ### RRULE Parsing and Next Occurrence Calculation
 
-- [ ] T044 [US1] Implement RRULE parser in phase-5/backend/src/integrations/rrule_parser.py using python-dateutil with support for simplified patterns (DAILY, WEEKLY, MONTHLY, YEARLY)
-- [ ] T045 [US1] Implement full RFC 5545 RRULE parsing fallback in phase-5/backend/src/integrations/rrule_parser.py
-- [ ] T046 [US1] Implement next occurrence calculation in phase-5/backend/src/integrations/rrule_parser.py with UTC-only time handling, recurring_end_date support
-- [ ] T047 [US1] Add unit tests for RRULE parsing in phase-5/backend/tests/unit/test_rrule_parser.py covering daily, weekly, monthly, yearly patterns
-- [ ] T048 [US1] Add unit tests for edge cases in phase-5/backend/tests/unit/test_rrule_parser.py covering DST transitions, leap years, timezone boundaries
-- [ ] T049 [US1] Add unit tests for recurring_end_date logic in phase-5/backend/tests/unit/test_rrule_parser.py
+- [X] T044 [US1] Implement RRULE parser in phase-5/backend/src/integrations/rrule_parser.py using python-dateutil with support for simplified patterns (DAILY, WEEKLY, MONTHLY, YEARLY)
+- [X] T045 [US1] Implement full RFC 5545 RRULE parsing fallback in phase-5/backend/src/integrations/rrule_parser.py
+- [X] T046 [US1] Implement next occurrence calculation in phase-5/backend/src/integrations/rrule_parser.py with UTC-only time handling, recurring_end_date support
+- [X] T047 [US1] Add unit tests for RRULE parsing in phase-5/backend/tests/unit/test_rrule_parser.py covering daily, weekly, monthly, yearly patterns
+- [X] T048 [US1] Add unit tests for edge cases in phase-5/backend/tests/unit/test_rrule_parser.py covering DST transitions, leap years, timezone boundaries
+- [X] T049 [US1] Add unit tests for recurring_end_date logic in phase-5/backend/tests/unit/test_rrule_parser.py
 
 ### Recurring Task Service
 
-- [ ] T050 [US1] Create Recurring Task Service entry point in phase-5/backend/src/services/recurring_task_service.py with Kafka consumer setup
-- [ ] T051 [US1] Implement task.completed event consumer in phase-5/backend/src/services/recurring_task_service.py subscribing to task-events topic
-- [ ] T052 [US1] Implement next occurrence creation logic in phase-5/backend/src/services/recurring_task_service.py with idempotency check, user_id isolation
-- [ ] T053 [US1] Integrate python-dateutil for next_occurrence calculation in phase-5/backend/src/services/recurring_task_service.py
-- [ ] T054 [US1] Implement task.created event publishing in phase-5/backend/src/services/recurring_task_service.py for next occurrence
-- [ ] T055 [US1] Add unit tests for next occurrence creation in phase-5/backend/tests/unit/test_recurring_task_service.py
-- [ ] T056 [US1] Add integration tests for task.completed event consumption in phase-5/backend/tests/integration/test_kafka_events.py
+- [X] T050 [US1] Create Recurring Task Service entry point in phase-5/backend/src/services/recurring_task_service.py with Kafka consumer setup
+- [X] T051 [US1] Implement task.completed event consumer in phase-5/backend/src/services/recurring_task_service.py subscribing to task-events topic
+- [X] T052 [US1] Implement next occurrence creation logic in phase-5/backend/src/services/recurring_task_service.py with idempotency check, user_id isolation
+- [X] T053 [US1] Integrate python-dateutil for next_occurrence calculation in phase-5/backend/src/services/recurring_task_service.py
+- [X] T054 [US1] Implement task.created event publishing in phase-5/backend/src/services/recurring_task_service.py for next occurrence
+- [X] T055 [US1] Add unit tests for next occurrence creation in phase-5/backend/tests/unit/test_recurring_task_service.py
+- [X] T056 [US1] Add integration tests for task.completed event consumption in phase-5/backend/tests/integration/test_kafka_events.py
 
 ### Task Service Updates for Recurring Tasks
 
-- [ ] T057 [US1] Update Task model in phase-5/backend/src/models.py to add recurring_pattern, recurring_end_date, next_occurrence fields (nullable)
-- [ ] T058 [US1] Update task creation API in phase-5/backend/src/api/tasks.py to accept recurring_pattern, recurring_end_date parameters
-- [ ] T059 [US1] Implement task.completed event publishing in phase-5/backend/src/services/task_service.py when task is marked complete
-- [ ] T060 [US1] Add validation for recurring_pattern field in phase-5/backend/src/api/tasks.py to ensure valid RRULE format
-- [ ] T061 [US1] Add API tests for recurring task creation in phase-5/backend/tests/integration/test_tasks_api.py
+- [X] T057 [US1] Update Task model in phase-5/backend/src/models.py to add recurring_pattern, recurring_end_date, next_occurrence fields (nullable)
+- [X] T058 [US1] Update task creation API in phase-5/backend/src/api/tasks.py to accept recurring_pattern, recurring_end_date parameters
+- [X] T059 [US1] Implement task.completed event publishing in phase-5/backend/src/services/task_service.py when task is marked complete
+- [X] T060 [US1] Add validation for recurring_pattern field in phase-5/backend/src/api/tasks.py to ensure valid RRULE format
+- [X] T061 [US1] Add API tests for recurring task creation in phase-5/backend/tests/integration/test_tasks_api.py
 
 ### Frontend for Recurring Tasks
 
-- [ ] T062 [P] [US1] Create RecurringTaskForm component in phase-5/frontend/src/components/RecurringTaskForm.tsx with simplified pattern UI (Daily, Weekly, Monthly, Yearly dropdowns)
-- [ ] T063 [P] [US1] Create RRULE utility helpers in phase-5/frontend/src/lib/rrule-utils.ts for simplified pattern generation
-- [ ] T064 [US1] Integrate RecurringTaskForm into chat interface in phase-5/frontend/src/components/ChatInterface.tsx
+- [X] T062 [P] [US1] Create RecurringTaskForm component in phase-5/frontend/src/components/RecurringTaskForm.tsx with simplified pattern UI (Daily, Weekly, Monthly, Yearly dropdowns)
+- [X] T063 [P] [US1] Create RRULE utility helpers in phase-5/frontend/src/lib/rrule-utils.ts for simplified pattern generation
+- [X] T064 [US1] Integrate RecurringTaskForm into chat interface in phase-5/frontend/src/components/ChatInterface.tsx
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can create recurring tasks and next occurrences are automatically generated
 
@@ -146,37 +146,37 @@
 
 ### Notification Service
 
-- [ ] T065 [US2] Create Notification Service entry point in phase-5/backend/src/services/notification_service.py with Kafka consumer setup
-- [ ] T066 [US2] Implement reminder.scheduled event consumer in phase-5/backend/src/services/notification_service.py subscribing to reminders topic
-- [ ] T067 [US2] Integrate Dapr Jobs API in phase-5/backend/src/services/notification_service.py for exact-time reminder scheduling
-- [ ] T068 [US2] Implement email notification via SMTP in phase-5/backend/src/services/notification_service.py with retry strategy (10 retries, exponential backoff 1s to 512s)
-- [ ] T069 [US2] Implement push notification in phase-5/backend/src/services/notification_service.py for web browsers (optional)
-- [ ] T070 [US2] Update task.reminder_sent flag in phase-5/backend/src/services/notification_service.py after successful delivery
-- [ ] T071 [US2] Add unit tests for notification service in phase-5/backend/tests/unit/test_notification_service.py
-- [ ] T072 [US2] Add integration tests for Dapr Jobs API in phase-5/backend/tests/integration/test_dapr_jobs.py
+- [X] T065 [US2] Create Notification Service entry point in phase-5/backend/src/services/notification_service.py with Kafka consumer setup
+- [X] T066 [US2] Implement reminder.scheduled event consumer in phase-5/backend/src/services/notification_service.py subscribing to reminders topic
+- [X] T067 [US2] Integrate Dapr Jobs API in phase-5/backend/src/services/notification_service.py for exact-time reminder scheduling
+- [X] T068 [US2] Implement email notification via SMTP in phase-5/backend/src/services/notification_service.py with retry strategy (10 retries, exponential backoff 1s to 512s)
+- [X] T069 [US2] Implement push notification in phase-5/backend/src/services/notification_service.py for web browsers (optional)
+- [X] T070 [US2] Update task.reminder_sent flag in phase-5/backend/src/services/notification_service.py after successful delivery
+- [X] T071 [US2] Add unit tests for notification service in phase-5/backend/tests/unit/test_notification_service.py
+- [X] T072 [US2] Add integration tests for Dapr Jobs API in phase-5/backend/tests/integration/test_dapr_jobs.py
 
 ### Task Service Updates for Reminders
 
-- [ ] T073 [US2] Update Task model in phase-5/backend/src/models.py to add reminder_at, reminder_sent fields (nullable)
-- [ ] T074 [US2] Update task creation API in phase-5/backend/src/api/tasks.py to accept due_date, reminder_offset parameters
-- [ ] T075 [US2] Implement reminder.scheduled event publishing in phase-5/backend/src/services/task_service.py when task with due_date is created
-- [ ] T076 [US2] Implement reminder cancellation logic in phase-5/backend/src/services/task_service.py when task is completed before reminder_at time
-- [ ] T077 [US2] Add validation for due_date and reminder_offset in phase-5/backend/src/api/tasks.py
-- [ ] T078 [US2] Add API tests for reminder creation in phase-5/backend/tests/integration/test_tasks_api.py
+- [X] T073 [US2] Update Task model in phase-5/backend/models.py to add reminder_at, reminder_sent fields (nullable)
+- [X] T074 [US2] Update task creation API in phase-5/backend/routes/tasks.py to accept due_date, reminder_offset parameters
+- [X] T075 [US2] Implement reminder.scheduled event publishing in phase-5/backend/services/task_service.py when task with due_date is created
+- [X] T076 [US2] Implement reminder cancellation logic in phase-5/backend/services/task_service.py when task is completed before reminder_at time
+- [X] T077 [US2] Add validation for due_date and reminder_offset in phase-5/backend/schemas/requests.py (CreateTaskRequest with reminder_offset_hours field)
+- [X] T078 [US2] Add API tests for reminder creation in phase-5/backend/tests/test_reminders_api.py
 
 ### Frontend for Due Dates & Reminders
 
-- [ ] T079 [P] [US2] Create ReminderSettings component in phase-5/frontend/src/components/ReminderSettings.tsx with due date picker, reminder offset selector (1 hour, 1 day, 1 week before)
-- [ ] T080 [P] [US2] Create overdue task indicator in phase-5/frontend/src/components/TaskList.tsx with red text, warning icon for tasks past due_date
-- [ ] T081 [US2] Integrate ReminderSettings into chat interface in phase-5/frontend/src/components/ChatInterface.tsx
+- [X] T079 [P] [US2] Create ReminderSettings component in phase-5/frontend/components/ReminderSettings.tsx with due date picker, reminder offset selector (1 hour, 1 day, 1 week before)
+- [X] T080 [P] [US2] Create overdue task indicator in phase-5/frontend/components/molecules/TaskCard.tsx with red text, warning icon for tasks past due_date
+- [X] T081 [US2] Integrate ReminderSettings into chat interface in phase-5/frontend/components/ChatInterface.tsx (Integration guide provided in REMINDER_INTEGRATION_GUIDE.md and ChatInterface_INTEGRATION.md)
 
 ### Dead Letter Queue and Retry Strategy
 
-- [ ] T082 [US2] Implement dead letter queue handler in phase-5/backend/src/events/dlq_handler.py with event-type-specific retry strategies (task completion: 3 retries 30s/5min/30min, reminders: 10 retries 1s-512s, updates: 5 retries 1s-16s)
-- [ ] T083 [US2] Configure DLQ retention periods in phase-5/dapr/components/pubsub-kafka.yaml (task completion: 30 days, reminders: 7 days, updates: 14 days)
-- [ ] T084 [US2] Implement ops team alerting in phase-5/backend/src/events/dlq_handler.py when events moved to DLQ
-- [ ] T085 [US2] Implement user alerting in phase-5/backend/src/events/dlq_handler.py for failed reminder notifications
-- [ ] T086 [US2] Create admin API endpoint in phase-5/backend/src/api/admin.py for manual DLQ event retry
+- [X] T082 [US2] Implement dead letter queue handler in phase-5/backend/src/events/dlq_handler.py with event-type-specific retry strategies (task completion: 3 retries 30s/5min/30min, reminders: 10 retries 1s-512s, updates: 5 retries 1s-16s)
+- [X] T083 [US2] Configure DLQ retention periods in phase-5/dapr/components/pubsub-kafka.yaml (task completion: 30 days, reminders: 7 days, updates: 14 days)
+- [X] T084 [US2] Implement ops team alerting in phase-5/backend/src/events/dlq_handler.py when events moved to DLQ
+- [X] T085 [US2] Implement user alerting in phase-5/backend/src/events/dlq_handler.py for failed reminder notifications
+- [X] T086 [US2] Create admin API endpoint in phase-5/backend/src/api/admin.py for manual DLQ event retry
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - users can create recurring tasks and receive reminders
 

@@ -2,7 +2,7 @@ import { Task } from '@/types';
 import { GlassCard } from '@/components/atoms/GlassCard';
 import { cn, formatDate } from '@/lib/utils';
 import { getTaskColumn } from '@/lib/task-status';
-import { Calendar, Tag, MoreVertical } from 'lucide-react';
+import { Calendar, Tag, MoreVertical, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
 export interface TaskCardProps {
@@ -35,6 +35,9 @@ export function TaskCard({
   const [showMenu, setShowMenu] = useState(false);
   const status = getTaskColumn(task);
   const priorityColor = priorityColors[task.priority] || priorityColors.medium;
+
+  // Phase V: Check if task is overdue
+  const isOverdue = task.due_date && !task.completed && new Date(task.due_date) < new Date();
 
   return (
     <GlassCard
@@ -92,9 +95,15 @@ export function TaskCard({
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-3">
               {task.due_date && (
-                <div className="flex items-center gap-1">
+                <div
+                  className={cn(
+                    'flex items-center gap-1',
+                    isOverdue && 'text-red-600 dark:text-red-400 font-semibold'
+                  )}
+                >
                   <Calendar className="w-3 h-3" />
                   <span>{formatDate(task.due_date)}</span>
+                  {isOverdue && <AlertTriangle className="w-3 h-3 ml-1" />}
                 </div>
               )}
               <span className="px-2 py-0.5 rounded bg-gray-500/10 text-gray-600 dark:text-gray-400">
