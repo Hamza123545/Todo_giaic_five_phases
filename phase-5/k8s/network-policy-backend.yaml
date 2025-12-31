@@ -1,0 +1,101 @@
+# Network Policy for Backend service
+# Restricts ingress to only frontend and egress to PostgreSQL, Kafka, and Dapr
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules: Allow traffic from frontend and Dapr sidecar
+  ingress:
+    # Allow traffic from frontend
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 8000
+
+    # Allow traffic from Ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+
+    # Allow traffic from Dapr sidecar (for service invocation)
+    - from:
+        - podSelector:
+            matchLabels:
+              dapr.io/enabled: "true"
+      ports:
+        - protocol: TCP
+          port: 8000
+
+  # Egress rules: Allow traffic to PostgreSQL, Kafka, Dapr, and DNS
+  egress:
+    # Allow egress to PostgreSQL (Neon - external)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow egress to Kafka (Redpanda Cloud - external)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093
+
+    # Allow egress to Dapr control plane
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: dapr-system
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+
+    # Allow egress to Dapr sidecar (localhost)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 3500  # Dapr HTTP port
+        - protocol: TCP
+          port: 50001  # Dapr gRPC port
+
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Allow HTTPS for external APIs (Better Auth, SMTP, etc.)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

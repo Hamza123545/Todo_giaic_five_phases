@@ -1,0 +1,92 @@
+# Network Policy for Recurring Task Service
+# Restricts ingress to Dapr sidecar only and egress to PostgreSQL, Kafka, and Dapr
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: recurring-task-service-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: recurring-task-service
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules: Allow traffic from Dapr sidecar only (no external access)
+  ingress:
+    # Allow traffic from Dapr sidecar for Pub/Sub event delivery
+    - from:
+        - podSelector:
+            matchLabels:
+              dapr.io/enabled: "true"
+      ports:
+        - protocol: TCP
+          port: 8001
+
+    # Allow traffic from backend via Dapr service invocation
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 8001
+
+  # Egress rules: Allow traffic to PostgreSQL, Kafka, Dapr, and DNS
+  egress:
+    # Allow egress to PostgreSQL (Neon - external)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow egress to Kafka (Redpanda Cloud - external)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093
+
+    # Allow egress to Dapr control plane
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: dapr-system
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+
+    # Allow egress to Dapr sidecar (localhost)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: recurring-task-service
+      ports:
+        - protocol: TCP
+          port: 3500  # Dapr HTTP port
+        - protocol: TCP
+          port: 50001  # Dapr gRPC port
+
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Allow HTTPS for external APIs
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

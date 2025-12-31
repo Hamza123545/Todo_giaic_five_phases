@@ -1,0 +1,191 @@
+# Helm values for Google Kubernetes Engine (GKE) deployment
+# Secondary deployment target (OKE is primary)
+
+# Global settings
+global:
+  environment: production
+  cloudProvider: gke
+  domain: "todo-gke.example.com"
+
+# Backend service
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  image:
+    repository: gcr.io/<PROJECT_ID>/todo-backend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: LoadBalancer
+    port: 8000
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  env:
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: google-secretmanager-secrets
+          key: database-url
+    - name: KAFKA_BROKERS
+      valueFrom:
+        secretKeyRef:
+          name: google-secretmanager-secrets
+          key: kafka-brokers
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "backend"
+    dapr.io/app-port: "8000"
+    dapr.io/config: "dapr-config"
+
+# Frontend service
+frontend:
+  name: frontend
+  replicas: 2
+  port: 3000
+
+  image:
+    repository: gcr.io/<PROJECT_ID>/todo-frontend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "frontend"
+    dapr.io/app-port: "3000"
+
+# Recurring Task Service
+recurringTaskService:
+  name: recurring-task-service
+  replicas: 2
+  port: 8001
+
+  image:
+    repository: gcr.io/<PROJECT_ID>/recurring-task-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "recurring-task-service"
+    dapr.io/app-port: "8001"
+
+# Notification Service
+notificationService:
+  name: notification-service
+  replicas: 2
+  port: 8002
+
+  image:
+    repository: gcr.io/<PROJECT_ID>/notification-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8002
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "notification-service"
+    dapr.io/app-port: "8002"
+
+# Kafka Configuration (Confluent Cloud)
+kafka:
+  enabled: true
+  external: true
+  brokers: "<CONFLUENT_CLOUD_BOOTSTRAP_SERVERS>"
+
+  topics:
+    - name: task-events
+      partitions: 12
+      replicationFactor: 3
+      retentionMs: 2592000000  # 30 days
+    - name: reminders
+      partitions: 12
+      replicationFactor: 3
+      retentionMs: 2592000000
+    - name: task-updates
+      partitions: 12
+      replicationFactor: 3
+      retentionMs: 2592000000
+
+# Dapr Configuration
+dapr:
+  enabled: true
+  version: "1.12"
+  mtls: true
+  ha: true
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "gce"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.global-static-ip-name: "todo-gke-ip"
+
+  hosts:
+    - host: todo-gke.example.com
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+
+  tls:
+    - secretName: todo-gke-tls
+      hosts:
+        - todo-gke.example.com
+
+# Secrets
+secrets:
+  provider: google-secretmanager
+  projectId: "<PROJECT_ID>"

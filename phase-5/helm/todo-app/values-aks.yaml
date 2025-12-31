@@ -1,0 +1,193 @@
+# Helm values for Azure Kubernetes Service (AKS) deployment
+# Secondary deployment target (OKE is primary)
+
+# Global settings
+global:
+  environment: production
+  cloudProvider: aks
+  domain: "todo-aks.example.com"
+
+# Backend service
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  image:
+    repository: <ACR_NAME>.azurecr.io/todo-backend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: LoadBalancer
+    port: 8000
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  env:
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: database-url
+    - name: KAFKA_BROKERS
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: kafka-brokers
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "backend"
+    dapr.io/app-port: "8000"
+    dapr.io/config: "dapr-config"
+
+# Frontend service
+frontend:
+  name: frontend
+  replicas: 2
+  port: 3000
+
+  image:
+    repository: <ACR_NAME>.azurecr.io/todo-frontend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "frontend"
+    dapr.io/app-port: "3000"
+
+# Recurring Task Service
+recurringTaskService:
+  name: recurring-task-service
+  replicas: 2
+  port: 8001
+
+  image:
+    repository: <ACR_NAME>.azurecr.io/recurring-task-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "recurring-task-service"
+    dapr.io/app-port: "8001"
+
+# Notification Service
+notificationService:
+  name: notification-service
+  replicas: 2
+  port: 8002
+
+  image:
+    repository: <ACR_NAME>.azurecr.io/notification-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8002
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "notification-service"
+    dapr.io/app-port: "8002"
+
+# Kafka Configuration (Azure Event Hubs with Kafka API)
+kafka:
+  enabled: true
+  external: true
+  brokers: "<EVENT_HUBS_NAMESPACE>.servicebus.windows.net:9093"
+
+  topics:
+    - name: task-events
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000  # 30 days
+    - name: reminders
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000
+    - name: task-updates
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000
+
+# Dapr Configuration
+dapr:
+  enabled: true
+  version: "1.12"
+  mtls: true
+  ha: true
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+  hosts:
+    - host: todo-aks.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+
+  tls:
+    - secretName: todo-aks-tls
+      hosts:
+        - todo-aks.example.com
+
+# Secrets
+secrets:
+  provider: azure-keyvault
+  keyVaultName: "<AZURE_KEYVAULT_NAME>"
+  tenantId: "<AZURE_TENANT_ID>"

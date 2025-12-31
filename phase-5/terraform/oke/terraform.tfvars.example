@@ -1,0 +1,26 @@
+# Example Terraform variables for OKE deployment
+# Copy this file to terraform.tfvars and fill in your values
+
+# OCI Authentication (get from OCI Console → User Settings → API Keys)
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+user_ocid        = "ocid1.user.oc1..aaaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+fingerprint      = "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX"
+private_key_path = "~/.oci/oci_api_key.pem"
+compartment_ocid = "ocid1.compartment.oc1..aaaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# OCI Region (choose nearest region)
+region = "us-ashburn-1"  # or "us-phoenix-1", "eu-frankfurt-1", etc.
+
+# Cluster Configuration
+cluster_name       = "todo-oke-cluster"
+kubernetes_version = "v1.28.2"
+
+# Node Pool Configuration (Always-Free Tier)
+node_shape        = "VM.Standard.A1.Flex"  # Arm Ampere (always-free)
+node_count        = 2                       # Always-free: max 2 nodes
+node_ocpus        = 2                       # 2 OCPUs per node (4 total)
+node_memory_gb    = 12                      # 12GB per node (24GB total)
+boot_volume_size_gb = 50                    # 50GB per node (100GB total, 200GB max)
+
+# SSH Key for Node Access (generate with: ssh-keygen -t rsa -b 4096)
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC..."

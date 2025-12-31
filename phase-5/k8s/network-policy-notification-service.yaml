@@ -1,0 +1,103 @@
+# Network Policy for Notification Service
+# Restricts ingress to Dapr sidecar only and egress to Kafka, SMTP, and Dapr
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: notification-service-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: notification-service
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules: Allow traffic from Dapr sidecar only (no external access)
+  ingress:
+    # Allow traffic from Dapr sidecar for Pub/Sub event delivery
+    - from:
+        - podSelector:
+            matchLabels:
+              dapr.io/enabled: "true"
+      ports:
+        - protocol: TCP
+          port: 8002
+
+    # Allow traffic from Dapr Jobs API for reminder callbacks
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: dapr-system
+      ports:
+        - protocol: TCP
+          port: 8002
+
+  # Egress rules: Allow traffic to Kafka, SMTP, PostgreSQL, Dapr, and DNS
+  egress:
+    # Allow egress to Kafka (Redpanda Cloud - external)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093
+
+    # Allow egress to SMTP server (port 587 for TLS, port 25 for plain)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 587  # SMTP with STARTTLS
+        - protocol: TCP
+          port: 465  # SMTP over TLS
+        - protocol: TCP
+          port: 25   # SMTP plain (fallback)
+
+    # Allow egress to PostgreSQL (for updating reminder_sent flag)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow egress to Dapr control plane
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: dapr-system
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+
+    # Allow egress to Dapr sidecar (localhost)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: notification-service
+      ports:
+        - protocol: TCP
+          port: 3500  # Dapr HTTP port
+        - protocol: TCP
+          port: 50001  # Dapr gRPC port
+
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Allow HTTPS for external APIs (push notifications, etc.)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

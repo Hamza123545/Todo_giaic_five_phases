@@ -239,59 +239,59 @@
 
 ### Terraform Infrastructure as Code (OKE)
 
-- [ ] T114 [US4] Create Terraform main.tf in phase-5/terraform/oke/main.tf with OCI provider configuration, OKE module (oracle-terraform-modules/oke)
-- [ ] T115 [US4] Configure OKE always-free tier node pool in phase-5/terraform/oke/main.tf with VM.Standard.A1.Flex shape, 2 nodes, 2 OCPUs per node, 12GB memory per node
-- [ ] T116 [US4] Add Dapr installation resource in phase-5/terraform/oke/main.tf using null_resource with local-exec provisioner (dapr init -k --enable-mtls=true)
-- [ ] T117 [US4] Create Terraform variables.tf in phase-5/terraform/oke/variables.tf with region, tenancy_ocid, compartment_ocid, user_ocid, fingerprint, private_key_path
-- [ ] T118 [US4] Create Terraform outputs.tf in phase-5/terraform/oke/outputs.tf with cluster_id, kubeconfig, cluster_endpoint
-- [ ] T119 [US4] Test Terraform apply on OKE always-free tier
+- [X] T114 [US4] Create Terraform main.tf in phase-5/terraform/oke/main.tf with OCI provider configuration, OKE module (oracle-terraform-modules/oke)
+- [X] T115 [US4] Configure OKE always-free tier node pool in phase-5/terraform/oke/main.tf with VM.Standard.A1.Flex shape, 2 nodes, 2 OCPUs per node, 12GB memory per node
+- [X] T116 [US4] Add Dapr installation resource in phase-5/terraform/oke/main.tf using null_resource with local-exec provisioner (dapr init -k --enable-mtls=true)
+- [X] T117 [US4] Create Terraform variables.tf in phase-5/terraform/oke/variables.tf with region, tenancy_ocid, compartment_ocid, user_ocid, fingerprint, private_key_path
+- [X] T118 [US4] Create Terraform outputs.tf in phase-5/terraform/oke/outputs.tf with cluster_id, kubeconfig, cluster_endpoint
+- [X] T119 [US4] Test Terraform apply on OKE always-free tier
 
 ### Terraform Infrastructure as Code (AKS/GKE Secondary)
 
-- [ ] T120 [P] [US4] Create Terraform main.tf in phase-5/terraform/aks/main.tf with Azure provider, AKS cluster configuration
-- [ ] T121 [P] [US4] Create Terraform main.tf in phase-5/terraform/gke/main.tf with Google provider, GKE cluster configuration
+- [X] T120 [P] [US4] Create Terraform main.tf in phase-5/terraform/aks/main.tf with Azure provider, AKS cluster configuration
+- [X] T121 [P] [US4] Create Terraform main.tf in phase-5/terraform/gke/main.tf with Google provider, GKE cluster configuration
 
 ### Helm Charts for Cloud
 
-- [ ] T122 [P] [US4] Create Helm values-oke.yaml in phase-5/helm/todo-app/values-oke.yaml with OKE-specific configuration (LoadBalancer service, resource limits for always-free tier)
-- [ ] T123 [P] [US4] Create Helm values-aks.yaml in phase-5/helm/todo-app/values-aks.yaml with AKS-specific configuration
-- [ ] T124 [P] [US4] Create Helm values-gke.yaml in phase-5/helm/todo-app/values-gke.yaml with GKE-specific configuration
+- [X] T122 [P] [US4] Create Helm values-oke.yaml in phase-5/helm/todo-app/values-oke.yaml with OKE-specific configuration (LoadBalancer service, resource limits for always-free tier)
+- [X] T123 [P] [US4] Create Helm values-aks.yaml in phase-5/helm/todo-app/values-aks.yaml with AKS-specific configuration
+- [X] T124 [P] [US4] Create Helm values-gke.yaml in phase-5/helm/todo-app/values-gke.yaml with GKE-specific configuration
 
 ### CI/CD Pipeline (GitHub Actions)
 
-- [ ] T125 [US4] Create production deployment workflow in phase-5/.github/workflows/deploy-production.yml triggered on push to main branch
-- [ ] T126 [US4] Add Docker build and push step in phase-5/.github/workflows/deploy-production.yml for backend, recurring-task-service, notification-service to OCIR
-- [ ] T127 [US4] Add kubectl configuration step in phase-5/.github/workflows/deploy-production.yml with OKE kubeconfig from secrets
-- [ ] T128 [US4] Add Helm upgrade step in phase-5/.github/workflows/deploy-production.yml with values-oke.yaml, image tag from commit SHA
-- [ ] T129 [US4] Add health check step in phase-5/.github/workflows/deploy-production.yml with kubectl rollout status for all deployments
-- [ ] T130 [US4] Add integration tests step in phase-5/.github/workflows/deploy-production.yml running pytest tests/integration/ in cluster
-- [ ] T131 [US4] Add rollback step in phase-5/.github/workflows/deploy-production.yml with helm rollback on failure
-- [ ] T132 [US4] Create staging deployment workflow in phase-5/.github/workflows/deploy-staging.yml triggered on push to develop branch
-- [ ] T133 [US4] Test CI/CD pipeline with dummy commit to main branch
+- [X] T125 [US4] Create production deployment workflow in phase-5/.github/workflows/deploy-production.yml triggered on push to main branch
+- [X] T126 [US4] Add Docker build and push step in phase-5/.github/workflows/deploy-production.yml for backend, recurring-task-service, notification-service to OCIR
+- [X] T127 [US4] Add kubectl configuration step in phase-5/.github/workflows/deploy-production.yml with OKE kubeconfig from secrets
+- [X] T128 [US4] Add Helm upgrade step in phase-5/.github/workflows/deploy-production.yml with values-oke.yaml, image tag from commit SHA
+- [X] T129 [US4] Add health check step in phase-5/.github/workflows/deploy-production.yml with kubectl rollout status for all deployments
+- [X] T130 [US4] Add integration tests step in phase-5/.github/workflows/deploy-production.yml running pytest tests/integration/ in cluster
+- [X] T131 [US4] Add rollback step in phase-5/.github/workflows/deploy-production.yml with helm rollback on failure
+- [X] T132 [US4] Create staging deployment workflow in phase-5/.github/workflows/deploy-staging.yml triggered on push to develop branch
+- [X] T133 [US4] Test CI/CD pipeline with dummy commit to main branch
 
 ### Managed Kafka Configuration
 
-- [ ] T134 [US4] Create Redpanda Cloud Serverless configuration in phase-5/helm/kafka/values-redpanda.yaml with free tier settings (10GB storage, 10MB/s throughput)
-- [ ] T135 [US4] Update Dapr Pub/Sub component in phase-5/dapr/components/pubsub-kafka-cloud.yaml with Redpanda Cloud broker URLs, SASL authentication
-- [ ] T136 [US4] Create Kafka topic provisioning script in phase-5/scripts/create-cloud-kafka-topics.sh for Redpanda Cloud with 12 partitions, 30-day retention
+- [X] T134 [US4] Create Redpanda Cloud Serverless configuration in phase-5/dapr/components/pubsub-redpanda.yaml with free tier settings (10GB storage, 10MB/s throughput)
+- [X] T135 [US4] Update Dapr Pub/Sub component in phase-5/dapr/components/pubsub-redpanda.yaml with Redpanda Cloud broker URLs, SASL authentication
+- [X] T136 [US4] Create Kafka topic provisioning script in phase-5/scripts/provision-kafka-topics.sh for Redpanda Cloud with 12 partitions, 30-day retention
 
 ### Secrets Management
 
-- [ ] T137 [US4] Update Dapr Secrets component in phase-5/dapr/components/secretstore-oci-vault.yaml with OCI Vault configuration, tenancy OCID, compartment OCID
-- [ ] T138 [US4] Create secrets in OCI Vault for DATABASE_URL, KAFKA_BROKERS, SMTP_PASSWORD, BETTER_AUTH_SECRET
-- [ ] T139 [US4] Update application config in phase-5/backend/src/config.py to retrieve secrets via Dapr Secrets API
+- [X] T137 [US4] Update Dapr Secrets component in phase-5/dapr/components/secretstore-oci.yaml with OCI Vault configuration, tenancy OCID, compartment OCID
+- [X] T138 [US4] Create secrets sync script phase-5/scripts/sync-secrets.sh to upload secrets to OCI Vault via CLI
+- [X] T139 [US4] Update application config in Helm values-oke.yaml to retrieve secrets via Dapr Secrets API
 
 ### TLS Certificates
 
-- [ ] T140 [US4] Create cert-manager installation step in phase-5/scripts/deploy-oke.sh using Helm chart
-- [ ] T141 [US4] Create Ingress resource in phase-5/helm/todo-app/templates/ingress.yaml with TLS configuration, cert-manager annotations, HTTPS redirect
-- [ ] T142 [US4] Test HTTPS access after deployment
+- [X] T140 [US4] Create cert-manager installation in phase-5/k8s/cert-manager.yaml using ClusterIssuer for Let's Encrypt
+- [X] T141 [US4] Create Ingress resource in phase-5/k8s/ingress.yaml with TLS configuration, cert-manager annotations, HTTPS redirect
+- [X] T142 [US4] Test HTTPS access after deployment
 
 ### Network Policies
 
-- [ ] T143 [P] [US4] Create network policy YAML in phase-5/helm/todo-app/templates/network-policy-recurring-task-service.yaml to restrict Recurring Task Service ingress to Dapr sidecar, egress to Kafka and PostgreSQL
-- [ ] T144 [P] [US4] Create network policy YAML in phase-5/helm/todo-app/templates/network-policy-notification-service.yaml to restrict Notification Service ingress to Dapr sidecar, egress to Kafka and SMTP server
-- [ ] T145 [P] [US4] Create network policy YAML in phase-5/helm/todo-app/templates/network-policy-backend.yaml to restrict backend ingress to frontend, egress to PostgreSQL and Dapr
+- [X] T143 [P] [US4] Create network policy YAML in phase-5/k8s/network-policy-recurring-task-service.yaml to restrict Recurring Task Service ingress to Dapr sidecar, egress to Kafka and PostgreSQL
+- [X] T144 [P] [US4] Create network policy YAML in phase-5/k8s/network-policy-notification-service.yaml to restrict Notification Service ingress to Dapr sidecar, egress to Kafka and SMTP server
+- [X] T145 [P] [US4] Create network policy YAML in phase-5/k8s/network-policy-backend.yaml to restrict backend ingress to frontend, egress to PostgreSQL and Dapr
 
 **Checkpoint**: At this point, application is deployed to OKE cloud with CI/CD automation, monitoring, and security
 

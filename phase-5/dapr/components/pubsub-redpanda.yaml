@@ -1,0 +1,79 @@
+# Dapr Pub/Sub component for Redpanda Cloud (Kafka-compatible)
+# Redpanda Cloud Serverless (free tier): 10GB storage, 10MB/s throughput
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Redpanda Cloud broker URLs (replace with actual from Redpanda Cloud console)
+    - name: brokers
+      value: "<REDPANDA_BOOTSTRAP_SERVERS>"  # e.g., "seed-xxxxx.cloud.redpanda.com:9092"
+
+    # SASL authentication (required for Redpanda Cloud)
+    - name: authType
+      value: "sasl"
+
+    - name: saslUsername
+      secretKeyRef:
+        name: kafka-credentials
+        key: username
+
+    - name: saslPassword
+      secretKeyRef:
+        name: kafka-credentials
+        key: password
+
+    - name: saslMechanism
+      value: "SCRAM-SHA-256"
+
+    # TLS encryption (required for Redpanda Cloud)
+    - name: enableTLS
+      value: "true"
+
+    - name: skipVerify
+      value: "false"  # Verify TLS certificates
+
+    # Consumer group for this service
+    - name: consumerGroup
+      value: "todo-service"
+
+    # Client ID
+    - name: clientID
+      value: "todo-dapr-client"
+
+    # Max message bytes (10MB limit for Redpanda Cloud Serverless)
+    - name: maxMessageBytes
+      value: "10485760"  # 10MB
+
+    # Consumer configuration
+    - name: consumeRetryInterval
+      value: "200ms"
+
+    - name: version
+      value: "2.8.0"  # Kafka protocol version
+
+    # Partitioning strategy (use user_id for partitioning)
+    - name: partitioningKey
+      value: "user_id"
+
+    # Retry policy
+    - name: maxRetries
+      value: "3"
+
+    - name: maxRetryBackoff
+      value: "30s"
+
+    # Dead letter queue configuration
+    - name: deadLetterTopic
+      value: "dlq-topic"
+
+  # Scope to specific app IDs
+  scopes:
+    - backend
+    - recurring-task-service
+    - notification-service

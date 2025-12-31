@@ -1,0 +1,297 @@
+# Helm values for Oracle Kubernetes Engine (OKE) deployment
+# Always-Free Tier: 2 nodes, 4 OCPUs, 24GB RAM total
+
+# Global settings
+global:
+  environment: production
+  cloudProvider: oke
+  domain: "todo.example.com"
+
+# Backend service
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  image:
+    repository: <OCIR_REGION>.ocir.io/<TENANCY_NAMESPACE>/todo-backend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: LoadBalancer  # OKE Load Balancer (always-free: 10Mbps)
+    port: 8000
+    annotations:
+      service.beta.kubernetes.io/oci-load-balancer-shape: "10Mbps"
+      service.beta.kubernetes.io/oci-load-balancer-internal: "false"
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  env:
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: database-url
+    - name: KAFKA_BROKERS
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: kafka-brokers
+    - name: BETTER_AUTH_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: better-auth-secret
+
+  # Dapr sidecar configuration
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "backend"
+    dapr.io/app-port: "8000"
+    dapr.io/config: "dapr-config"
+    dapr.io/log-level: "info"
+
+# Frontend service
+frontend:
+  name: frontend
+  replicas: 2
+  port: 3000
+
+  image:
+    repository: <OCIR_REGION>.ocir.io/<TENANCY_NAMESPACE>/todo-frontend
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP  # Use Ingress for external access
+    port: 3000
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  env:
+    - name: NEXT_PUBLIC_API_URL
+      value: "https://todo.example.com/api"
+    - name: NEXT_PUBLIC_APP_URL
+      value: "https://todo.example.com"
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "frontend"
+    dapr.io/app-port: "3000"
+
+# Recurring Task Service
+recurringTaskService:
+  name: recurring-task-service
+  replicas: 2
+  port: 8001
+
+  image:
+    repository: <OCIR_REGION>.ocir.io/<TENANCY_NAMESPACE>/recurring-task-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  env:
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: database-url
+    - name: KAFKA_BROKERS
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: kafka-brokers
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "recurring-task-service"
+    dapr.io/app-port: "8001"
+    dapr.io/config: "dapr-config"
+
+# Notification Service
+notificationService:
+  name: notification-service
+  replicas: 2
+  port: 8002
+
+  image:
+    repository: <OCIR_REGION>.ocir.io/<TENANCY_NAMESPACE>/notification-service
+    tag: latest
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8002
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  env:
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: SMTP_HOST
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: smtp-host
+    - name: SMTP_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: oci-vault-secrets
+          key: smtp-password
+
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "notification-service"
+    dapr.io/app-port: "8002"
+    dapr.io/config: "dapr-config"
+
+# Kafka Configuration (Redpanda Cloud)
+kafka:
+  enabled: true
+  external: true  # Using Redpanda Cloud Serverless (free tier)
+  brokers: "<REDPANDA_CLOUD_BROKERS>"  # From Redpanda Cloud console
+
+  # Topics configuration
+  topics:
+    - name: task-events
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000  # 30 days (cloud)
+    - name: reminders
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000  # 30 days
+    - name: task-updates
+      partitions: 12
+      replicationFactor: 1
+      retentionMs: 2592000000  # 30 days
+
+# Dapr Configuration
+dapr:
+  enabled: true
+  version: "1.12"
+  mtls: true
+  ha: true
+
+  config:
+    tracing:
+      enabled: true
+      samplingRate: "0.1"  # 10% sampling for production
+      zipkin:
+        endpointAddress: "http://zipkin:9411/api/v2/spans"
+    metrics:
+      enabled: true
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  hosts:
+    - host: todo.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /grafana
+          pathType: Prefix
+          backend:
+            service:
+              name: grafana
+              port:
+                number: 3000
+
+  tls:
+    - secretName: todo-tls
+      hosts:
+        - todo.example.com
+
+# Monitoring
+monitoring:
+  enabled: true
+
+  prometheus:
+    enabled: true
+    retention: "30d"
+    storageSize: "10Gi"
+
+  grafana:
+    enabled: true
+    adminPassword: "<GRAFANA_ADMIN_PASSWORD>"
+    persistence:
+      enabled: true
+      size: "5Gi"
+
+  zipkin:
+    enabled: true
+
+# Secrets
+secrets:
+  provider: oci-vault  # OCI Vault for secrets management
+  vaultOcid: "<OCI_VAULT_OCID>"
+  compartmentOcid: "<COMPARTMENT_OCID>"
+
+# Network Policies
+networkPolicies:
+  enabled: true
+  ingressDenyAll: false  # Allow external ingress via LoadBalancer
+
+# Resource Quotas (Always-Free Tier)
+resourceQuotas:
+  enabled: true
+  limits:
+    cpu: "3500m"      # 3.5 OCPUs (reserve 0.5 for system)
+    memory: "20Gi"    # 20GB (reserve 4GB for system)
+  requests:
+    cpu: "1500m"
+    memory: "6Gi"
