@@ -21,11 +21,12 @@ export const config = {
   matcher: [
     // Match all pathnames except for
     // - API routes
+    // - .well-known (for JWKS and other well-known paths)
     // - _next/static (static files)
     // - _next/image (image optimization files)
     // - favicon.ico (favicon file)
     // - public files (images, etc.)
     // - manifest.json, sw.js, workbox-* (PWA files)
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)$|manifest.json|sw.js|workbox-.*\\.js).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)$|manifest.json|sw.js|workbox-.*\\.js).*)',
   ],
 };

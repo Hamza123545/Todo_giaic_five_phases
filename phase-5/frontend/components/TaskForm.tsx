@@ -25,6 +25,9 @@ import {
 } from "@/lib/validations";
 import LoadingSpinner from "./LoadingSpinner";
 import { api } from "@/lib/api";
+import RecurringTaskForm, { RecurringTaskFormData } from "./RecurringTaskForm";
+import { formatPatternForAPI, formatDateToUTC, parseUTCDate } from "@/lib/rrule";
+import type { RecurringPattern } from "@/lib/rrule";
 
 interface TaskFormProps {
   userId: string;
@@ -52,6 +55,10 @@ export default function TaskForm({
     due_date: "",
     tags: [],
   });
+  const [recurringData, setRecurringData] = useState<RecurringTaskFormData>({
+    recurringPattern: null,
+    recurringEndDate: null,
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tagInput, setTagInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +74,21 @@ export default function TaskForm({
         due_date: initialData.due_date || "",
         tags: initialData.tags || [],
       });
+      
+      // Load recurring fields
+      if (initialData.recurring_pattern) {
+        setRecurringData({
+          recurringPattern: initialData.recurring_pattern as RecurringPattern,
+          recurringEndDate: initialData.recurring_end_date 
+            ? parseUTCDate(initialData.recurring_end_date) 
+            : null,
+        });
+      } else {
+        setRecurringData({
+          recurringPattern: null,
+          recurringEndDate: null,
+        });
+      }
     }
   }, [initialData]);
 
@@ -153,11 +175,22 @@ export default function TaskForm({
 
     try {
       // Sanitize form data to prevent XSS
-      const sanitizedFormData = {
+      const sanitizedFormData: TaskFormData = {
         ...formData,
         title: sanitizeInput(formData.title),
         description: formData.description ? sanitizeInput(formData.description) : "",
       };
+
+      // Add recurring fields if recurring pattern is set
+      if (recurringData.recurringPattern) {
+        sanitizedFormData.recurring_pattern = formatPatternForAPI(recurringData.recurringPattern);
+        sanitizedFormData.recurring_end_date = recurringData.recurringEndDate
+          ? formatDateToUTC(recurringData.recurringEndDate)
+          : null;
+      } else {
+        sanitizedFormData.recurring_pattern = null;
+        sanitizedFormData.recurring_end_date = null;
+      }
 
       let response;
 
@@ -181,6 +214,10 @@ export default function TaskForm({
           priority: "medium",
           due_date: "",
           tags: [],
+        });
+        setRecurringData({
+          recurringPattern: null,
+          recurringEndDate: null,
         });
         setTagInput("");
       }
@@ -469,6 +506,24 @@ export default function TaskForm({
             )}
           </AnimatePresence>
         </div>
+      </div>
+
+      {/* Recurring Task Settings */}
+      <div>
+        <RecurringTaskForm
+          value={recurringData}
+          onChange={setRecurringData}
+          dueDate={
+            formData.due_date
+              ? (formData.due_date.includes("T")
+                  ? new Date(formData.due_date)
+                  : new Date(formData.due_date + "T00:00:00"))
+              : undefined
+          }
+          nextOccurrence={initialData?.next_occurrence || null}
+          error={errors.recurring_pattern}
+          disabled={isLoading}
+        />
       </div>
 
       {/* Tags Field */}

@@ -39,6 +39,10 @@ export interface Task {
   tags: string[];
   created_at: string;
   updated_at: string;
+  // Phase V: Recurring task fields
+  recurring_pattern?: string | null;
+  recurring_end_date?: string | null;
+  next_occurrence?: string | null;
 }
 
 // TaskUI - UI representation of Task (for offline storage)
@@ -50,6 +54,9 @@ export interface TaskFormData {
   priority?: TaskPriority;
   due_date?: string;
   tags?: string[];
+  // Phase V: Recurring task fields
+  recurring_pattern?: string | null;
+  recurring_end_date?: string | null;
 }
 
 export type SortField = "created" | "title" | "updated" | "priority" | "due_date";
