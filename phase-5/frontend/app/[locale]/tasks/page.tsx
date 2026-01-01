@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -38,6 +39,7 @@ import { cn } from "@/lib/utils";
 function TasksContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('tasks');
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -169,12 +171,12 @@ function TasksContent() {
           await loadTasks(user.id, true);
           toast({
             type: "success",
-            description: updates.completed ? "Task marked as complete" : "Task marked as incomplete",
+            description: updates.completed ? t('messages.completed') : t('messages.incomplete'),
             duration: 2000,
           });
           return;
         } else {
-          throw new Error(response.message || "Failed to update task");
+          throw new Error(response.message || t('messages.update_failed'));
         }
       }
 
@@ -184,18 +186,18 @@ function TasksContent() {
         await loadTasks(user.id, true);
         toast({
           type: "success",
-          description: "Task updated successfully",
+          description: t('messages.updated'),
           duration: 2000,
         });
       } else {
-        throw new Error(response.message || "Failed to update task");
+        throw new Error(response.message || t('messages.update_failed'));
       }
     } catch (error) {
       console.error("Failed to update task:", error);
       toast({
         type: "error",
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        title: t('messages.update_failed'),
+        description: error instanceof Error ? error.message : t('messages.something_wrong'),
         duration: 5000,
       });
     }
@@ -210,18 +212,18 @@ function TasksContent() {
         await loadTasks(user.id, true);
         toast({
           type: "success",
-          description: "Task deleted successfully",
+          description: t('messages.deleted'),
           duration: 2000,
         });
       } else {
-        throw new Error(response.message || "Failed to delete task");
+        throw new Error(response.message || t('messages.delete_failed'));
       }
     } catch (error) {
       console.error("Failed to delete task:", error);
       toast({
         type: "error",
-        title: "Delete Failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        title: t('messages.delete_failed'),
+        description: error instanceof Error ? error.message : t('messages.something_wrong'),
         duration: 5000,
       });
     }
@@ -255,7 +257,7 @@ function TasksContent() {
     setShowCreateModal(false);
     toast({
       type: "success",
-      description: "Task created successfully",
+      description: t('messages.created'),
       duration: 2000,
     });
   };
@@ -263,8 +265,8 @@ function TasksContent() {
   const handleTaskCreateError = (error: Error) => {
     toast({
       type: "error",
-      title: "Create Failed",
-      description: error.message || "Failed to create task",
+      title: t('messages.create_failed'),
+      description: error.message || t('messages.create_failed'),
       duration: 5000,
     });
   };
@@ -272,7 +274,7 @@ function TasksContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" label="Loading tasks..." />
+        <LoadingSpinner size="large" label={t('loading')} />
       </div>
     );
   }
@@ -284,8 +286,8 @@ function TasksContent() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <HeaderGreeting
             userName={user?.name}
-            title="Task Management"
-            subtitle="Organize your tasks with Kanban board"
+            title={t('page_title')}
+            subtitle={t('page_subtitle')}
           />
           {/* View Mode Toggle */}
           <div className="flex items-center gap-2">
@@ -293,11 +295,11 @@ function TasksContent() {
               onClick={() => setViewMode("list")}
               className={cn(
                 "p-2 rounded-lg transition-colors",
-                viewMode === "list" 
-                  ? "bg-indigo-600 text-white" 
+                viewMode === "list"
+                  ? "bg-indigo-600 text-white"
                   : "bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20"
               )}
-              aria-label="List View"
+              aria-label={t('view_modes.list')}
             >
               <List className="w-4 h-4" />
             </button>
@@ -305,11 +307,11 @@ function TasksContent() {
               onClick={() => setViewMode("grid")}
               className={cn(
                 "p-2 rounded-lg transition-colors",
-                viewMode === "grid" 
-                  ? "bg-indigo-600 text-white" 
+                viewMode === "grid"
+                  ? "bg-indigo-600 text-white"
                   : "bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20"
               )}
-              aria-label="Grid View"
+              aria-label={t('view_modes.grid')}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -317,11 +319,11 @@ function TasksContent() {
               onClick={() => setViewMode("kanban")}
               className={cn(
                 "p-2 rounded-lg transition-colors",
-                viewMode === "kanban" 
-                  ? "bg-indigo-600 text-white" 
+                viewMode === "kanban"
+                  ? "bg-indigo-600 text-white"
                   : "bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20"
               )}
-              aria-label="Kanban View"
+              aria-label={t('view_modes.kanban')}
             >
               <Columns3 className="w-4 h-4" />
             </button>
@@ -367,7 +369,7 @@ function TasksContent() {
           ) : (
             <div className="space-y-4">
               {loadingState === "loading" ? (
-                <div className="text-center py-12 text-muted-foreground">Loading tasks...</div>
+                <div className="text-center py-12 text-muted-foreground">{t('loading')}</div>
               ) : (
                 <div className={cn(
                   viewMode === "grid" 
@@ -395,7 +397,7 @@ function TasksContent() {
         {/* Right Side - Quick Actions Sidebar */}
         <div className="lg:w-64 shrink-0">
           <GlassCard variant="elevated" className="p-4 sticky top-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 text-center">Quick Actions</h3>
+            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 text-center">{t('quick_actions.title')}</h3>
             <div className="space-y-2.5">
             {/* Export Button with Dropdown */}
             <div className="relative">
@@ -412,7 +414,7 @@ function TasksContent() {
               >
                 <div className="flex items-center gap-2">
                   <Download className="w-4 h-4" />
-                  <span className="font-medium text-sm">Export</span>
+                  <span className="font-medium text-sm">{t('quick_actions.export')}</span>
                 </div>
                 <ChevronDown className={cn(
                   "w-4 h-4 transition-transform duration-200",
@@ -469,14 +471,14 @@ function TasksContent() {
                               window.URL.revokeObjectURL(url);
                               toast({
                                 type: "success",
-                                description: `Tasks exported as ${formatConfig.label} successfully`,
+                                description: t('export.success', { format: formatConfig.label }),
                                 duration: 2000,
                               });
                             } catch (error) {
                               console.error("Export failed:", error);
                               toast({
                                 type: "error",
-                                description: error instanceof Error ? error.message : "Failed to export tasks",
+                                description: error instanceof Error ? error.message : t('export.failed'),
                                 duration: 5000,
                               });
                             }
@@ -491,7 +493,7 @@ function TasksContent() {
                         >
                           <div className="flex items-center gap-2">
                             <Icon className={cn("w-4 h-4", formatConfig.iconColor)} />
-                            <span className="font-medium text-sm">Export as {formatConfig.label}</span>
+                            <span className="font-medium text-sm">{t(`export.${format}`)}</span>
                           </div>
                           <ChevronRight className="w-4 h-4 opacity-70" />
                         </button>
@@ -525,17 +527,17 @@ function TasksContent() {
                       await loadTasks(user.id, true);
                       toast({
                         type: "success",
-                        description: `Imported ${result.data?.imported || 0} tasks successfully`,
+                        description: t('import.success', { count: result.data?.imported || 0 }),
                         duration: 2000,
                       });
                     } else {
-                      throw new Error(result.message || "Import failed");
+                      throw new Error(result.message || t('import.failed'));
                     }
                   } catch (error) {
                     console.error("Import failed:", error);
                     toast({
                       type: "error",
-                      description: error instanceof Error ? error.message : "Failed to import tasks",
+                      description: error instanceof Error ? error.message : t('import.failed'),
                       duration: 5000,
                     });
                   }
@@ -544,7 +546,7 @@ function TasksContent() {
               />
               <div className="flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                <span className="font-medium text-sm">Import Tasks</span>
+                <span className="font-medium text-sm">{t('quick_actions.import')}</span>
               </div>
               <ChevronRight className="w-4 h-4 opacity-70" />
             </label>
@@ -557,12 +559,12 @@ function TasksContent() {
                 if (completedTasks.length === 0) {
                   toast({
                     type: "info",
-                    description: "No completed tasks to clear",
+                    description: t('clear.no_completed'),
                     duration: 2000,
                   });
                   return;
                 }
-                if (!confirm(`Are you sure you want to delete ${completedTasks.length} completed task(s)?`)) {
+                if (!confirm(t('clear.confirm', { count: completedTasks.length }))) {
                   return;
                 }
                 try {
@@ -572,17 +574,17 @@ function TasksContent() {
                     await loadTasks(user.id, true);
                     toast({
                       type: "success",
-                      description: `Cleared ${response.data?.deleted || 0} completed task(s)`,
+                      description: t('clear.success', { count: response.data?.deleted || 0 }),
                       duration: 2000,
                     });
                   } else {
-                    throw new Error(response.message || "Failed to clear completed tasks");
+                    throw new Error(response.message || t('clear.failed'));
                   }
                 } catch (error) {
                   console.error("Clear completed failed:", error);
                   toast({
                     type: "error",
-                    description: error instanceof Error ? error.message : "Failed to clear completed tasks",
+                    description: error instanceof Error ? error.message : t('clear.failed'),
                     duration: 5000,
                   });
                 }
@@ -599,7 +601,7 @@ function TasksContent() {
             >
               <div className="flex items-center gap-2">
                 <Trash2 className="w-4 h-4" />
-                <span className="font-medium text-sm text-red-50">Clear Completed</span>
+                <span className="font-medium text-sm text-red-50">{t('quick_actions.clear_completed')}</span>
               </div>
               <ChevronRight className="w-4 h-4 opacity-70" />
             </button>
@@ -615,7 +617,7 @@ function TasksContent() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Create New Task
+                  {t('create_new_task')}
                 </h2>
                 <button
                   onClick={() => setShowCreateModal(false)}
@@ -631,7 +633,7 @@ function TasksContent() {
                 onError={handleTaskCreateError}
                 onCancel={() => setShowCreateModal(false)}
                 initialData={undefined}
-                submitLabel="Create Task"
+                submitLabel={t('create_task')}
               />
             </div>
           </GlassCard>

@@ -39,7 +39,7 @@ export function HeaderGreeting({
           {title || (
             <>
               {getGreeting()}
-              {userName && <span className="ml-2">{userName}</span>}
+              {userName && <span className="ms-2">{userName}</span>}
             </>
           )}
         </h1>

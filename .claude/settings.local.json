@@ -45,7 +45,9 @@
       "Bash(git checkout:*)",
       "mcp__context7__query-docs",
       "Bash(python:*)",
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Skill(sp.specify)",
+      "Skill(sp.plan)"
     ],
     "deny": [],
     "ask": []

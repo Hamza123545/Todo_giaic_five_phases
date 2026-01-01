@@ -1,0 +1,479 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Translation Key Structure",
+  "description": "Defines the organization and structure of all i18n translation keys for English and Urdu",
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-31",
+  "totalEstimatedKeys": {
+    "min": 500,
+    "max": 1000,
+    "current": 0
+  },
+  "supportedLocales": ["en", "ur"],
+  "namespaces": {
+    "common": {
+      "description": "Shared UI elements used across all pages (buttons, errors, labels)",
+      "estimatedKeys": 100,
+      "categories": {
+        "buttons": {
+          "keys": [
+            "save",
+            "cancel",
+            "delete",
+            "edit",
+            "create",
+            "update",
+            "close",
+            "confirm",
+            "back",
+            "next",
+            "submit",
+            "reset"
+          ]
+        },
+        "errors": {
+          "keys": [
+            "network",
+            "validation",
+            "required",
+            "invalid",
+            "not_found",
+            "unauthorized",
+            "server_error",
+            "timeout"
+          ]
+        },
+        "labels": {
+          "keys": [
+            "loading",
+            "success",
+            "warning",
+            "error",
+            "info",
+            "search",
+            "filter",
+            "sort"
+          ]
+        },
+        "messages": {
+          "keys": [
+            "success_save",
+            "success_delete",
+            "success_update",
+            "confirm_delete",
+            "unsaved_changes"
+          ]
+        }
+      }
+    },
+    "tasks": {
+      "description": "Task management pages and components",
+      "estimatedKeys": 200,
+      "categories": {
+        "list": {
+          "keys": [
+            "title",
+            "empty",
+            "count",
+            "filter_all",
+            "filter_completed",
+            "filter_pending",
+            "sort_by_date",
+            "sort_by_priority",
+            "no_results"
+          ]
+        },
+        "form": {
+          "keys": [
+            "title",
+            "title_placeholder",
+            "description",
+            "description_placeholder",
+            "priority",
+            "priority_high",
+            "priority_medium",
+            "priority_low",
+            "due_date",
+            "recurring",
+            "reminder",
+            "validation_title_required",
+            "validation_title_too_long"
+          ]
+        },
+        "item": {
+          "keys": [
+            "mark_complete",
+            "mark_incomplete",
+            "edit",
+            "delete",
+            "duplicate",
+            "view_details",
+            "created_at",
+            "updated_at",
+            "completed_at"
+          ]
+        },
+        "details": {
+          "keys": [
+            "title",
+            "description",
+            "priority",
+            "status",
+            "status_completed",
+            "status_pending",
+            "created_by",
+            "created_at",
+            "last_updated",
+            "no_description"
+          ]
+        }
+      }
+    },
+    "voice": {
+      "description": "Voice command UI components and messages",
+      "estimatedKeys": 50,
+      "categories": {
+        "button": {
+          "keys": [
+            "start",
+            "stop",
+            "tooltip_start",
+            "tooltip_stop",
+            "disabled"
+          ]
+        },
+        "status": {
+          "keys": [
+            "listening",
+            "processing",
+            "speaking",
+            "idle",
+            "error"
+          ]
+        },
+        "feedback": {
+          "keys": [
+            "command_recognized",
+            "command_executed",
+            "task_created",
+            "task_completed",
+            "task_deleted",
+            "task_updated"
+          ]
+        },
+        "errors": {
+          "keys": [
+            "not_supported",
+            "permission_denied",
+            "no_speech_detected",
+            "low_confidence",
+            "unknown_command",
+            "network_error"
+          ]
+        },
+        "help": {
+          "keys": [
+            "title",
+            "subtitle",
+            "intro",
+            "command_create_task",
+            "command_complete_task",
+            "command_delete_task",
+            "command_update_task",
+            "command_filter_tasks",
+            "command_read_tasks",
+            "example_create",
+            "example_complete",
+            "example_delete"
+          ]
+        }
+      }
+    },
+    "settings": {
+      "description": "Settings and preferences pages",
+      "estimatedKeys": 80,
+      "categories": {
+        "language": {
+          "keys": [
+            "title",
+            "description",
+            "select_language",
+            "english",
+            "urdu",
+            "current_language",
+            "change_success"
+          ]
+        },
+        "voice": {
+          "keys": [
+            "title",
+            "description",
+            "enable",
+            "disable",
+            "test_voice",
+            "voice_speed",
+            "voice_pitch",
+            "voice_volume",
+            "microphone_permission",
+            "grant_permission"
+          ]
+        },
+        "notifications": {
+          "keys": [
+            "title",
+            "enable_reminders",
+            "email_notifications",
+            "push_notifications"
+          ]
+        },
+        "profile": {
+          "keys": [
+            "title",
+            "name",
+            "email",
+            "password",
+            "change_password"
+          ]
+        }
+      }
+    },
+    "auth": {
+      "description": "Authentication and authorization pages",
+      "estimatedKeys": 60,
+      "categories": {
+        "login": {
+          "keys": [
+            "title",
+            "email",
+            "email_placeholder",
+            "password",
+            "password_placeholder",
+            "submit",
+            "forgot_password",
+            "no_account",
+            "signup_link",
+            "validation_email_required",
+            "validation_email_invalid",
+            "validation_password_required"
+          ]
+        },
+        "signup": {
+          "keys": [
+            "title",
+            "name",
+            "name_placeholder",
+            "email",
+            "email_placeholder",
+            "password",
+            "password_placeholder",
+            "confirm_password",
+            "confirm_password_placeholder",
+            "submit",
+            "have_account",
+            "login_link",
+            "validation_passwords_match"
+          ]
+        },
+        "forgot_password": {
+          "keys": [
+            "title",
+            "description",
+            "email",
+            "submit",
+            "back_to_login",
+            "success_message"
+          ]
+        }
+      }
+    },
+    "navigation": {
+      "description": "Navigation menus and headers",
+      "estimatedKeys": 40,
+      "categories": {
+        "header": {
+          "keys": [
+            "app_title",
+            "tasks",
+            "settings",
+            "profile",
+            "logout"
+          ]
+        },
+        "sidebar": {
+          "keys": [
+            "all_tasks",
+            "today",
+            "upcoming",
+            "completed",
+            "projects",
+            "tags"
+          ]
+        },
+        "breadcrumbs": {
+          "keys": [
+            "home",
+            "tasks",
+            "task_details",
+            "settings",
+            "profile"
+          ]
+        }
+      }
+    },
+    "chatbot": {
+      "description": "AI chatbot interface (Phase 3)",
+      "estimatedKeys": 70,
+      "categories": {
+        "interface": {
+          "keys": [
+            "title",
+            "placeholder",
+            "send",
+            "clear",
+            "greeting",
+            "how_can_help"
+          ]
+        },
+        "suggestions": {
+          "keys": [
+            "create_task",
+            "show_tasks",
+            "complete_task",
+            "delete_task",
+            "set_reminder"
+          ]
+        },
+        "responses": {
+          "keys": [
+            "task_created",
+            "task_completed",
+            "task_deleted",
+            "task_updated",
+            "showing_tasks",
+            "no_tasks_found",
+            "error_occurred"
+          ]
+        }
+      }
+    }
+  },
+  "keyNamingConvention": {
+    "pattern": "{namespace}.{category}.{key}",
+    "examples": [
+      "common.buttons.save",
+      "tasks.list.title",
+      "voice.errors.not_supported",
+      "settings.language.select_language"
+    ],
+    "rules": [
+      "Use lowercase with underscores for multi-word keys",
+      "Namespace must be one of: common, tasks, voice, settings, auth, navigation, chatbot",
+      "Category groups related keys within a namespace",
+      "Key must be descriptive and unique within its category"
+    ]
+  },
+  "placeholderSyntax": {
+    "description": "Dynamic values in translations use curly brace syntax",
+    "pattern": "{variableName}",
+    "examples": [
+      {
+        "key": "tasks.list.count",
+        "en": "You have {count} tasks",
+        "ur": "آپ کے پاس {count} کام ہیں",
+        "placeholders": ["count"]
+      },
+      {
+        "key": "voice.feedback.task_created",
+        "en": "Task created: {title}",
+        "ur": "کام بنایا گیا: {title}",
+        "placeholders": ["title"]
+      },
+      {
+        "key": "common.messages.confirm_delete",
+        "en": "Are you sure you want to delete {itemName}?",
+        "ur": "کیا آپ واقعی {itemName} حذف کرنا چاہتے ہیں؟",
+        "placeholders": ["itemName"]
+      }
+    ]
+  },
+  "pluralizationRules": {
+    "description": "Handle plural forms in different languages",
+    "syntax": "{key}_{count}",
+    "examples": [
+      {
+        "key": "tasks.list.count",
+        "en": {
+          "zero": "No tasks",
+          "one": "1 task",
+          "other": "{count} tasks"
+        },
+        "ur": {
+          "zero": "کوئی کام نہیں",
+          "one": "1 کام",
+          "other": "{count} کام"
+        }
+      }
+    ]
+  },
+  "translationGuidelines": {
+    "tone": [
+      "Professional but friendly",
+      "Clear and concise",
+      "Action-oriented for buttons/CTAs"
+    ],
+    "urduSpecific": [
+      "Use formal Urdu (فصیح اردو), not colloquial",
+      "Avoid excessive English loanwords where Urdu equivalents exist",
+      "Maintain consistent terminology across all keys",
+      "Test RTL layout with all translations"
+    ],
+    "consistency": [
+      "Use same translation for same concept across all keys",
+      "Maintain consistent capitalization rules",
+      "Keep placeholder names identical across all locales"
+    ]
+  },
+  "validationRules": {
+    "completeness": "Every key in en.json must exist in ur.json and vice versa",
+    "placeholders": "Placeholder names must match exactly across all locales",
+    "emptyValues": "No translation value can be empty string",
+    "keyFormat": "Keys must follow {namespace}.{category}.{key} pattern",
+    "maxLength": "Translation values should not exceed 500 characters"
+  },
+  "fileStructure": {
+    "location": "src/messages/",
+    "files": [
+      {
+        "name": "en.json",
+        "description": "English translations",
+        "example": {
+          "common": {
+            "buttons": {
+              "save": "Save",
+              "cancel": "Cancel"
+            }
+          }
+        }
+      },
+      {
+        "name": "ur.json",
+        "description": "Urdu translations",
+        "example": {
+          "common": {
+            "buttons": {
+              "save": "محفوظ کریں",
+              "cancel": "منسوخ کریں"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "implementationNotes": {
+    "typeGeneration": "TypeScript types will be auto-generated from en.json structure",
+    "codeSplitting": "Translation files will be code-split by locale for optimal bundle size",
+    "caching": "Translations cached in browser after first load for performance",
+    "fallback": "If a key is missing in active locale, fall back to English",
+    "rtl": "Urdu locale automatically applies RTL layout via CSS direction attribute"
+  }
+}

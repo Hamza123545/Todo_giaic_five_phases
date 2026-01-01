@@ -16,6 +16,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import { authClient } from "@/lib/auth";
 import { getPasswordStrength, cn } from "@/lib/utils";
 import { signupSchema, safeParse } from "@/lib/validations";
@@ -23,6 +24,7 @@ import { GlassCard } from "@/components/atoms/GlassCard";
 import { Button } from "@/components/atoms/Button";
 
 export default function SignupPage() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
@@ -234,9 +236,9 @@ export default function SignupPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground">Create your account</h2>
+          <h2 className="text-3xl font-bold text-foreground">{t('create_account_title')}</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start managing your tasks today
+            {t('start_managing')}
           </p>
         </div>
 
@@ -259,7 +261,7 @@ export default function SignupPage() {
                 htmlFor="name"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Full Name <span className="text-red-500" aria-label="required">*</span>
+                {t('full_name')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="name"
@@ -279,7 +281,7 @@ export default function SignupPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="John Doe"
+                placeholder={t('name_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.name}
                 aria-describedby={errors.name ? "name-error" : undefined}
@@ -298,7 +300,7 @@ export default function SignupPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Email Address <span className="text-red-500" aria-label="required">*</span>
+                {t('email_address')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="email"
@@ -318,7 +320,7 @@ export default function SignupPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="you@example.com"
+                placeholder={t('email_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? "email-error" : undefined}
@@ -337,7 +339,7 @@ export default function SignupPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Password <span className="text-red-500" aria-label="required">*</span>
+                {t('password')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="password"
@@ -357,7 +359,7 @@ export default function SignupPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="••••••••"
+                placeholder={t('password_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "password-error" : "password-requirements"}
@@ -387,7 +389,7 @@ export default function SignupPage() {
                 </p>
               ) : (
                 <p id="password-requirements" className="mt-1 text-xs text-muted-foreground">
-                  At least 8 characters with uppercase, lowercase, and number
+                  {t('password_requirements')}
                 </p>
               )}
             </div>
@@ -398,7 +400,7 @@ export default function SignupPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Confirm Password <span className="text-red-500" aria-label="required">*</span>
+                {t('confirm_password')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="confirmPassword"
@@ -418,7 +420,7 @@ export default function SignupPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="••••••••"
+                placeholder={t('password_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.confirmPassword}
                 aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
@@ -431,7 +433,7 @@ export default function SignupPage() {
               ) : formData.confirmPassword.length > 0 && formData.confirmPassword === formData.password ? (
                 <p className="mt-1 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
                   <span className="inline-block">✓</span>
-                  Passwords match
+                  {t('passwords_match')}
                 </p>
               ) : null}
             </div>
@@ -444,18 +446,18 @@ export default function SignupPage() {
               className="w-full"
               variant="primary"
             >
-              {isLoading ? "Creating account..." : "Sign up"}
+              {isLoading ? t('signing_up') : t('sign_up')}
             </Button>
           </GlassCard>
 
           {/* Sign In Link */}
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t('have_account')}{" "}
             <Link
               href="/signin"
               className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
             >
-              Sign in
+              {t('sign_in')}
             </Link>
           </p>
         </form>

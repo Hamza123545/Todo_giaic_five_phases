@@ -144,7 +144,7 @@ export default function RecurringTaskForm({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4 pl-7"
+            className="space-y-4 ps-7"
           >
             {/* Recurring Pattern Dropdown */}
             <div>

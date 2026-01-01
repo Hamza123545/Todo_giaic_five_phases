@@ -205,7 +205,7 @@ export default function ReminderSettings({
 
       {/* Reminder Section (only shown if due date is set) */}
       {localDateTime && (
-        <div className="space-y-2 pl-6 border-l-2 border-blue-200 dark:border-blue-800">
+        <div className="space-y-2 ps-6 border-s-2 border-blue-200 dark:border-blue-800">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             <Bell className="w-4 h-4" />
             Reminder

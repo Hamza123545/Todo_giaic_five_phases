@@ -55,9 +55,9 @@ export function Button({
       onClick={onClick}
     >
       {loading ? (
-        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <span className="me-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : Icon ? (
-        <Icon className="mr-2 h-4 w-4" />
+        <Icon className="me-2 h-4 w-4" />
       ) : null}
       {children}
     </button>

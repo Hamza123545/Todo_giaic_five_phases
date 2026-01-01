@@ -16,10 +16,12 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import { resetPasswordSchema, safeParse } from "@/lib/validations";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 function ResetPasswordForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -37,9 +39,9 @@ function ResetPasswordForm() {
   // Check if email exists
   useEffect(() => {
     if (!email) {
-      setApiError("Email is required. Please go back and enter your email.");
+      setApiError(t('email_missing'));
     }
-  }, [email]);
+  }, [email, t]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -53,7 +55,7 @@ function ResetPasswordForm() {
 
   const validateForm = (): boolean => {
     if (!email) {
-      setApiError("Email is required. Please go back and enter your email.");
+      setApiError(t('email_missing'));
       return false;
     }
 
@@ -134,7 +136,7 @@ function ResetPasswordForm() {
     setSuccessMessage("");
 
     if (!email) {
-      setApiError("Email is required. Please go back and enter your email.");
+      setApiError(t('email_missing'));
       return;
     }
 
@@ -167,18 +169,18 @@ function ResetPasswordForm() {
       }
 
       // Success - show message
-      setSuccessMessage("Password reset successfully! Redirecting to sign in...");
-      
+      setSuccessMessage(t('password_reset_redirecting'));
+
       // Clear form
       setFormData({ password: "", confirmPassword: "" });
-      
+
       // Redirect to signin after 2 seconds
       setTimeout(() => {
         router.push("/signin");
       }, 2000);
     } catch (error: unknown) {
       // Extract error message from various error formats
-      let errorMessage = "An error occurred while resetting password";
+      let errorMessage = t('reset_error');
       
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -232,10 +234,10 @@ function ResetPasswordForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Reset Password
+            {t('reset_password_title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            {email ? `Reset password for ${email}` : "Enter your new password below."}
+            {email ? t('reset_for_email', { email }) : t('reset_password_subtitle')}
           </p>
         </div>
 
@@ -258,7 +260,7 @@ function ResetPasswordForm() {
                     />
                   </svg>
                 </div>
-                <div className="ml-3">
+                <div className="ms-3">
                   <p className="text-sm font-medium text-green-800 dark:text-green-200">
                     {successMessage}
                   </p>
@@ -285,7 +287,7 @@ function ResetPasswordForm() {
                     />
                   </svg>
                 </div>
-                <div className="ml-3">
+                <div className="ms-3">
                   <p className="text-sm font-medium text-red-800 dark:text-red-200">
                     {apiError}
                   </p>
@@ -301,7 +303,7 @@ function ResetPasswordForm() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                New Password <span className="text-red-500" aria-label="required">*</span>
+                {t('new_password')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="password"
@@ -317,7 +319,7 @@ function ResetPasswordForm() {
                     ? "border-red-500 dark:border-red-400"
                     : "border-gray-300 dark:border-gray-600"
                 }`}
-                placeholder="Enter new password"
+                placeholder={t('new_password_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "password-error" : undefined}
@@ -329,7 +331,7 @@ function ResetPasswordForm() {
                 </p>
               )}
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Password must be at least 8 characters and contain uppercase, lowercase, and a number.
+                {t('password_requirements')}
               </p>
             </div>
 
@@ -339,7 +341,7 @@ function ResetPasswordForm() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Confirm Password <span className="text-red-500" aria-label="required">*</span>
+                {t('confirm_new_password')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="confirmPassword"
@@ -355,7 +357,7 @@ function ResetPasswordForm() {
                     ? "border-red-500 dark:border-red-400"
                     : "border-gray-300 dark:border-gray-600"
                 }`}
-                placeholder="Confirm new password"
+                placeholder={t('confirm_new_password_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.confirmPassword}
                 aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
@@ -378,10 +380,10 @@ function ResetPasswordForm() {
               {isLoading ? (
                 <span className="flex items-center">
                   <LoadingSpinner size="small" />
-                  <span className="ml-2">Resetting...</span>
+                  <span className="ms-2">{t('resetting')}</span>
                 </span>
               ) : (
-                "Reset Password"
+                t('reset_button')
               )}
             </button>
           </div>
@@ -391,13 +393,13 @@ function ResetPasswordForm() {
               href="/signin"
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 block"
             >
-              Back to Sign In
+              {t('back_to_signin')}
             </Link>
             <Link
               href="/forgot-password"
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 block text-sm"
             >
-              Request new reset link
+              {t('request_new_link')}
             </Link>
           </div>
         </form>

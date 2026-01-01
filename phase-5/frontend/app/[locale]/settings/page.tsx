@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from 'next-intl';
 import { getCurrentUser } from "@/lib/auth";
 import { User } from "@/types";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -20,7 +21,8 @@ import { useToast } from "@/components/ui/toast";
 type Tab = "profile" | "notifications" | "security";
 
 function SettingsContent() {
-  const { toast } = useToast();
+  const { toast} = useToast();
+  const t = useTranslations('settings');
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [isLoading, setIsLoading] = useState(true);
@@ -51,13 +53,13 @@ function SettingsContent() {
   }, []);
 
   const tabs: { id: Tab; label: string; icon: typeof UserIcon }[] = [
-    { id: "profile", label: "Profile", icon: UserIcon },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "security", label: "Security", icon: Shield },
+    { id: "profile", label: t('tabs.profile'), icon: UserIcon },
+    { id: "notifications", label: t('tabs.notifications'), icon: Bell },
+    { id: "security", label: t('tabs.security'), icon: Shield },
   ];
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
   }
 
   return (
@@ -66,8 +68,8 @@ function SettingsContent() {
       <div className="mb-8">
         <HeaderGreeting
           userName={user?.name}
-          title="Settings"
-          subtitle="Manage your account preferences"
+          title={t('title')}
+          subtitle={t('page_subtitle')}
         />
       </div>
 
@@ -101,7 +103,7 @@ function SettingsContent() {
           {activeTab === "profile" && (
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-foreground">
-                Profile Information
+                {t('profile_section.title')}
               </h3>
               <form
                 onSubmit={async (e) => {
@@ -112,7 +114,7 @@ function SettingsContent() {
                   if (!newName) {
                     toast({
                       type: "error",
-                      description: "Name cannot be empty",
+                      description: t('messages.name_required'),
                       duration: 3000,
                     });
                     return;
@@ -121,7 +123,7 @@ function SettingsContent() {
                   if (newName === user.name) {
                     toast({
                       type: "info",
-                      description: "No changes to save",
+                      description: t('messages.no_changes'),
                       duration: 2000,
                     });
                     return;
@@ -135,14 +137,14 @@ function SettingsContent() {
                     setUser({ ...user, name: newName });
                     toast({
                       type: "success",
-                      description: "Profile updated successfully",
+                      description: t('messages.profile_updated'),
                       duration: 2000,
                     });
                   } catch (error) {
                     console.error("Failed to update profile:", error);
                     toast({
                       type: "error",
-                      description: error instanceof Error ? error.message : "Failed to update profile",
+                      description: error instanceof Error ? error.message : t('messages.profile_failed'),
                       duration: 5000,
                     });
                   } finally {
@@ -153,7 +155,7 @@ function SettingsContent() {
               >
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Full Name
+                    {t('profile_section.full_name')}
                   </label>
                   <input
                     ref={nameInputRef}
@@ -165,12 +167,12 @@ function SettingsContent() {
                       "text-foreground placeholder:text-muted-foreground",
                       "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                     )}
-                    placeholder="Enter your full name"
+                    placeholder={t('profile_section.placeholder_name')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Email
+                    {t('profile_section.email')}
                   </label>
                   <input
                     type="email"
@@ -183,7 +185,7 @@ function SettingsContent() {
                     )}
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Email cannot be changed
+                    {t('profile_section.email_locked')}
                   </p>
                 </div>
                 <Button
@@ -193,7 +195,7 @@ function SettingsContent() {
                   loading={isSaving}
                   className="w-full"
                 >
-                  {isSaving ? "Saving..." : "Save Changes"}
+                  {isSaving ? t('profile_section.saving') : t('profile_section.save_changes')}
                 </Button>
               </form>
             </div>
@@ -201,20 +203,27 @@ function SettingsContent() {
 
           {activeTab === "notifications" && (
             <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Notification Preferences
+              <h3 className="text-xl font-semibold text-foreground">
+                {t('notifications_section.title')}
               </h3>
               <div className="space-y-4">
                 <label className="flex items-center justify-between p-4 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 cursor-pointer hover:bg-white/5">
-                  <span className="text-gray-900 dark:text-gray-100">Email Notifications</span>
+                  <span className="text-foreground">{t('notifications_section.email_notifications')}</span>
                   <input type="checkbox" defaultChecked className="rounded" />
                 </label>
                 <label className="flex items-center justify-between p-4 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 cursor-pointer hover:bg-white/5">
-                  <span className="text-gray-900 dark:text-gray-100">In-App Notifications</span>
+                  <span className="text-foreground">{t('notifications_section.in_app_notifications')}</span>
                   <input type="checkbox" defaultChecked className="rounded" />
                 </label>
-                <Button variant="primary" onClick={() => toast({ type: "success", description: "Preferences saved" })}>
-                  Save Preferences
+                <Button
+                  variant="primary"
+                  onClick={() => toast({
+                    type: "success",
+                    description: t('messages.preferences_saved'),
+                    duration: 2000
+                  })}
+                >
+                  {t('notifications_section.save_preferences')}
                 </Button>
               </div>
             </div>
@@ -222,39 +231,46 @@ function SettingsContent() {
 
           {activeTab === "security" && (
             <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Security Settings
+              <h3 className="text-xl font-semibold text-foreground">
+                {t('security_section.title')}
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Current Password
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {t('security_section.current_password')}
                   </label>
                   <input
                     type="password"
-                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    New Password
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {t('security_section.new_password')}
                   </label>
                   <input
                     type="password"
-                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Confirm New Password
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {t('security_section.confirm_password')}
                   </label>
                   <input
                     type="password"
-                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full px-4 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
-                <Button variant="primary" onClick={() => toast({ type: "success", description: "Password updated" })}>
-                  Update Password
+                <Button
+                  variant="primary"
+                  onClick={() => toast({
+                    type: "success",
+                    description: t('messages.password_updated'),
+                    duration: 2000
+                  })}
+                >
+                  {t('security_section.update_password')}
                 </Button>
               </div>
             </div>

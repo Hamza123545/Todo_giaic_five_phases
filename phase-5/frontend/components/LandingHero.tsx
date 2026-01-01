@@ -4,15 +4,18 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Zap, Shield, Infinity as InfinityIcon } from "lucide-react";
-
-const benefits = [
-  "AI-Powered Task Management",
-  "Work offline seamlessly",
-  "Secure & private",
-  "Cross-device sync",
-];
+import { useTranslations } from 'next-intl';
 
 export function LandingHero() {
+  const t = useTranslations('landing.hero');
+
+  const benefits = [
+    t('benefits.ai_powered'),
+    t('benefits.offline'),
+    t('benefits.secure'),
+    t('benefits.sync'),
+  ];
+
   return (
     <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-4 py-20 pt-32 text-center">
       {/* Animated Background Gradient */}
@@ -45,7 +48,7 @@ export function LandingHero() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
         >
           <Zap className="h-4 w-4" />
-          <span>AI-Powered Task Management</span>
+          <span>{t('badge')}</span>
         </motion.div>
 
         {/* Main Heading */}
@@ -55,10 +58,7 @@ export function LandingHero() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="mb-6 text-5xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl"
         >
-          Stay Productive,{" "}
-          <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-            Stay Organized
-          </span>
+          {t('title')}
         </motion.h1>
 
         {/* Subtitle */}
@@ -68,7 +68,7 @@ export function LandingHero() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-8 text-lg text-muted-foreground sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed"
         >
-          The ultimate AI-powered task management solution. Chat with your AI assistant to create, update, and manage tasks through natural conversation. Work offline, sync seamlessly, and stay productive across all devices.
+          {t('subtitle')}
         </motion.p>
 
         {/* Benefits List */}
@@ -104,7 +104,7 @@ export function LandingHero() {
               size="lg"
               className="group h-14 gap-2 px-8 text-base font-semibold shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
             >
-              Get Started Free
+              {t('cta.get_started')}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
@@ -114,7 +114,7 @@ export function LandingHero() {
               variant="outline"
               className="h-14 px-8 text-base font-semibold border-2"
             >
-              Sign In
+              {t('cta.sign_in')}
             </Button>
           </Link>
         </motion.div>
@@ -128,15 +128,15 @@ export function LandingHero() {
         >
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span>Secure & Encrypted</span>
+            <span>{t('trust.secure')}</span>
           </div>
           <div className="flex items-center gap-2">
             <InfinityIcon className="h-5 w-5 text-primary" />
-            <span>Unlimited Tasks</span>
+            <span>{t('trust.unlimited')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            <span>AI-Powered</span>
+            <span>{t('trust.ai_powered')}</span>
           </div>
         </motion.div>
       </div>

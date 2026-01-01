@@ -1,0 +1,312 @@
+{
+  "common": {
+    "buttons": {
+      "save": "محفوظ کریں",
+      "cancel": "منسوخ کریں",
+      "delete": "حذف کریں",
+      "edit": "ترمیم کریں",
+      "create": "بنائیں",
+      "update": "اپ ڈیٹ کریں",
+      "close": "بند کریں",
+      "confirm": "تصدیق کریں",
+      "back": "واپس",
+      "next": "اگلا",
+      "submit": "جمع کرائیں",
+      "reset": "ری سیٹ کریں"
+    },
+    "errors": {
+      "network": "نیٹ ورک کی خرابی۔ براہ کرم دوبارہ کوشش کریں۔",
+      "validation": "براہ کرم اپنا ان پٹ چیک کریں۔",
+      "required": "یہ فیلڈ ضروری ہے۔",
+      "invalid": "غلط ان پٹ۔",
+      "not_found": "نہیں ملا۔",
+      "unauthorized": "غیر مجاز رسائی۔",
+      "server_error": "سرور کی خرابی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+      "timeout": "درخواست کا وقت ختم ہو گیا۔"
+    },
+    "labels": {
+      "loading": "لوڈ ہو رہا ہے...",
+      "success": "کامیابی!",
+      "warning": "انتباہ",
+      "error": "خرابی",
+      "info": "معلومات",
+      "search": "تلاش کریں",
+      "filter": "فلٹر کریں",
+      "sort": "ترتیب دیں"
+    },
+    "messages": {
+      "success_save": "کامیابی سے محفوظ ہو گیا",
+      "success_delete": "کامیابی سے حذف ہو گیا",
+      "success_update": "کامیابی سے اپ ڈیٹ ہو گیا",
+      "confirm_delete": "کیا آپ واقعی اسے حذف کرنا چاہتے ہیں؟",
+      "unsaved_changes": "آپ کے پاس غیر محفوظ تبدیلیاں ہیں"
+    }
+  },
+  "tasks": {
+    "title": "کام",
+    "subtitle": "اپنے کاموں کا انتظام کریں",
+    "page_title": "کام کا انتظام",
+    "page_subtitle": "کانبن بورڈ کے ساتھ اپنے کاموں کو منظم کریں",
+    "empty_state": "ابھی تک کوئی کام نہیں",
+    "empty_description": "شروع کرنے کے لیے اپنا پہلا کام بنائیں",
+    "create_task": "کام بنائیں",
+    "create_new_task": "نیا کام بنائیں",
+    "add_task": "کام شامل کریں",
+    "task_title": "کام کا عنوان",
+    "task_description": "تفصیل",
+    "task_priority": "ترجیح",
+    "task_status": "حالت",
+    "task_due_date": "آخری تاریخ",
+    "task_created": "بنایا گیا",
+    "task_updated": "اپ ڈیٹ کیا گیا",
+    "loading": "کام لوڈ ہو رہے ہیں...",
+    "priorities": {
+      "low": "کم",
+      "medium": "درمیانہ",
+      "high": "زیادہ",
+      "urgent": "فوری"
+    },
+    "statuses": {
+      "pending": "زیر التواء",
+      "in_progress": "جاری",
+      "completed": "مکمل",
+      "cancelled": "منسوخ"
+    },
+    "filters": {
+      "all": "تمام کام",
+      "active": "فعال",
+      "completed": "مکمل",
+      "high_priority": "اعلیٰ ترجیح",
+      "due_today": "آج کی میعاد",
+      "overdue": "تاخیر"
+    },
+    "view_modes": {
+      "list": "فہرست کا منظر",
+      "grid": "گرڈ کا منظر",
+      "kanban": "کانبن کا منظر"
+    },
+    "quick_actions": {
+      "title": "فوری اقدامات",
+      "export": "برآمد کریں",
+      "import": "کام درآمد کریں",
+      "clear_completed": "مکمل شدہ صاف کریں"
+    },
+    "export": {
+      "json": "JSON کے طور پر برآمد کریں",
+      "csv": "CSV کے طور پر برآمد کریں",
+      "pdf": "PDF کے طور پر برآمد کریں",
+      "success": "کام کامیابی سے {format} کے طور پر برآمد ہوئے",
+      "failed": "کام برآمد کرنے میں ناکام"
+    },
+    "import": {
+      "success": "{count} کام کامیابی سے درآمد ہوئے",
+      "failed": "کام درآمد کرنے میں ناکام"
+    },
+    "clear": {
+      "no_completed": "صاف کرنے کے لیے کوئی مکمل شدہ کام نہیں",
+      "confirm": "کیا آپ واقعی {count} مکمل شدہ کام حذف کرنا چاہتے ہیں؟",
+      "success": "{count} مکمل شدہ کام صاف ہو گئے",
+      "failed": "مکمل شدہ کام صاف کرنے میں ناکام"
+    },
+    "actions": {
+      "view_details": "تفصیلات دیکھیں",
+      "edit_task": "کام میں ترمیم کریں",
+      "delete_task": "کام حذف کریں",
+      "mark_complete": "مکمل کے طور پر نشان زد کریں",
+      "mark_incomplete": "نامکمل کے طور پر نشان زد کریں",
+      "duplicate": "نقل بنائیں",
+      "export": "برآمد کریں"
+    },
+    "messages": {
+      "created": "کام کامیابی سے بنایا گیا",
+      "updated": "کام کامیابی سے اپ ڈیٹ ہوا",
+      "deleted": "کام کامیابی سے حذف ہوا",
+      "completed": "کام مکمل کے طور پر نشان زد",
+      "incomplete": "کام نامکمل کے طور پر نشان زد",
+      "confirm_delete": "کیا آپ واقعی اس کام کو حذف کرنا چاہتے ہیں؟",
+      "update_failed": "اپ ڈیٹ ناکام",
+      "delete_failed": "حذف ناکام",
+      "create_failed": "بنانا ناکام",
+      "something_wrong": "کچھ غلط ہو گیا"
+    },
+    "placeholders": {
+      "title": "کام کا عنوان درج کریں...",
+      "description": "کام کی تفصیل درج کریں...",
+      "search": "کام تلاش کریں..."
+    }
+  },
+  "settings": {
+    "title": "ترتیبات",
+    "subtitle": "اپنی ترجیحات کا انتظام کریں",
+    "page_subtitle": "اپنے اکاؤنٹ کی ترجیحات کا انتظام کریں",
+    "loading": "لوڈ ہو رہا ہے...",
+    "tabs": {
+      "profile": "پروفائل",
+      "notifications": "اطلاعات",
+      "security": "سیکیورٹی"
+    },
+    "profile_section": {
+      "title": "پروفائل کی معلومات",
+      "full_name": "مکمل نام",
+      "email": "ای میل",
+      "email_locked": "ای میل تبدیل نہیں کیا جا سکتا",
+      "placeholder_name": "اپنا مکمل نام درج کریں",
+      "save_changes": "تبدیلیاں محفوظ کریں",
+      "saving": "محفوظ ہو رہا ہے..."
+    },
+    "notifications_section": {
+      "title": "اطلاعات کی ترجیحات",
+      "email_notifications": "ای میل اطلاعات",
+      "in_app_notifications": "ایپ میں اطلاعات",
+      "save_preferences": "ترجیحات محفوظ کریں"
+    },
+    "security_section": {
+      "title": "سیکیورٹی کی ترتیبات",
+      "current_password": "موجودہ پاس ورڈ",
+      "new_password": "نیا پاس ورڈ",
+      "confirm_password": "نئے پاس ورڈ کی تصدیق کریں",
+      "update_password": "پاس ورڈ اپ ڈیٹ کریں"
+    },
+    "messages": {
+      "name_required": "نام خالی نہیں ہو سکتا",
+      "no_changes": "محفوظ کرنے کے لیے کوئی تبدیلی نہیں",
+      "profile_updated": "پروفائل کامیابی سے اپ ڈیٹ ہو گیا",
+      "profile_failed": "پروفائل اپ ڈیٹ کرنے میں ناکام",
+      "preferences_saved": "ترجیحات محفوظ ہو گئیں",
+      "password_updated": "پاس ورڈ اپ ڈیٹ ہو گیا"
+    },
+    "language": "زبان",
+    "language_description": "اپنی پسندیدہ زبان منتخب کریں",
+    "theme": "تھیم",
+    "theme_description": "اپنا رنگین تھیم منتخب کریں",
+    "themes": {
+      "light": "روشن",
+      "dark": "تاریک",
+      "system": "سسٹم"
+    },
+    "notifications": "اطلاعات",
+    "notifications_description": "اطلاعات کی ترجیحات کو ترتیب دیں",
+    "account": "اکاؤنٹ",
+    "profile": "پروفائل",
+    "privacy": "رازداری",
+    "about": "کے بارے میں",
+    "version": "ورژن",
+    "save_changes": "تبدیلیاں محفوظ کریں",
+    "reset_to_defaults": "طے شدہ پر ری سیٹ کریں"
+  },
+  "navigation": {
+    "home": "ہوم",
+    "tasks": "کام",
+    "calendar": "کیلنڈر",
+    "dashboard": "ڈیش بورڈ",
+    "settings": "ترتیبات",
+    "chat": "چیٹ",
+    "profile": "پروفائل",
+    "sign_out": "سائن آؤٹ",
+    "menu": "مینو",
+    "close_menu": "مینو بند کریں"
+  },
+  "auth": {
+    "sign_in": "سائن ان",
+    "sign_up": "سائن اپ",
+    "sign_out": "سائن آؤٹ",
+    "email": "ای میل",
+    "email_address": "ای میل ایڈریس",
+    "password": "پاس ورڈ",
+    "confirm_password": "پاس ورڈ کی تصدیق کریں",
+    "forgot_password": "پاس ورڈ بھول گئے",
+    "reset_password": "پاس ورڈ ری سیٹ کریں",
+    "remember_me": "مجھے یاد رکھیں",
+    "no_account": "اکاؤنٹ نہیں ہے؟",
+    "have_account": "پہلے سے اکاؤنٹ ہے؟",
+    "create_account": "اکاؤنٹ بنائیں",
+    "name": "نام",
+    "full_name": "مکمل نام",
+    "welcome_back": "خوش آمدید",
+    "get_started": "شروع کریں",
+    "create_account_title": "اپنا اکاؤنٹ بنائیں",
+    "start_managing": "آج ہی اپنے کاموں کا انتظام شروع کریں",
+    "signin_subtitle": "اپنے کاموں کا انتظام جاری رکھنے کے لیے سائن ان کریں",
+    "signup_subtitle": "اپنے کاموں کا انتظام شروع کرنے کے لیے اکاؤنٹ بنائیں",
+    "passwords_match": "پاس ورڈ مل گئے",
+    "signing_in": "سائن ان ہو رہا ہے...",
+    "signing_up": "اکاؤنٹ بنایا جا رہا ہے...",
+    "email_placeholder": "you@example.com",
+    "password_placeholder": "••••••••",
+    "name_placeholder": "آپ کا مکمل نام",
+    "reset_link_sent": "پاس ورڈ ری سیٹ لنک آپ کے ای میل پر بھیج دیا گیا",
+    "password_reset_success": "پاس ورڈ کامیابی سے ری سیٹ ہو گیا",
+    "invalid_credentials": "غلط ای میل یا پاس ورڈ",
+    "account_created": "اکاؤنٹ کامیابی سے بنایا گیا",
+    "error_occurred": "ایک خرابی واقع ہوئی",
+    "required_field": "یہ فیلڈ ضروری ہے",
+    "password_requirements": "کم از کم 8 حروف بڑے، چھوٹے حروف اور نمبر کے ساتھ",
+    "forgot_password_title": "پاس ورڈ بھول گئے",
+    "forgot_password_subtitle": "اپنا ای میل ایڈریس درج کریں اور ہم آپ کو پاس ورڈ ری سیٹ کرنے کا لنک بھیجیں گے۔",
+    "email_required": "براہ کرم اپنا ای میل ایڈریس درج کریں",
+    "email_invalid": "براہ کرم ایک درست ای میل ایڈریس درج کریں",
+    "processing": "پروسیسنگ...",
+    "continue_reset": "پاس ورڈ ری سیٹ کرنے کے لیے جاری رکھیں",
+    "back_to_signin": "سائن ان پر واپس",
+    "reset_password_title": "پاس ورڈ ری سیٹ کریں",
+    "reset_password_subtitle": "ذیل میں اپنا نیا پاس ورڈ درج کریں",
+    "new_password": "نیا پاس ورڈ",
+    "confirm_new_password": "نئے پاس ورڈ کی تصدیق کریں",
+    "reset_button": "پاس ورڈ ری سیٹ کریں",
+    "resetting": "ری سیٹ ہو رہا ہے...",
+    "password_reset_complete": "پاس ورڈ کامیابی سے ری سیٹ ہو گیا",
+    "email_missing": "ای میل درکار ہے۔ براہ کرم واپس جائیں اور اپنا ای میل درج کریں۔",
+    "password_reset_redirecting": "پاس ورڈ کامیابی سے ری سیٹ ہو گیا! سائن ان پر ری ڈائریکٹ ہو رہا ہے...",
+    "reset_error": "پاس ورڈ ری سیٹ کرتے وقت ایک خرابی واقع ہوئی",
+    "reset_for_email": "{email} کے لیے پاس ورڈ ری سیٹ کریں",
+    "new_password_placeholder": "نیا پاس ورڈ درج کریں",
+    "confirm_new_password_placeholder": "نئے پاس ورڈ کی تصدیق کریں",
+    "request_new_link": "نیا ری سیٹ لنک کی درخواست کریں"
+  },
+  "voice": {
+    "listening": "سن رہا ہے...",
+    "speak_now": "اب بولیں",
+    "command_recognized": "کمانڈ تسلیم شدہ",
+    "processing": "پروسیسنگ...",
+    "microphone": "مائیکروفون",
+    "enable_microphone": "مائیکروفون فعال کریں",
+    "permission_denied": "مائیکروفون کی رسائی سے انکار",
+    "not_supported": "اس براؤزر میں صوتی کمانڈز کی حمایت نہیں",
+    "help": "صوتی کمانڈ مدد",
+    "examples": "مثالیں",
+    "speak_command": "ایک کمانڈ بولیں"
+  },
+  "chatbot": {
+    "title": "AI اسسٹنٹ",
+    "subtitle": "اپنے کاموں کے بارے میں کچھ بھی پوچھیں",
+    "placeholder": "پیغام ٹائپ کریں...",
+    "send": "بھیجیں",
+    "clear": "چیٹ صاف کریں",
+    "new_chat": "نیا چیٹ",
+    "thinking": "سوچ رہا ہے...",
+    "error": "پیغام بھیجنے میں ناکام",
+    "offline": "آپ آف لائن ہیں"
+  },
+  "landing": {
+    "hero": {
+      "badge": "AI سے چلنے والا ٹاسک مینجمنٹ",
+      "title": "پیداواری رہیں، منظم رہیں",
+      "subtitle": "حتمی AI سے چلنے والا ٹاسک مینجمنٹ حل۔ اپنے AI اسسٹنٹ کے ساتھ چیٹ کریں تاکہ قدرتی گفتگو کے ذریعے کام بنائیں، اپ ڈیٹ کریں اور منظم کریں۔ آف لائن کام کریں، آسانی سے مطابقت پذیری کریں، اور تمام آلات پر پیداواری رہیں۔",
+      "benefits": {
+        "ai_powered": "AI سے چلنے والا ٹاسک مینجمنٹ",
+        "offline": "آف لائن بغیر رکاوٹ کام کریں",
+        "secure": "محفوظ اور نجی",
+        "sync": "کراس ڈیوائس مطابقت پذیری"
+      },
+      "cta": {
+        "get_started": "مفت شروع کریں",
+        "sign_in": "سائن ان"
+      },
+      "trust": {
+        "secure": "محفوظ اور خفیہ کردہ",
+        "unlimited": "لامحدود کام",
+        "ai_powered": "AI سے چلنے والا"
+      }
+    }
+  }
+}

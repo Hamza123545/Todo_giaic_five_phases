@@ -1,0 +1,429 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Voice Command Patterns",
+  "description": "Defines all supported voice command intents, patterns, and parameters for task management",
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-31",
+  "commands": [
+    {
+      "intent": "CREATE_TASK",
+      "description": "Create a new task with voice input",
+      "patterns": {
+        "en": [
+          "add task {title}",
+          "create task {title}",
+          "new task {title}",
+          "make task {title}",
+          "create a task {title}",
+          "add a task {title}"
+        ],
+        "ur": [
+          "کام شامل کریں {title}",
+          "نیا کام بنائیں {title}",
+          "کام بنائیں {title}"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "Task title/description",
+          "validation": {
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      ],
+      "examples": {
+        "en": [
+          "Add task Daily standup meeting",
+          "Create task Buy groceries",
+          "New task Review pull request"
+        ],
+        "ur": [
+          "کام شامل کریں روزانہ میٹنگ",
+          "نیا کام بنائیں خریداری کریں"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Creating task: {title}",
+          "ur": "کام بنایا جا رہا ہے: {title}"
+        }
+      },
+      "apiMapping": {
+        "endpoint": "POST /api/tasks",
+        "payload": {
+          "title": "{title}",
+          "completed": false
+        }
+      }
+    },
+    {
+      "intent": "COMPLETE_TASK",
+      "description": "Mark a task as completed",
+      "patterns": {
+        "en": [
+          "complete task {id}",
+          "mark task {id} as done",
+          "finish task {id}",
+          "done task {id}",
+          "mark task {id} complete",
+          "task {id} is done"
+        ],
+        "ur": [
+          "کام مکمل کریں {id}",
+          "کام {id} مکمل کریں",
+          "کام {id} ختم کریں"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "type": "number",
+          "required": true,
+          "description": "Task ID to complete",
+          "validation": {
+            "min": 1
+          }
+        }
+      ],
+      "examples": {
+        "en": [
+          "Complete task 5",
+          "Mark task 12 as done",
+          "Finish task 3"
+        ],
+        "ur": [
+          "کام مکمل کریں 5",
+          "کام 12 ختم کریں"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Marking task {id} as complete",
+          "ur": "کام {id} مکمل کیا جا رہا ہے"
+        }
+      },
+      "apiMapping": {
+        "endpoint": "PATCH /api/tasks/{id}",
+        "payload": {
+          "completed": true
+        }
+      }
+    },
+    {
+      "intent": "DELETE_TASK",
+      "description": "Delete a task permanently",
+      "patterns": {
+        "en": [
+          "delete task {id}",
+          "remove task {id}",
+          "delete task number {id}",
+          "remove task number {id}"
+        ],
+        "ur": [
+          "کام حذف کریں {id}",
+          "کام {id} حذف کریں",
+          "کام نمبر {id} ہٹائیں"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "type": "number",
+          "required": true,
+          "description": "Task ID to delete",
+          "validation": {
+            "min": 1
+          }
+        }
+      ],
+      "examples": {
+        "en": [
+          "Delete task 3",
+          "Remove task 8"
+        ],
+        "ur": [
+          "کام حذف کریں 3",
+          "کام 8 ہٹائیں"
+        ]
+      },
+      "confirmation": {
+        "required": true,
+        "message": {
+          "en": "Are you sure you want to delete task {id}?",
+          "ur": "کیا آپ واقعی کام {id} حذف کرنا چاہتے ہیں؟"
+        }
+      },
+      "apiMapping": {
+        "endpoint": "DELETE /api/tasks/{id}",
+        "payload": null
+      }
+    },
+    {
+      "intent": "UPDATE_TASK",
+      "description": "Update task title or description",
+      "patterns": {
+        "en": [
+          "update task {id} to {title}",
+          "change task {id} to {title}",
+          "rename task {id} to {title}",
+          "edit task {id} to {title}"
+        ],
+        "ur": [
+          "کام {id} کو {title} میں تبدیل کریں",
+          "کام {id} کو اپ ڈیٹ کریں {title}"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "type": "number",
+          "required": true,
+          "description": "Task ID to update",
+          "validation": {
+            "min": 1
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "New task title",
+          "validation": {
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      ],
+      "examples": {
+        "en": [
+          "Update task 5 to Review documentation",
+          "Change task 3 to Buy milk"
+        ],
+        "ur": [
+          "کام 5 کو دستاویزات کا جائزہ لیں میں تبدیل کریں"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Updating task {id} to: {title}",
+          "ur": "کام {id} کو اپ ڈیٹ کیا جا رہا ہے: {title}"
+        }
+      },
+      "apiMapping": {
+        "endpoint": "PATCH /api/tasks/{id}",
+        "payload": {
+          "title": "{title}"
+        }
+      }
+    },
+    {
+      "intent": "FILTER_TASKS",
+      "description": "Filter task list by priority or status",
+      "patterns": {
+        "en": [
+          "show {priority} priority tasks",
+          "show {status} tasks",
+          "filter by {priority} priority",
+          "display {priority} priority tasks",
+          "list {status} tasks"
+        ],
+        "ur": [
+          "{priority} ترجیح کے کام دکھائیں",
+          "{status} کام دکھائیں"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "priority",
+          "type": "string",
+          "required": false,
+          "description": "Task priority level",
+          "validation": {
+            "enum": ["high", "medium", "low", "اعلیٰ", "درمیانہ", "کم"]
+          }
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Task completion status",
+          "validation": {
+            "enum": ["completed", "incomplete", "pending", "مکمل", "نامکمل", "زیر التواء"]
+          }
+        }
+      ],
+      "examples": {
+        "en": [
+          "Show high priority tasks",
+          "Show completed tasks",
+          "Filter by low priority"
+        ],
+        "ur": [
+          "اعلیٰ ترجیح کے کام دکھائیں",
+          "مکمل کام دکھائیں"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Filtering tasks...",
+          "ur": "کاموں کو فلٹر کیا جا رہا ہے..."
+        }
+      },
+      "apiMapping": {
+        "endpoint": "GET /api/tasks?filter={priority|status}",
+        "payload": null
+      }
+    },
+    {
+      "intent": "READ_TASKS",
+      "description": "Read task list aloud using text-to-speech",
+      "patterns": {
+        "en": [
+          "read my tasks",
+          "what are my tasks",
+          "list my tasks",
+          "tell me my tasks",
+          "read tasks aloud",
+          "speak my tasks"
+        ],
+        "ur": [
+          "میرے کام پڑھیں",
+          "میرے کام بتائیں",
+          "کاموں کی فہرست پڑھیں"
+        ]
+      },
+      "parameters": [],
+      "examples": {
+        "en": [
+          "Read my tasks",
+          "What are my tasks",
+          "Tell me my tasks"
+        ],
+        "ur": [
+          "میرے کام پڑھیں",
+          "میرے کام بتائیں"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Reading tasks...",
+          "ur": "کام پڑھے جا رہے ہیں..."
+        }
+      },
+      "apiMapping": {
+        "endpoint": "GET /api/tasks",
+        "payload": null
+      },
+      "ttsOutput": {
+        "en": "You have {count} tasks. {taskList}",
+        "ur": "آپ کے پاس {count} کام ہیں۔ {taskList}"
+      }
+    },
+    {
+      "intent": "SHOW_HELP",
+      "description": "Display available voice commands",
+      "patterns": {
+        "en": [
+          "help",
+          "what can you do",
+          "show commands",
+          "voice commands",
+          "how to use voice",
+          "voice help"
+        ],
+        "ur": [
+          "مدد",
+          "آواز کی کمانڈز",
+          "کمانڈز دکھائیں"
+        ]
+      },
+      "parameters": [],
+      "examples": {
+        "en": [
+          "Help",
+          "What can you do",
+          "Show commands"
+        ],
+        "ur": [
+          "مدد",
+          "آواز کی کمانڈز"
+        ]
+      },
+      "confirmation": {
+        "required": false,
+        "message": {
+          "en": "Showing voice command help...",
+          "ur": "آواز کمانڈ مدد دکھائی جا رہی ہے..."
+        }
+      },
+      "uiAction": "openHelpModal"
+    }
+  ],
+  "parsingRules": {
+    "caseSensitive": false,
+    "trimWhitespace": true,
+    "minimumConfidence": 0.6,
+    "fallbackIntent": "UNKNOWN",
+    "parameterExtraction": {
+      "numberPattern": "\\d+",
+      "titlePattern": "(?:task|کام)\\s+(.+)",
+      "priorityMapping": {
+        "high": ["high", "urgent", "important", "اعلیٰ"],
+        "medium": ["medium", "normal", "درمیانہ"],
+        "low": ["low", "minor", "کم"]
+      },
+      "statusMapping": {
+        "completed": ["completed", "done", "finished", "مکمل"],
+        "incomplete": ["incomplete", "pending", "active", "نامکمل", "زیر التواء"]
+      }
+    }
+  },
+  "errorHandling": {
+    "PERMISSION_DENIED": {
+      "en": "Microphone permission denied. Please allow access in browser settings.",
+      "ur": "مائیکروفون کی اجازت مسترد کر دی گئی۔ براہ کرم براؤزر کی ترتیبات میں رسائی کی اجازت دیں۔"
+    },
+    "NOT_SUPPORTED": {
+      "en": "Voice commands are not supported in this browser. Try Chrome or Edge.",
+      "ur": "اس براؤزر میں آواز کی کمانڈز معاون نہیں ہیں۔ کروم یا ایج استعمال کریں۔"
+    },
+    "NO_SPEECH_DETECTED": {
+      "en": "No speech detected. Please try again.",
+      "ur": "کوئی تقریر محسوس نہیں ہوئی۔ براہ کرم دوبارہ کوشش کریں۔"
+    },
+    "LOW_CONFIDENCE": {
+      "en": "Could not understand the command. Please speak clearly and try again.",
+      "ur": "کمانڈ سمجھ نہیں آئی۔ براہ کرم واضح طور پر بولیں اور دوبارہ کوشش کریں۔"
+    },
+    "UNKNOWN_INTENT": {
+      "en": "Command not recognized. Say 'help' to see available commands.",
+      "ur": "کمانڈ تسلیم نہیں ہوئی۔ دستیاب کمانڈز دیکھنے کے لیے 'مدد' کہیں۔"
+    },
+    "NETWORK_ERROR": {
+      "en": "Network error. Please check your connection and try again.",
+      "ur": "نیٹ ورک کی خرابی۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
+    }
+  },
+  "speechSynthesis": {
+    "defaultVoice": {
+      "en": "en-US",
+      "ur": "ur-PK"
+    },
+    "rate": 1.0,
+    "pitch": 1.0,
+    "volume": 1.0,
+    "taskReadingTemplate": {
+      "en": "Task {id}: {title}. Status: {status}. Priority: {priority}.",
+      "ur": "کام {id}: {title}۔ حیثیت: {status}۔ ترجیح: {priority}۔"
+    }
+  }
+}

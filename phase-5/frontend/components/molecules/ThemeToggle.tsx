@@ -66,7 +66,7 @@ export function ThemeToggle({
         <Moon className={cn('text-indigo-600', iconSizes[size])} />
       )}
       {showLabel && (
-        <span className="ml-2 text-sm font-medium">
+        <span className="ms-2 text-sm font-medium">
           {isDark ? 'Light' : 'Dark'}
         </span>
       )}

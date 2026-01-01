@@ -191,7 +191,7 @@ export function LandingNavbar() {
                         handleSignOut();
                         setIsOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-md"
+                      className="w-full text-start px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-md"
                     >
                       Sign Out
                     </button>

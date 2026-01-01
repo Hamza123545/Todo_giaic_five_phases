@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 import withBundleAnalyzer from "@next/bundle-analyzer";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Create next-intl plugin with i18n request configuration
+const withNextIntl = createNextIntlPlugin('./lib/i18n/request.ts');
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -172,5 +176,5 @@ const pwaConfig = withPWA({
 // Apply PWA config to Next.js config
 const config = pwaConfig(nextConfig);
 
-// Wrap with bundle analyzer
-export default bundleAnalyzer(config);
+// Wrap with next-intl plugin, then bundle analyzer
+export default bundleAnalyzer(withNextIntl(config));

@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import { BRAND_CONFIG } from '@/lib/brand';
 import { useLayoutState } from '@/hooks/useLayoutState';
 import { ThemeToggle } from '@/components/molecules/ThemeToggle';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { NAV_ITEMS } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -87,9 +88,10 @@ export function TopBar({
             </div>
           </div>
 
-          {/* Right: Actions + Theme toggle + Logout */}
+          {/* Right: Actions + Language Selector + Theme toggle + Logout */}
           <div className="flex items-center gap-3">
             {actions}
+            <LanguageSelector />
             {showThemeToggle && <ThemeToggle size="sm" />}
             {userName && (
               <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">
@@ -181,6 +183,9 @@ export function TopBar({
                     {userName}
                   </div>
                 )}
+                <div className="flex items-center justify-center py-2">
+                  <LanguageSelector />
+                </div>
                 <button
                   onClick={async () => {
                     try {

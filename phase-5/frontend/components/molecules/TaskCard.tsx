@@ -103,7 +103,7 @@ export function TaskCard({
                 >
                   <Calendar className="w-3 h-3" />
                   <span>{formatDate(task.due_date)}</span>
-                  {isOverdue && <AlertTriangle className="w-3 h-3 ml-1" />}
+                  {isOverdue && <AlertTriangle className="w-3 h-3 ms-1" />}
                 </div>
               )}
               <span className="px-2 py-0.5 rounded bg-gray-500/10 text-gray-600 dark:text-gray-400">
@@ -134,7 +134,7 @@ export function TaskCard({
                       onUpdate(task.id, { completed: !task.completed });
                       setShowMenu(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-white/10"
+                    className="w-full text-start px-3 py-1.5 text-sm rounded hover:bg-white/10"
                   >
                     {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
                   </button>
@@ -148,7 +148,7 @@ export function TaskCard({
                       }
                       setShowMenu(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-red-500/10 text-red-600 dark:text-red-400"
+                    className="w-full text-start px-3 py-1.5 text-sm rounded hover:bg-red-500/10 text-red-600 dark:text-red-400"
                   >
                     Delete
                   </button>

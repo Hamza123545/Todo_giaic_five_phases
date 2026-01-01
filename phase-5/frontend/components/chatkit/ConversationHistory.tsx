@@ -134,7 +134,7 @@ export function ConversationHistory({
             <button
               key={conversation.id}
               onClick={() => onSelectConversation(conversation.id)}
-              className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+              className={`w-full text-start p-3 rounded-lg transition-all duration-200 ${
                 selectedConversationId === conversation.id
                   ? "bg-blue-500 text-white shadow-lg"
                   : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"

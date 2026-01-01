@@ -15,6 +15,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import { authClient } from "@/lib/auth";
 import { signinSchema, safeParse } from "@/lib/validations";
 import { GlassCard } from "@/components/atoms/GlassCard";
@@ -22,6 +23,7 @@ import { Button } from "@/components/atoms/Button";
 import { cn } from "@/lib/utils";
 
 export default function SigninPage() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
@@ -221,9 +223,9 @@ export default function SigninPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
+          <h2 className="text-3xl font-bold text-foreground">{t('welcome_back')}</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to continue managing your tasks
+            {t('signin_subtitle')}
           </p>
         </div>
 
@@ -246,7 +248,7 @@ export default function SigninPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Email Address <span className="text-red-500" aria-label="required">*</span>
+                {t('email_address')} <span className="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="email"
@@ -266,7 +268,7 @@ export default function SigninPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="you@example.com"
+                placeholder={t('email_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? "email-error" : undefined}
@@ -286,13 +288,13 @@ export default function SigninPage() {
                   htmlFor="password"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Password <span className="text-red-500" aria-label="required">*</span>
+                  {t('password')} <span className="text-red-500" aria-label="required">*</span>
                 </label>
                 <Link
                   href="/forgot-password"
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
                 >
-                  Forgot password?
+                  {t('forgot_password')}?
                 </Link>
               </div>
               <input
@@ -313,7 +315,7 @@ export default function SigninPage() {
                     ? "border-red-500/50 dark:border-red-400/50 focus:ring-red-500/50"
                     : ""
                 )}
-                placeholder="••••••••"
+                placeholder={t('password_placeholder')}
                 aria-required="true"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "password-error" : undefined}
@@ -336,9 +338,9 @@ export default function SigninPage() {
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 block text-sm text-foreground"
+                className="ms-2 block text-sm text-foreground"
               >
-                Remember me
+                {t('remember_me')}
               </label>
             </div>
 
@@ -350,18 +352,18 @@ export default function SigninPage() {
               className="w-full"
               variant="primary"
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? t('signing_in') : t('sign_in')}
             </Button>
           </GlassCard>
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {t('no_account')}{" "}
             <Link
               href="/signup"
               className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
             >
-              Sign up
+              {t('sign_up')}
             </Link>
           </p>
         </form>

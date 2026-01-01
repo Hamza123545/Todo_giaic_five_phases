@@ -9,9 +9,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -31,12 +33,12 @@ export default function ForgotPasswordPage() {
 
     // Simple email validation
     if (!trimmedEmail) {
-      setError("Please enter your email address");
+      setError(t('email_required'));
       return;
     }
 
     if (!isValidEmail(trimmedEmail)) {
-      setError("Please enter a valid email address");
+      setError(t('email_invalid'));
       return;
     }
 
@@ -52,10 +54,10 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Forgot Password
+            {t('forgot_password_title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Enter your email address and we&apos;ll send you a link to reset your password.
+            {t('forgot_password_subtitle')}
           </p>
         </div>
 
@@ -74,7 +76,7 @@ export default function ForgotPasswordPage() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Email Address <span className="text-red-500" aria-label="required">*</span>
+              {t('email_address')} <span className="text-red-500" aria-label="required">*</span>
             </label>
             <input
               id="email"
@@ -92,7 +94,7 @@ export default function ForgotPasswordPage() {
                   ? "border-red-500 dark:border-red-400"
                   : "border-gray-300 dark:border-gray-600"
               }`}
-              placeholder="you@example.com"
+              placeholder={t('email_placeholder')}
               aria-required="true"
               aria-invalid={!!error}
               aria-describedby={error ? "email-error" : undefined}
@@ -113,10 +115,10 @@ export default function ForgotPasswordPage() {
               {isLoading ? (
                 <span className="flex items-center">
                   <LoadingSpinner size="small" />
-                  <span className="ml-2">Processing...</span>
+                  <span className="ms-2">{t('processing')}</span>
                 </span>
               ) : (
-                "Continue to Reset Password"
+                t('continue_reset')
               )}
             </button>
           </div>
@@ -126,7 +128,7 @@ export default function ForgotPasswordPage() {
               href="/signin"
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              Back to Sign In
+              {t('back_to_signin')}
             </Link>
           </div>
         </form>

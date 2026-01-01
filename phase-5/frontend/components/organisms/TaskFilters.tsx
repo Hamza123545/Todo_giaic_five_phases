@@ -84,7 +84,7 @@ export function TaskFilters({
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           placeholder="Search tasks..."
-          className="w-full pl-10 pr-10 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="w-full ps-10 pe-10 py-2 rounded-lg glass-card border border-white/20 dark:border-gray-700/50 bg-white/5 dark:bg-gray-800/5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
         />
         {searchValue && (
           <button
@@ -124,7 +124,7 @@ export function TaskFilters({
                 setShowPriorityFilter(!showPriorityFilter);
               }}
             >
-              <Filter className="w-4 h-4 mr-1" />
+              <Filter className="w-4 h-4 me-1" />
               Priority
             </Button>
             {showPriorityFilter && (

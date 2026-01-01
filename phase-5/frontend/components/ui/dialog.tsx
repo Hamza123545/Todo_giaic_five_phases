@@ -137,7 +137,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex flex-col space-y-1.5 text-center sm:text-left mb-4", className)}
+      className={cn("flex flex-col space-y-1.5 text-center sm:text-start mb-4", className)}
       {...props}
     />
   )
