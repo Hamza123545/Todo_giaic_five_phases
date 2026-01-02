@@ -47,6 +47,7 @@ export function VoiceCommandButton({
     startRecording,
     stopRecording,
     requestPermission,
+    reset,
   } = useVoiceCommands(async (command) => {
     try {
       await onCommand(command);
@@ -54,6 +55,23 @@ export function VoiceCommandButton({
         type: 'success',
         message: t('command_recognized'),
       });
+      
+      // Stop recording after command is processed (especially for CREATE_TASK)
+      // This prevents continuous listening after task creation
+      if (command.intent === 'CREATE_TASK') {
+        // Immediately stop for task creation
+        setTimeout(() => {
+          stopRecording();
+          reset();
+        }, 300);
+      } else {
+        // For other commands, stop after a short delay
+        setTimeout(() => {
+          stopRecording();
+          reset();
+        }, 500);
+      }
+      
       // Clear feedback after 3 seconds
       setTimeout(() => setFeedback({ type: null, message: '' }), 3000);
     } catch (error) {
@@ -156,24 +174,39 @@ export function VoiceCommandButton({
 
       {/* Status Text */}
       {isRecording && (
-        <span className="text-sm font-medium text-red-600 dark:text-red-400 animate-pulse">
-          {t('listening')}
-        </span>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-sm font-medium text-red-600 dark:text-red-400 animate-pulse">
+            {t('listening')}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Click again to stop and process
+          </span>
+        </div>
       )}
 
-      {/* Interim Transcript Display */}
-      {showTranscript && isRecording && state.interimTranscript && (
-        <div className="glass-card px-4 py-2 rounded-lg border border-indigo-500/30 max-w-md">
-          <p className="text-sm text-gray-600 dark:text-gray-400 italic">
-            {state.interimTranscript}
+      {/* Interim Transcript Display - Show what's being captured */}
+      {showTranscript && isRecording && (state.interimTranscript || state.finalTranscript) && (
+        <div className="glass-card px-4 py-3 rounded-lg border border-indigo-500/30 max-w-md bg-white/90 dark:bg-gray-900/90">
+          {state.finalTranscript && (
+            <p className="text-sm text-gray-800 dark:text-gray-200 font-medium mb-1">
+              {state.finalTranscript}
+            </p>
+          )}
+          {state.interimTranscript && (
+            <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+              {state.interimTranscript}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            {state.finalTranscript ? 'Captured. Click to stop and process...' : 'Listening...'}
           </p>
         </div>
       )}
 
       {/* Final Transcript Display (Processing) */}
       {showTranscript && state.isProcessing && state.finalTranscript && (
-        <div className="glass-card px-4 py-2 rounded-lg border border-indigo-500/30 max-w-md">
-          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+        <div className="glass-card px-4 py-3 rounded-lg border border-indigo-500/30 max-w-md bg-indigo-50/50 dark:bg-indigo-900/20">
+          <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
             {state.finalTranscript}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

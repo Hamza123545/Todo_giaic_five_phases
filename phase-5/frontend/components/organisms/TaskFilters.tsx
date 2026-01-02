@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms/Button';
 import { Search, Filter, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface TaskFiltersProps {
   currentFilter: TaskFilter;
@@ -127,17 +128,17 @@ export function TaskFilters({
               <Filter className="w-4 h-4 me-1" />
               Priority
             </Button>
-            {showPriorityFilter && (
+            {showPriorityFilter && typeof window !== 'undefined' && createPortal(
               <>
                 <div
                   className="fixed inset-0 z-[9998]"
                   onClick={() => setShowPriorityFilter(false)}
                 />
                 <div 
-                  className="fixed z-[9999] glass-card-elevated p-2 min-w-[150px] rounded-lg shadow-2xl border border-white/20 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl"
+                  className="fixed z-[10000] glass-card-elevated p-2 min-w-[150px] rounded-lg shadow-2xl border border-white/20 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl"
                   style={{ 
                     top: `${dropdownPosition.top}px`, 
-                    left: `${dropdownPosition.left}px` 
+                    left: `${dropdownPosition.left}px`,
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -160,7 +161,8 @@ export function TaskFilters({
                   </label>
                 ))}
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
         )}

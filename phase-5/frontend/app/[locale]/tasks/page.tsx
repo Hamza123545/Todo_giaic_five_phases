@@ -65,6 +65,9 @@ function TasksContent() {
 
   // Text-to-speech hook for READ_TASKS command
   const { speak, speakSequence, stop: stopSpeaking, state: ttsState } = useTextToSpeech();
+  
+  // Voice commands hook - we'll use this to stop recording after task creation
+  const [voiceCommandsHook, setVoiceCommandsHook] = useState<any>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -258,23 +261,35 @@ function TasksContent() {
         switch (command.intent) {
           case 'CREATE_TASK': {
             const title = command.parameters.title;
+            const description = command.parameters.description || '';
+            const recurringPattern = command.parameters.recurring_pattern;
+            
             if (!title) {
               throw new Error('Task title is required');
             }
 
-            // Create new task via API
+            // Create new task via API with description and recurring pattern
             const response = await api.createTask(user.id, {
               title,
-              description: '',
+              description: description,
               priority: 'medium',
               due_date: undefined,
+              recurring_pattern: recurringPattern,
+              recurring_end_date: undefined,
             });
 
             if (response.success) {
               await loadTasks(user.id, true);
+              
+              const successMsg = recurringPattern 
+                ? `✅ ${t('messages.created')}: "${title}" (${recurringPattern.toLowerCase()} recurring)`
+                : description
+                ? `✅ ${t('messages.created')}: "${title}" - ${description}`
+                : `✅ ${t('messages.created')}: "${title}"`;
+              
               toast({
                 type: 'success',
-                description: `✅ ${t('messages.created')}: "${title}"`,
+                description: successMsg,
                 duration: 3000,
               });
             } else {
@@ -619,7 +634,10 @@ function TasksContent() {
           <div className="flex items-center gap-3">
             {/* Voice Command Button */}
             <VoiceCommandButton
-              onCommand={handleVoiceCommand}
+              onCommand={async (command) => {
+                await handleVoiceCommand(command);
+                // VoiceCommandButton will automatically stop after command processing
+              }}
               showTranscript={true}
             />
 

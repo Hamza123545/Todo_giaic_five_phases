@@ -125,6 +125,17 @@ export class SpeechRecognitionWrapper {
     this.recognition.interimResults = this.config.interimResults ?? true;
     this.recognition.maxAlternatives = this.config.maxAlternatives ?? 1;
     this.recognition.continuous = this.config.continuous ?? false;
+    
+    // Enable grammars for better recognition (if supported)
+    if ('grammars' in this.recognition) {
+      // Some browsers support grammars for better accuracy
+      try {
+        // This helps with longer phrases
+        (this.recognition as any).grammars = null; // Use default grammar
+      } catch (e) {
+        // Ignore if not supported
+      }
+    }
 
     // Set up event handlers
     this.recognition.onstart = () => {
@@ -160,18 +171,42 @@ export class SpeechRecognitionWrapper {
 
   /**
    * Handle speech recognition results
+   * Accumulates all results to capture complete phrases
    */
   private handleResult(event: any): void {
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const result = event.results[i];
-      const transcript = result[0].transcript;
-      const confidence = result[0].confidence;
+    let fullTranscript = '';
+    let finalTranscript = '';
+    let hasFinal = false;
+    let maxConfidence = 0;
 
-      if (result.isFinal) {
-        this.callbacks.onFinalResult?.(transcript, confidence);
-      } else {
-        this.callbacks.onInterimResult?.(transcript);
+    // Accumulate all results (both interim and final)
+    for (let i = 0; i < event.results.length; i++) {
+      const result = event.results[i];
+      const transcript = result[0].transcript.trim();
+      const confidence = result[0].confidence || 0.8;
+
+      if (transcript) {
+        fullTranscript += (fullTranscript ? ' ' : '') + transcript;
+        
+        if (result.isFinal) {
+          finalTranscript += (finalTranscript ? ' ' : '') + transcript;
+          hasFinal = true;
+          maxConfidence = Math.max(maxConfidence, confidence);
+        } else {
+          // Show interim results as user speaks
+          this.callbacks.onInterimResult?.(fullTranscript);
+        }
       }
+    }
+
+    // Only call final result when we have at least one final segment
+    // This ensures we capture the complete phrase
+    if (hasFinal && finalTranscript) {
+      // Use the accumulated final transcript for better accuracy
+      this.callbacks.onFinalResult?.(finalTranscript.trim(), maxConfidence);
+    } else if (fullTranscript) {
+      // If no final results yet, show interim
+      this.callbacks.onInterimResult?.(fullTranscript);
     }
   }
 

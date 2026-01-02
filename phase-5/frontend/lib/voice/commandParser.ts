@@ -13,9 +13,19 @@ import type { Locale } from '@/types/i18n';
  */
 const ENGLISH_PATTERNS: Record<VoiceIntent, RegExp[]> = {
   CREATE_TASK: [
-    /^(?:add|create|new)\s+task\s*:?\s+(.+)$/i,
+    // Pattern with title and description: "create task name of X and description will be Y"
+    /^(?:add|create|new)\s+task\s+(?:of\s+)?name\s+(?:of|is)?\s*(.+?)\s+(?:and\s+)?(?:description\s+(?:will\s+be|is)?\s*(.+))$/i,
+    /^(?:add|create|new)\s+task\s+(?:called|named|titled)\s+(.+?)\s+(?:and\s+)?(?:description\s+(?:will\s+be|is)?\s*(.+))$/i,
+    // Pattern with recurring: "create daily task X"
+    /^(?:add|create|new)\s+(?:daily|weekly|monthly|yearly)\s+task\s+(?:called|named|titled)?\s*(.+)$/i,
+    /^(?:add|create|new)\s+task\s+(?:called|named|titled)?\s*(.+?)\s+(?:recurring|repeat)\s+(?:daily|weekly|monthly|yearly)$/i,
+    // Standard patterns
+    /^(?:add|create|new)\s+task\s*:?\s*(.+)$/i,
+    /^(?:add|create|new)\s+task\s+(?:called|named|titled)?\s*(.+)$/i,
     /^(?:add|create|new)\s+(.+)$/i,
-    /^(?:create|make|add)\s+a?\s*(?:new)?\s*task\s+(?:called|named)?\s*(.+)$/i,
+    /^(?:create|make|add)\s+a?\s*(?:new)?\s*task\s+(?:called|named|titled|about)?\s*(.+)$/i,
+    /^(?:i\s+)?(?:want\s+to\s+)?(?:add|create|make)\s+(?:a\s+)?(?:new\s+)?task\s+(?:called|named|titled|about)?\s*(.+)$/i,
+    /^(?:task|todo)\s*:?\s*(.+)$/i,
   ],
   COMPLETE_TASK: [
     /^(?:complete|finish|done|mark)\s+task\s+(\d+)$/i,
@@ -27,8 +37,9 @@ const ENGLISH_PATTERNS: Record<VoiceIntent, RegExp[]> = {
     /^(?:remove|delete|cancel)\s+task\s+number\s+(\d+)$/i,
   ],
   UPDATE_TASK: [
-    /^(?:update|edit|change)\s+task\s+(\d+)\s+(?:to|with)\s+(.+)$/i,
-    /^(?:rename|change)\s+task\s+(\d+)\s+(.+)$/i,
+    /^(?:update|edit|change|modify)\s+task\s+(\d+)\s+(?:to|with|to be|as)\s+(.+)$/i,
+    /^(?:rename|change|update)\s+task\s+(\d+)\s+(?:to|as|with)\s+(.+)$/i,
+    /^task\s+(\d+)\s+(?:should be|is|to be)\s+(.+)$/i,
   ],
   FILTER_TASKS: [
     /^(?:show|display|filter|list)\s+(?:all\s+)?(\w+)\s+(?:priority\s+)?tasks?$/i,
@@ -98,7 +109,13 @@ export function parseVoiceCommand(
   transcript: string,
   locale: Locale = 'en'
 ): VoiceCommand {
-  const normalized = transcript.trim();
+  // Normalize transcript: remove extra spaces, handle punctuation
+  const normalized = transcript
+    .trim()
+    .replace(/\s+/g, ' ') // Multiple spaces to single space
+    .replace(/[.,;:!?]+/g, ' ') // Remove punctuation but keep as space
+    .trim();
+  
   const patterns = getCommandPatterns(locale);
 
   // Try to match against each intent pattern
@@ -108,15 +125,68 @@ export function parseVoiceCommand(
     for (const regex of regexList) {
       const match = normalized.match(regex);
       if (match) {
+        // For CREATE_TASK, ensure we capture everything after the command
+        if (intent === 'CREATE_TASK' && match[1]) {
+          // If the captured group seems incomplete, try to get more
+          const commandIndex = normalized.toLowerCase().search(/(?:add|create|new|make|task|todo)/i);
+          if (commandIndex >= 0) {
+            const afterCommand = normalized.substring(commandIndex);
+            const taskMatch = afterCommand.match(/(?:add|create|new|make|task|todo)\s*(?:called|named|titled|about|:)?\s*(.+)/i);
+            if (taskMatch && taskMatch[1] && taskMatch[1].length > match[1].length) {
+              match[1] = taskMatch[1].trim();
+            }
+          }
+        }
+        
         return {
           transcript: normalized,
           intent: intent as VoiceIntent,
-          parameters: extractParameters(intent as VoiceIntent, match),
+          parameters: extractParameters(intent as VoiceIntent, match, normalized),
           confidence: calculateConfidence(match),
           timestamp: Date.now(),
           locale,
         };
       }
+    }
+  }
+
+  // Fallback: Try to detect CREATE_TASK even if pattern doesn't match perfectly
+  // This helps with natural speech variations
+  const createTaskKeywords = locale === 'ur' 
+    ? /(?:نیا|کام|شامل|بنائیں)/i
+    : /(?:add|create|new|make|task|todo)/i;
+  
+  if (createTaskKeywords.test(normalized)) {
+    // Try to extract title and description from full transcript
+    // Pattern: "create task name of X and description will be Y"
+    const fullPattern = new RegExp(
+      `(?:${createTaskKeywords.source})\\s+(?:task\\s+)?(?:of\\s+)?name\\s+(?:of|is)?\\s*(.+?)(?:\\s+and\\s+description\\s+(?:will\\s+be|is)\\s*(.+))?$`,
+      'i'
+    );
+    const fullMatch = normalized.match(fullPattern);
+    
+    if (fullMatch) {
+      return {
+        transcript: normalized,
+        intent: 'CREATE_TASK',
+        parameters: extractParameters('CREATE_TASK', fullMatch, normalized),
+        confidence: 0.7, // Lower confidence for fallback
+        timestamp: Date.now(),
+        locale,
+      };
+    }
+    
+    // Fallback: Extract everything after the first command keyword
+    const keywordMatch = normalized.match(new RegExp(`(?:${createTaskKeywords.source})\\s*(?:called|named|titled|about|:)?\\s*(.+)`, 'i'));
+    if (keywordMatch && keywordMatch[1]) {
+      return {
+        transcript: normalized,
+        intent: 'CREATE_TASK',
+        parameters: extractParameters('CREATE_TASK', keywordMatch, normalized),
+        confidence: 0.7, // Lower confidence for fallback
+        timestamp: Date.now(),
+        locale,
+      };
     }
   }
 
@@ -136,12 +206,102 @@ export function parseVoiceCommand(
  */
 function extractParameters(
   intent: VoiceIntent,
-  match: RegExpMatchArray
+  match: RegExpMatchArray,
+  fullTranscript?: string
 ): Record<string, any> {
   switch (intent) {
     case 'CREATE_TASK':
+      // Check if we have both title and description (match[1] and match[2])
+      let title = match[1]?.trim() || '';
+      let description = match[2]?.trim() || '';
+      let recurringPattern: string | undefined = undefined;
+      
+      // Extract recurring pattern from transcript
+      if (fullTranscript) {
+        const recurringMatch = fullTranscript.match(/\b(daily|weekly|monthly|yearly)\b/i);
+        if (recurringMatch) {
+          recurringPattern = recurringMatch[1].toUpperCase();
+        }
+      }
+      
+      // If we only have one match group, it might be title only or combined
+      if (!description && title) {
+        // Try to split title and description if they're combined
+        // Look for patterns like "title and description is Y" or "title, description Y"
+        const splitPatterns = [
+          /^(.+?)\s+(?:and\s+)?(?:description\s+(?:will\s+be|is)?\s*(.+))$/i,
+          /^(.+?)\s*,\s*(?:description\s+)?(.+)$/i,
+          /^(.+?)\s+(?:with\s+description\s+)?(.+)$/i,
+        ];
+        
+        for (const pattern of splitPatterns) {
+          const splitMatch = title.match(pattern);
+          if (splitMatch && splitMatch[1] && splitMatch[2]) {
+            title = splitMatch[1].trim();
+            description = splitMatch[2].trim();
+            break;
+          }
+        }
+      }
+      
+      // If title seems incomplete or too short, try to extract from full transcript
+      if ((!title || title.length < 3) && fullTranscript) {
+        // Find the command keyword and get everything after it
+        const commandPattern = /(?:add|create|new|make|task|todo)\s*(?:of\s+)?name\s+(?:of|is)?\s*(.+?)(?:\s+and\s+description|$)/i;
+        const fullMatch = fullTranscript.match(commandPattern);
+        if (fullMatch && fullMatch[1]) {
+          title = fullMatch[1].trim();
+        } else {
+          // Fallback: get everything after command
+          const fallbackPattern = /(?:add|create|new|make|task|todo)\s*(?:called|named|titled|about|:)?\s*(.+)/i;
+          const fallbackMatch = fullTranscript.match(fallbackPattern);
+          if (fallbackMatch && fallbackMatch[1]) {
+            title = fallbackMatch[1].trim();
+          }
+        }
+      }
+      
+      // Extract description if not already captured
+      if (!description && fullTranscript) {
+        const descPatterns = [
+          // "and description will be X" or "and description is X"
+          /(?:and\s+)?description\s+(?:will\s+be|is)\s*(.+?)(?:\s+and\s+recurring|\s+recurring|$)/i,
+          // "description: X" or ", description X"
+          /(?:,\s*)?description\s*:?\s*(.+?)(?:\s+and\s+recurring|\s+recurring|$)/i,
+          // "with description X"
+          /with\s+description\s+(.+?)(?:\s+and\s+recurring|\s+recurring|$)/i,
+        ];
+        
+        for (const pattern of descPatterns) {
+          const descMatch = fullTranscript.match(pattern);
+          if (descMatch && descMatch[1]) {
+            description = descMatch[1].trim();
+            // Remove trailing "and recurring" or similar phrases
+            description = description.replace(/\s+(?:and\s+)?(?:recurring|repeat|daily|weekly|monthly|yearly).*$/i, '').trim();
+            break;
+          }
+        }
+      }
+      
+      // If still no description, check if title contains "and description" pattern
+      if (!description && title && fullTranscript) {
+        // Pattern: "name of X and description will be Y"
+        const nameDescPattern = /name\s+(?:of|is)?\s*(.+?)\s+and\s+description\s+(?:will\s+be|is)\s*(.+)/i;
+        const nameDescMatch = fullTranscript.match(nameDescPattern);
+        if (nameDescMatch && nameDescMatch[1] && nameDescMatch[2]) {
+          title = nameDescMatch[1].trim();
+          description = nameDescMatch[2].trim();
+        }
+      }
+      
+      // Remove common filler words at the start
+      title = title.replace(/^(?:a|an|the|to|for|with|about)\s+/i, '').trim();
+      description = description.replace(/^(?:a|an|the|to|for|with|about)\s+/i, '').trim();
+      
       return {
-        title: match[1]?.trim() || '',
+        title: title || '',
+        description: description || '',
+        recurring_pattern: recurringPattern,
       };
 
     case 'COMPLETE_TASK':

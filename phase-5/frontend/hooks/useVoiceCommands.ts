@@ -42,6 +42,8 @@ export function useVoiceCommands(
   });
 
   const [lastCommand, setLastCommand] = useState<VoiceCommand | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const accumulatedTranscriptRef = useRef<string>('');
 
   /**
    * Update permission status
@@ -117,6 +119,13 @@ export function useVoiceCommands(
       locale,
       {
         onStart: () => {
+          // Reset accumulated transcript
+          accumulatedTranscriptRef.current = '';
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          
           setState((prev) => ({
             ...prev,
             isRecording: true,
@@ -131,20 +140,48 @@ export function useVoiceCommands(
         },
 
         onSpeechEnd: () => {
+          // Don't stop immediately - wait a bit for more speech
+          // This helps capture longer descriptions
           setState((prev) => ({ ...prev, isSpeaking: false }));
         },
 
         onInterimResult: (transcript) => {
+          // Update interim transcript in real-time
           setState((prev) => ({ ...prev, interimTranscript: transcript }));
         },
 
         onFinalResult: (transcript, confidence) => {
-          setState((prev) => ({
-            ...prev,
-            finalTranscript: transcript,
-            interimTranscript: '',
-          }));
-          processTranscript(transcript);
+          // Accumulate final transcript if we get multiple results
+          setState((prev) => {
+            const accumulated = prev.finalTranscript 
+              ? `${prev.finalTranscript} ${transcript}`.trim()
+              : transcript;
+            
+            // Store in ref for timeout processing
+            accumulatedTranscriptRef.current = accumulated;
+            
+            // Clear existing timeout and set new one
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+            }
+            
+            // Auto-process after 1.5 seconds of silence (user finished speaking)
+            // This allows natural pauses but processes quickly
+            timeoutRef.current = setTimeout(() => {
+              if (accumulatedTranscriptRef.current) {
+                processTranscript(accumulatedTranscriptRef.current);
+                accumulatedTranscriptRef.current = '';
+                // Stop recognition after processing
+                recognitionRef.current?.stop();
+              }
+            }, 1500); // 1.5 seconds of silence before auto-processing
+            
+            return {
+              ...prev,
+              finalTranscript: accumulated,
+              interimTranscript: '',
+            };
+          });
         },
 
         onError: (error: VoiceError) => {
@@ -157,11 +194,22 @@ export function useVoiceCommands(
         },
 
         onEnd: () => {
-          setState((prev) => ({
-            ...prev,
-            isRecording: false,
-            isSpeaking: false,
-          }));
+          // Process any accumulated final transcript when recognition ends
+          setState((prev) => {
+            const transcriptToProcess = accumulatedTranscriptRef.current || prev.finalTranscript;
+            if (transcriptToProcess && !prev.isProcessing) {
+              // Small delay to ensure all results are processed
+              setTimeout(() => {
+                processTranscript(transcriptToProcess);
+                accumulatedTranscriptRef.current = '';
+              }, 200);
+            }
+            return {
+              ...prev,
+              isRecording: false,
+              isSpeaking: false,
+            };
+          });
         },
 
         onNoMatch: () => {
@@ -176,7 +224,7 @@ export function useVoiceCommands(
         },
       },
       {
-        continuous: false, // Stop after one phrase
+        continuous: false, // Stop after processing to prevent continuous listening
         interimResults: true, // Show interim results for better UX
         maxAlternatives: 1,
       }
@@ -236,11 +284,30 @@ export function useVoiceCommands(
   }, [initializeRecognition, requestPermission]);
 
   /**
-   * Stop voice recording
+   * Stop voice recording and process accumulated transcript
    */
   const stopRecording = useCallback(() => {
+    // Clear auto-process timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
     recognitionRef.current?.stop();
-  }, []);
+    
+    // Process any accumulated transcript after stopping
+    setState((prev) => {
+      const transcriptToProcess = accumulatedTranscriptRef.current || prev.finalTranscript;
+      if (transcriptToProcess && !prev.isProcessing) {
+        // Small delay to ensure recognition has stopped
+        setTimeout(() => {
+          processTranscript(transcriptToProcess);
+          accumulatedTranscriptRef.current = '';
+        }, 300);
+      }
+      return prev;
+    });
+  }, [processTranscript]);
 
   /**
    * Abort voice recording (without processing)
@@ -301,6 +368,9 @@ export function useVoiceCommands(
    */
   useEffect(() => {
     return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       recognitionRef.current?.destroy();
     };
   }, []);

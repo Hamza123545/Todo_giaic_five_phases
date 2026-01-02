@@ -44,7 +44,7 @@ export function TaskKanban({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-auto pb-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-auto pb-4" style={{ isolation: 'isolate' }}>
       {KANBAN_COLUMNS.map((status) => {
         const columnTasks = tasksByStatus[status];
         const count = columnTasks.length;
@@ -74,7 +74,7 @@ export function TaskKanban({
               </div>
 
               {/* Tasks */}
-              <div className="flex-1 space-y-3 overflow-y-auto max-h-[600px]">
+              <div className="flex-1 space-y-3 overflow-y-auto max-h-[600px] relative" style={{ zIndex: 1 }}>
                 {columnTasks.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                     No tasks
