@@ -1,0 +1,68 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Azure Event Hubs (Kafka API) broker configuration
+    - name: brokers
+      value: "<EVENT_HUBS_NAMESPACE>.servicebus.windows.net:9093"  # Update with your Event Hubs namespace
+    - name: consumerGroup
+      value: "phase5-consumer-group"
+    - name: clientId
+      value: "phase5-client"
+    
+    # Azure Event Hubs authentication (SASL_SSL with connection string)
+    - name: authType
+      value: "sasl_ssl"
+    - name: saslUsername
+      secretKeyRef:
+        name: kafka-credentials
+        key: username  # Should be "$ConnectionString"
+    - name: saslPassword
+      secretKeyRef:
+        name: kafka-credentials
+        key: password  # Event Hubs connection string
+    - name: saslMechanism
+      value: "PLAIN"
+    
+    # SSL/TLS configuration for Event Hubs
+    - name: enableTLS
+      value: "true"
+    
+    # Consumer configuration
+    - name: maxMessageBytes
+      value: "1048576"  # 1MB max message size
+    - name: consumeRetryInterval
+      value: "200ms"  # Retry interval for failed messages
+    
+    # Producer configuration
+    - name: enableIdempotence
+      value: "true"  # Enable idempotent producer (exactly-once delivery)
+    - name: acks
+      value: "all"  # Wait for all replicas to acknowledge
+    - name: compressionType
+      value: "snappy"  # Enable compression for network efficiency
+    
+    # Partitioning strategy (user_id partitioning)
+    - name: partitionScheme
+      value: "hash"  # Hash-based partitioning
+    # Note: user_id will be included in event payload for partitioning
+    # Event Hubs will hash user_id to determine partition (ensures ordering per user)
+    
+    # Dead Letter Queue (DLQ) Configuration
+    - name: maxDeliveryAttempts
+      value: "10"  # Max delivery attempts before moving to DLQ
+    
+    # DLQ Topic Configuration
+    - name: deadLetterTopic
+      value: "dlq-{topic}"  # DLQ topic naming pattern: dlq-task-events, dlq-reminders, etc.
+
+scopes:
+  - backend
+  - recurring-task-service
+  - notification-service
+
